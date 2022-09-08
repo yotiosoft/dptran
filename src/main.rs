@@ -1,10 +1,12 @@
+mod translate;
+
 enum ArgMode {
     Sentence,
-    TranslateTo,
-    TranslateFrom,
+    SourceLanguage,
+    TargetLanguage,
     Settings,
     SettingAPIKey,
-    SettingDefaultTranslateLanguage
+    SettingDefaultTagetLanguage
 }
 
 fn main() {
@@ -12,7 +14,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // 原文
-    let mut sentence = String::new();
+    let mut text = String::new();
 
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
@@ -43,29 +45,29 @@ fn main() {
             }
             // 翻訳先言語指定
             "-t" | "--to" => {
-                arg_mode = ArgMode::TranslateTo;
+                arg_mode = ArgMode::SourceLanguage;
             }
             // 翻訳元言語指定
             "-f" | "--from" => {
-                arg_mode = ArgMode::TranslateFrom;
+                arg_mode = ArgMode::TargetLanguage;
             }
             // それ以外
             _ => {
                 match arg_mode {
                     // 入力原文
                     ArgMode::Sentence => {
-                        if sentence.len() > 0 {
-                            sentence.push(' ');
+                        if text.len() > 0 {
+                            text.push(' ');
                         }
-                        sentence += arg;
+                        text += arg;
                     }
                     // 翻訳先言語指定
-                    ArgMode::TranslateTo => {
+                    ArgMode::SourceLanguage => {
                         println!("translate to: {}", arg);
                         arg_mode = ArgMode::Sentence;
                     }
                     // 翻訳元言語指定
-                    ArgMode::TranslateFrom => {
+                    ArgMode::TargetLanguage => {
                         println!("translate from: {}", arg);
                         arg_mode = ArgMode::Sentence;
                     }
@@ -78,7 +80,7 @@ fn main() {
                             }
                             // 既定の翻訳先言語
                             "default-lang" => {
-                                arg_mode = ArgMode::SettingDefaultTranslateLanguage;
+                                arg_mode = ArgMode::SettingDefaultTagetLanguage;
                             }
                             // 設定のクリア
                             "clear" => {
@@ -97,7 +99,7 @@ fn main() {
                         break;
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
-                    ArgMode::SettingDefaultTranslateLanguage => {
+                    ArgMode::SettingDefaultTagetLanguage => {
                         println!("default language to: {}", arg);
                         break;
                     }
@@ -106,5 +108,9 @@ fn main() {
         }
     }
 
-    println!("sentence: {}", sentence);
+    println!("sentence: {}", text);
+
+    let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
+    let translated_sentence = translate::translate(auth_key, text, "JA".to_string(), "EN".to_string());
+    println!("translated sentence: {}", translated_sentence);
 }
