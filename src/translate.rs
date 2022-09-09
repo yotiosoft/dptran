@@ -1,6 +1,5 @@
 //! 入力文章の原文の送信と翻訳文の受信
 
-use std::io::{stdout, Write};
 use std::str;
 use curl::easy::Easy;
 
