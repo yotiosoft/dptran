@@ -1,3 +1,4 @@
+use serde_json::{Result, Value};
 mod translate;
 
 enum ArgMode {
@@ -113,4 +114,7 @@ fn main() {
     let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
     let translated_sentence = translate::translate(auth_key, text, "JA".to_string(), "EN".to_string());
     println!("translated sentence: {}", translated_sentence);
+
+    let j_translate: Value = serde_json::from_str(&translated_sentence).unwrap();
+    println!("translated sentence: {}", j_translate["translations"][0]["text"]);
 }
