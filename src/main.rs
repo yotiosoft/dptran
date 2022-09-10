@@ -137,6 +137,10 @@ fn main() {
             }
         };
 
+        if mode == ExecutionMode::Interactive && input.clone().trim_end() == "exit" {
+            break;
+        }
+
         let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
         let target_lang = "JA".to_string();
         let source_lang = "EN".to_string();
