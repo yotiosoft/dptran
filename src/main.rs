@@ -17,8 +17,8 @@ fn interactive_mode(auth_key: String, target_lang: String, source_lang: String) 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line.");
 
-        println!("input: {}", input.trim_end());
-        if input == "exit" {
+        let intemp = input.clone().trim_end().to_string();
+        if intemp == "exit" {
             break;
         }
 
