@@ -18,7 +18,7 @@ fn interactive_mode(auth_key: String, target_lang: String, source_lang: String) 
         io::stdin().read_line(&mut input).expect("Failed to read line.");
 
         if input == "exit" {
-            break
+            break;
         }
 
         let translated_sentence = translate::translate(auth_key.clone(), input, target_lang.clone(), source_lang.clone());
