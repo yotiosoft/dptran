@@ -11,37 +11,10 @@ enum ArgMode {
     SettingDefaultTagetLanguage
 }
 
-// 対話モード
-fn interactive_mode(auth_key: String, target_lang: String, source_lang: String) -> core::result::Result<(), io::Error> {
-    loop {
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).expect("Failed to read line.");
-
-        let intemp = input.clone().trim_end().to_string();
-        if intemp == "exit" {
-            break;
-        }
-
-        let translated_sentence = translate::translate(auth_key.clone(), input, target_lang.clone(), source_lang.clone());
-        match translated_sentence {
-            Ok(s) => {
-                println!("translated: {}", s);
-                let j_translate: Result<Value> = serde_json::from_str(&s);
-                match j_translate {
-                    Ok(v) => {
-                        println!("translated sentence: {}", v["translations"][0]["text"]);
-                    }
-                    Err(e) => {
-                        println!("json parse error: {}", e);
-                    }
-                }
-            }
-            Err(e) => {
-                println!("send text error: {}", e);
-            }
-        }
-    }
-    Ok(())
+#[derive(PartialEq)]
+enum ExecutionMode {
+    Translate,
+    Interactive
 }
 
 fn main() {
@@ -146,35 +119,48 @@ fn main() {
     println!("sentence: {}", text);
 
     // 原文が0文字なら対話モードへ
-    if text.len() == 0 {
+    let mode = if text.len() == 0 {
+        ExecutionMode::Interactive
+    } else {
+        ExecutionMode::Translate
+    };
+
+    loop {
+        let input = match mode {
+            ExecutionMode::Interactive => {
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).expect("Failed to read line.");
+                input
+            }
+            ExecutionMode::Translate => {
+                text.clone()
+            }
+        };
+
         let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
-        let translated_sentence = interactive_mode(auth_key, "JA".to_string(), "EN".to_string());
-        
+        let target_lang = "JA".to_string();
+        let source_lang = "EN".to_string();
+        let translated_sentence = translate::translate(auth_key.clone(), input, target_lang.clone(), source_lang.clone());
         match translated_sentence {
-            Ok(()) => {},
+            Ok(s) => {
+                println!("translated: {}", s);
+                let j_translate: Result<Value> = serde_json::from_str(&s);
+                match j_translate {
+                    Ok(v) => {
+                        println!("translated sentence: {}", v["translations"][0]["text"]);
+                    }
+                    Err(e) => {
+                        println!("json parse error: {}", e);
+                    }
+                }
+            }
             Err(e) => {
                 println!("send text error: {}", e);
             }
         }
-    }
 
-    let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
-    let translated_sentence = translate::translate(auth_key, text, "JA".to_string(), "EN".to_string());
-    match translated_sentence {
-        Ok(s) => {
-            println!("translated: {}", s);
-            let j_translate: Result<Value> = serde_json::from_str(&s);
-            match j_translate {
-                Ok(v) => {
-                    println!("translated sentence: {}", v["translations"][0]["text"]);
-                }
-                Err(e) => {
-                    println!("json parse error: {}", e);
-                }
-            }
-        }
-        Err(e) => {
-            println!("send text error: {}", e);
+        if mode == ExecutionMode::Translate {
+            break;
         }
     }
 }
