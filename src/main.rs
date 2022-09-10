@@ -111,6 +111,12 @@ fn main() {
 
     println!("sentence: {}", text);
 
+    // 原文が0文字なら対話モードへ
+    if text.len() == 0 {
+        println!("interactive mode");
+        return;
+    }
+
     let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
     let translated_sentence = translate::translate(auth_key, text, "JA".to_string(), "EN".to_string());
     match translated_sentence {
