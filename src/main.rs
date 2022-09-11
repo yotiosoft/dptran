@@ -27,13 +27,6 @@ struct Settings {
     default_target_language: String
 }
 
-fn get_api() -> String {
-    let mut api_key = String::new();
-    let mut f = File::open("api_key.txt").expect("api key has not been set");
-    f.read_to_string(&mut api_key).expect("api_key.txt is empty");
-    api_key
-}
-
 const SETTING_FILEPATH: &str = "settings.json";
 fn get_settings() -> Settings {
     // ファイルが存在しない場合は新規作成＆初期化
@@ -60,8 +53,8 @@ fn get_settings() -> Settings {
     default_target_language = v["default_target_language"].to_string();
 
     Settings {
-        api_key: api_key,
-        default_target_language: default_target_language
+        api_key: api_key.trim_matches('"').to_string(),
+        default_target_language: default_target_language.trim_matches('"').to_string()
     }
 }
 
