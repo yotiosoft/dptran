@@ -1,4 +1,6 @@
 /target
 */api_key.txt
 api_key.txt
+*/settings.json
+settings.json
 *.DS_Store

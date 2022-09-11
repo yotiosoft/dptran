@@ -36,6 +36,7 @@ fn get_api() -> String {
 
 const SETTING_FILEPATH: &str = "settings.json";
 fn get_settings() -> Settings {
+    // ファイルが存在しない場合は新規作成＆初期化
     if Path::new(SETTING_FILEPATH).exists() == false {
         let mut f = File::create(SETTING_FILEPATH).expect("failed to create settings.json");
         let settings = Settings {
@@ -46,14 +47,18 @@ fn get_settings() -> Settings {
         f.write_all(json_str.as_bytes()).expect("failed to write settings.json");
     }
 
+    // 設定ファイル読み込み
     let mut api_key = String::new();
     let mut default_target_language = String::new();
-    let mut f = File::open("settings.json").expect("settings.json has not been set");
+    let mut f = File::open(SETTING_FILEPATH).expect("settings.json has not been set");
     let mut s = String::new();
-    f.read_to_string(&mut s).expect("settings.json is empty");
+    f.read_to_string(&mut s).expect(format!("{} is empty", SETTING_FILEPATH).as_str());
     let v: Value = serde_json::from_str(&s).unwrap();
+
+    // 各設定項目の取得
     api_key = v["api_key"].to_string();
     default_target_language = v["default_target_language"].to_string();
+
     Settings {
         api_key: api_key,
         default_target_language: default_target_language
@@ -61,8 +66,14 @@ fn get_settings() -> Settings {
 }
 
 fn main() {
-    // APIキーの取得
-    let auth_key = get_api();
+    // 設定の取得
+    let settings = get_settings();
+
+    // APIキーの確認
+    if settings.api_key.is_empty() {
+        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s key [YOUR_API_KEY]");
+        return;
+    }
 
     // 文字列を受け取る
     let args: Vec<String> = std::env::args().collect();
@@ -189,7 +200,7 @@ fn main() {
 
         let target_lang = "JA".to_string();
         let source_lang = "EN".to_string();
-        let translated_sentence = translate::translate(auth_key.clone(), input, target_lang.clone(), source_lang.clone());
+        let translated_sentence = translate::translate(&settings.api_key, input, &target_lang, &source_lang);
         match translated_sentence {
             Ok(s) => {
                 println!("translated: {}", s);
