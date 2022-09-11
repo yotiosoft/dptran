@@ -1,6 +1,8 @@
 use std::{io, env};
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::Path;
+use serde::{Deserialize, Serialize};
 use serde_json::{Result, Value};
 mod translate;
 
@@ -19,11 +21,43 @@ enum ExecutionMode {
     Interactive
 }
 
+#[derive(Serialize, Deserialize)]
+struct Settings {
+    api_key: String,
+    default_target_language: String
+}
+
 fn get_api() -> String {
     let mut api_key = String::new();
     let mut f = File::open("api_key.txt").expect("api key has not been set");
     f.read_to_string(&mut api_key).expect("api_key.txt is empty");
     api_key
+}
+
+const SETTING_FILEPATH: &str = "settings.json";
+fn get_settings() -> Settings {
+    if Path::new(SETTING_FILEPATH).exists() == false {
+        let mut f = File::create(SETTING_FILEPATH).expect("failed to create settings.json");
+        let settings = Settings {
+            api_key: String::new(),
+            default_target_language: String::new()
+        };
+        let json_str = serde_json::to_string(&settings).expect("failed to serialize settings");
+        f.write_all(json_str.as_bytes()).expect("failed to write settings.json");
+    }
+
+    let mut api_key = String::new();
+    let mut default_target_language = String::new();
+    let mut f = File::open("settings.json").expect("settings.json has not been set");
+    let mut s = String::new();
+    f.read_to_string(&mut s).expect("settings.json is empty");
+    let v: Value = serde_json::from_str(&s).unwrap();
+    api_key = v["api_key"].to_string();
+    default_target_language = v["default_target_language"].to_string();
+    Settings {
+        api_key: api_key,
+        default_target_language: default_target_language
+    }
 }
 
 fn main() {
