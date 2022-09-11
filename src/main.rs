@@ -1,4 +1,6 @@
-use std::io;
+use std::{io, env};
+use std::fs::File;
+use std::io::prelude::*;
 use serde_json::{Result, Value};
 mod translate;
 
@@ -17,7 +19,17 @@ enum ExecutionMode {
     Interactive
 }
 
+fn get_api() -> String {
+    let mut api_key = String::new();
+    let mut f = File::open("api_key.txt").expect("api key has not been set");
+    f.read_to_string(&mut api_key).expect("api_key.txt is empty");
+    api_key
+}
+
 fn main() {
+    // APIキーの取得
+    let auth_key = get_api();
+
     // 文字列を受け取る
     let args: Vec<String> = std::env::args().collect();
 
@@ -141,7 +153,6 @@ fn main() {
             break;
         }
 
-        let auth_key = "1c664a9f-4696-d92d-1caa-b4a3634ec562:fx".to_string();
         let target_lang = "JA".to_string();
         let source_lang = "EN".to_string();
         let translated_sentence = translate::translate(auth_key.clone(), input, target_lang.clone(), source_lang.clone());
