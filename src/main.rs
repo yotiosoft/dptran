@@ -34,27 +34,22 @@ fn get_settings() -> Settings {
         let mut f = File::create(SETTING_FILEPATH).expect("failed to create settings.json");
         let settings = Settings {
             api_key: String::new(),
-            default_target_language: String::new()
+            default_target_language: "JA".to_string()
         };
         let json_str = serde_json::to_string(&settings).expect("failed to serialize settings");
         f.write_all(json_str.as_bytes()).expect("failed to write settings.json");
     }
 
     // 設定ファイル読み込み
-    let mut api_key = String::new();
-    let mut default_target_language = String::new();
     let mut f = File::open(SETTING_FILEPATH).expect("settings.json has not been set");
     let mut s = String::new();
     f.read_to_string(&mut s).expect(format!("{} is empty", SETTING_FILEPATH).as_str());
     let v: Value = serde_json::from_str(&s).unwrap();
 
     // 各設定項目の取得
-    api_key = v["api_key"].to_string();
-    default_target_language = v["default_target_language"].to_string();
-
     Settings {
-        api_key: api_key.trim_matches('"').to_string(),
-        default_target_language: default_target_language.trim_matches('"').to_string()
+        api_key: v["api_key"].to_string().trim_matches('"').to_string(),
+        default_target_language: v["default_target_language"].to_string().trim_matches('"').to_string()
     }
 }
 
@@ -76,6 +71,8 @@ fn main() {
 
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
+    let mut source_lang = String::new();
+    let mut target_lang = String::new();
     for arg in &args[1..] {
         match arg.as_str() {
             // オプションの抽出
@@ -103,11 +100,11 @@ fn main() {
             }
             // 翻訳先言語指定
             "-t" | "--to" => {
-                arg_mode = ArgMode::SourceLanguage;
+                arg_mode = ArgMode::TargetLanguage;
             }
             // 翻訳元言語指定
             "-f" | "--from" => {
-                arg_mode = ArgMode::TargetLanguage;
+                arg_mode = ArgMode::SourceLanguage;
             }
             // それ以外
             _ => {
@@ -121,12 +118,14 @@ fn main() {
                     }
                     // 翻訳先言語指定
                     ArgMode::SourceLanguage => {
-                        println!("translate to: {}", arg);
+                        println!("translate from: {}", arg);
+                        source_lang = arg.to_string();
                         arg_mode = ArgMode::Sentence;
                     }
                     // 翻訳元言語指定
                     ArgMode::TargetLanguage => {
-                        println!("translate from: {}", arg);
+                        println!("translate to: {}", arg);
+                        target_lang = arg.to_string();
                         arg_mode = ArgMode::Sentence;
                     }
                     // 各設定項目のオプション
@@ -169,11 +168,18 @@ fn main() {
     println!("sentence: {}", text);
 
     // 原文が0文字なら対話モードへ
-    let mode = if text.len() == 0 {
+    let mode = if text.is_empty() {
         ExecutionMode::Interactive
     } else {
         ExecutionMode::Translate
     };
+
+    // 翻訳先言語が未指定なら既定値へ
+    if target_lang.is_empty() {
+        target_lang = settings.default_target_language.clone();
+    }
+    println!("target language: {}", target_lang);
+    source_lang = "JA".to_string();
 
     loop {
         let input = match mode {
@@ -190,9 +196,11 @@ fn main() {
         if mode == ExecutionMode::Interactive && input.clone().trim_end() == "exit" {
             break;
         }
+        // ToDo: パイプライン入力の検知
+        if mode == ExecutionMode::Interactive && input.clone().trim_end().is_empty() {
+            break;
+        }
 
-        let target_lang = "JA".to_string();
-        let source_lang = "EN".to_string();
         let translated_sentence = translate::translate(&settings.api_key, input, &target_lang, &source_lang);
         match translated_sentence {
             Ok(s) => {
