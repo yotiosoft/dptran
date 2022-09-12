@@ -5,6 +5,8 @@ use std::path::Path;
 use std::process::exit;
 use serde::{Deserialize, Serialize};
 use serde_json::{Result, Value};
+use regex::Regex;
+
 mod translate;
 
 enum ArgMode {
@@ -67,7 +69,6 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
             "-h" | "--help" => {
                 println!("Usage: dptran [options]");
                 println!("Options:");
-                println!("  -i, --interactive\t\tInteractive mode");
                 println!("  -h, --help\t\tShow this help message");
                 println!("  -v, --version\t\tShow version");
                 exit(0);
@@ -96,6 +97,14 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
             }
             // それ以外
             _ => {
+                // 無効なオプション
+                let re = Regex::new(r"^-.+").unwrap();
+                if re.is_match(arg.as_str()) {
+                    println!("Invalid option: {}", arg);
+                    exit(1);
+                }
+
+                // それ以外
                 match arg_mode {
                     // 入力原文
                     ArgMode::Sentence => {
