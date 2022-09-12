@@ -69,6 +69,9 @@ fn main() {
     // 原文
     let mut text = String::new();
 
+    // 原文が0文字なら対話モードへ
+    let mut mode = ExecutionMode::Translate;
+
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -80,6 +83,7 @@ fn main() {
             "-h" | "--help" => {
                 println!("Usage: dptran [options]");
                 println!("Options:");
+                println!("  -i, --interactive\t\tInteractive mode");
                 println!("  -h, --help\t\tShow this help message");
                 println!("  -v, --version\t\tShow version");
                 return;
@@ -105,6 +109,10 @@ fn main() {
             // 翻訳元言語指定
             "-f" | "--from" => {
                 arg_mode = ArgMode::SourceLanguage;
+            }
+            // 対話モード
+            "-i" | "--interactive" => {
+                mode = ExecutionMode::Interactive;
             }
             // それ以外
             _ => {
@@ -167,19 +175,10 @@ fn main() {
 
     println!("sentence: {}", text);
 
-    // 原文が0文字なら対話モードへ
-    let mode = if text.is_empty() {
-        ExecutionMode::Interactive
-    } else {
-        ExecutionMode::Translate
-    };
-
     // 翻訳先言語が未指定なら既定値へ
     if target_lang.is_empty() {
         target_lang = settings.default_target_language.clone();
     }
-    println!("target language: {}", target_lang);
-    source_lang = "JA".to_string();
 
     loop {
         let input = match mode {
@@ -193,11 +192,12 @@ fn main() {
             }
         };
 
+        // 対話モード："exit"で終了
         if mode == ExecutionMode::Interactive && input.clone().trim_end() == "exit" {
             break;
         }
-        // ToDo: パイプライン入力の検知
-        if mode == ExecutionMode::Interactive && input.clone().trim_end().is_empty() {
+        // 通常モード：空文字列なら終了
+        if mode == ExecutionMode::Translate && input.clone().trim_end().is_empty() {
             break;
         }
 
