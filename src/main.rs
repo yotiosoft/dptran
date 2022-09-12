@@ -2,6 +2,7 @@ use std::{io, env};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::process::exit;
 use serde::{Deserialize, Serialize};
 use serde_json::{Result, Value};
 mod translate;
@@ -53,26 +54,12 @@ fn get_settings() -> Settings {
     }
 }
 
-fn main() {
-    // 設定の取得
-    let settings = get_settings();
-
-    // APIキーの確認
-    if settings.api_key.is_empty() {
-        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s key [YOUR_API_KEY]");
-        return;
-    }
-
-    // 文字列を受け取る
-    let args: Vec<String> = std::env::args().collect();
-
-    // 原文
-    let mut text = String::new();
-
+fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
     let mut target_lang = String::new();
+    let mut text = String::new();
     for arg in &args[1..] {
         match arg.as_str() {
             // オプションの抽出
@@ -83,17 +70,17 @@ fn main() {
                 println!("  -i, --interactive\t\tInteractive mode");
                 println!("  -h, --help\t\tShow this help message");
                 println!("  -v, --version\t\tShow version");
-                return;
+                exit(0);
             }
             // バージョン情報
             "-v" | "--version" => {
                 println!("dptran {}", env!("CARGO_PKG_VERSION"));
-                return;
+                exit(0);
             }
             // 残り翻訳可能文字数
             "-r" | "--remain" => {
                 println!("remain");
-                return;
+                exit(0);
             }
             // 設定（次の引数を参照）
             "-s" | "--set" => {
@@ -166,9 +153,7 @@ fn main() {
         }
     }
 
-    println!("sentence: {}", text);
-
-    // 通常モードかつ引数に原文の文字列がなければ対話モードへ
+    // 引数に原文がなければ対話モードへ
     let mode = if text.is_empty() {
         ExecutionMode::Interactive
     } else {
@@ -180,6 +165,27 @@ fn main() {
         target_lang = settings.default_target_language.clone();
     }
 
+    (mode, source_lang, target_lang, text)
+}
+
+fn main() {
+    // 設定の取得
+    let settings = get_settings();
+
+    // APIキーの確認
+    if settings.api_key.is_empty() {
+        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s key [YOUR_API_KEY]");
+        return;
+    }
+
+    // 文字列を受け取る
+    let args: Vec<String> = std::env::args().collect();
+
+    // 引数を解析
+    let (mode, source_lang, target_lang, text) = get_args(args, &settings);
+
+    println!("sentence: {}", text);
+
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
@@ -189,7 +195,6 @@ fn main() {
             ExecutionMode::Interactive => {
                 let mut input = String::new();
                 let bytes = io::stdin().read_line(&mut input).expect("Failed to read line.");
-
                 if bytes == 0 {
                     break;
                 }
