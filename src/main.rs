@@ -199,7 +199,12 @@ fn main() {
             }
             ExecutionMode::Pipeline => {
                 let mut input = String::new();
-                io::stdin().read_line(&mut input).expect("Failed to read line.");
+                let bytes = io::stdin().read_line(&mut input).expect("Failed to read line.");
+
+                if bytes == 0 {
+                    break;
+                }
+
                 input
             }
             ExecutionMode::Argment => {
@@ -235,7 +240,7 @@ fn main() {
             }
         }
 
-        if mode == ExecutionMode::Argment || mode == ExecutionMode::Pipeline {
+        if mode == ExecutionMode::Argment {
             break;
         }
     }
