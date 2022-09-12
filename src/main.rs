@@ -180,7 +180,11 @@ fn main() {
         target_lang = settings.default_target_language.clone();
     }
 
+    // 翻訳
+    // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
+        // 対話モードなら標準入力から取得
+        // 通常モードでは引数から取得
         let input = match mode {
             ExecutionMode::Interactive => {
                 let mut input = String::new();
