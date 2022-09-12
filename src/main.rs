@@ -17,9 +17,8 @@ enum ArgMode {
 
 #[derive(PartialEq)]
 enum ExecutionMode {
-    Argment,
-    Interactive,
-    Pipeline
+    Normal,
+    Interactive
 }
 
 #[derive(Serialize, Deserialize)]
@@ -70,9 +69,6 @@ fn main() {
     // 原文
     let mut text = String::new();
 
-    // 原文が0文字なら対話モードへ
-    let mut mode = ExecutionMode::Argment;
-
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -110,10 +106,6 @@ fn main() {
             // 翻訳元言語指定
             "-f" | "--from" => {
                 arg_mode = ArgMode::SourceLanguage;
-            }
-            // 対話モード
-            "-p" | "--pipe" => {
-                mode = ExecutionMode::Pipeline;
             }
             // それ以外
             _ => {
@@ -177,9 +169,11 @@ fn main() {
     println!("sentence: {}", text);
 
     // 通常モードかつ引数に原文の文字列がなければ対話モードへ
-    if mode == ExecutionMode::Argment && text.is_empty() {
-        mode = ExecutionMode::Interactive;
-    }
+    let mode = if text.is_empty() {
+        ExecutionMode::Interactive
+    } else {
+        ExecutionMode::Normal
+    };
 
     // 翻訳先言語が未指定なら既定値へ
     if target_lang.is_empty() {
@@ -194,11 +188,6 @@ fn main() {
         let input = match mode {
             ExecutionMode::Interactive => {
                 let mut input = String::new();
-                io::stdin().read_line(&mut input).expect("Failed to read line.");
-                input
-            }
-            ExecutionMode::Pipeline => {
-                let mut input = String::new();
                 let bytes = io::stdin().read_line(&mut input).expect("Failed to read line.");
 
                 if bytes == 0 {
@@ -207,7 +196,7 @@ fn main() {
 
                 input
             }
-            ExecutionMode::Argment => {
+            ExecutionMode::Normal => {
                 text.clone()
             }
         };
@@ -217,7 +206,7 @@ fn main() {
             break;
         }
         // 通常モード：空文字列なら終了
-        if mode == ExecutionMode::Argment && input.clone().trim_end().is_empty() {
+        if mode == ExecutionMode::Normal && input.clone().trim_end().is_empty() {
             break;
         }
 
@@ -240,7 +229,7 @@ fn main() {
             }
         }
 
-        if mode == ExecutionMode::Argment {
+        if mode == ExecutionMode::Normal {
             break;
         }
     }
