@@ -193,8 +193,6 @@ fn main() {
     // 引数を解析
     let (mode, source_lang, target_lang, text) = get_args(args, &settings);
 
-    println!("sentence: {}", text);
-
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
@@ -204,10 +202,10 @@ fn main() {
             ExecutionMode::Interactive => {
                 let mut input = String::new();
                 let bytes = io::stdin().read_line(&mut input).expect("Failed to read line.");
+                // 入力が空なら終了
                 if bytes == 0 {
                     break;
                 }
-
                 input
             }
             ExecutionMode::Normal => {
@@ -224,25 +222,31 @@ fn main() {
             break;
         }
 
+        // 翻訳
         let translated_sentence = translate::translate(&settings.api_key, input, &target_lang, &source_lang);
         match translated_sentence {
             Ok(s) => {
-                println!("translated: {}", s);
+                // 翻訳結果が成功なら取得したJSONデータをパース
                 let j_translate: Result<Value> = serde_json::from_str(&s);
                 match j_translate {
+                    // パース成功なら翻訳結果を表示
                     Ok(v) => {
-                        println!("translated sentence: {}", v["translations"][0]["text"]);
+                        let len = v["translations"][0]["text"].to_string().len();
+                        let translated_text = v["translations"][0]["text"].to_string()[1..len-1].to_string();
+                        println!("{}", translated_text);
                     }
+                    // パース失敗ならエラー表示
                     Err(e) => {
                         println!("json parse error: {}", e);
                     }
                 }
             }
+            // 翻訳結果が失敗ならエラー表示
             Err(e) => {
                 println!("send text error: {}", e);
             }
         }
-
+        // 通常モードの場合、一回でループを抜ける
         if mode == ExecutionMode::Normal {
             break;
         }
