@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Result, Value};
 use regex::Regex;
 
-mod translate;
+mod connection;
 
 enum ArgMode {
     Sentence,
@@ -78,12 +78,12 @@ fn show_version() {
     println!("dptran {}", env!("CARGO_PKG_VERSION"));
 }
 
-fn get_remain() -> int {
+fn get_remain() -> i32 {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let d = format!("auth_key={}", get_settings().api_key);
-    let res = translate::connection::send_and_get(url, d).expect("failed to get remain");
+    let res = connection::send_and_get(url, d).expect("failed to get remain");
     let v: Value = serde_json::from_str(&res).expect("failed to parse json");
-    v["character_count"].as_i64().unwrap() as int
+    v["character_count"].as_i64().unwrap() as i32
 }
 
 fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
@@ -204,6 +204,18 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
     (mode, source_lang, target_lang, text)
 }
 
+/// 翻訳
+pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
+    let url = "https://api-free.deepl.com/v2/translate".to_string();
+    let d = if source_lang.trim_matches('"').is_empty() {
+        format!("auth_key={}&text={}&target_lang={}", auth_key, text, target_lang)
+    } else {
+        format!("auth_key={}&text={}&target_lang={}&source_lang={}", auth_key, text, target_lang, source_lang)
+    };
+    
+    connection::send_and_get(url, d)
+}
+
 fn main() {
     // 設定の取得
     let settings = get_settings();
@@ -250,7 +262,7 @@ fn main() {
         }
 
         // 翻訳
-        let translated_sentence = translate::translate(&settings.api_key, input, &target_lang, &source_lang);
+        let translated_sentence = connection::translate(&settings.api_key, input, &target_lang, &source_lang);
         match translated_sentence {
             Ok(s) => {
                 // 翻訳結果が成功なら取得したJSONデータをパース
