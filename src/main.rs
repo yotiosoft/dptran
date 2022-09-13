@@ -89,19 +89,30 @@ fn get_remain() -> (i32, i32) {
     (character_count, character_limit)
 }
 
-fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
+struct FromArgs {
+    sentence: String,
+    source_language: String,
+    target_language: String,
+    mode: ExecutionMode
+}
+fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, FromArgs), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
-    let mut source_lang = String::new();
-    let mut target_lang = String::new();
-    let mut text = String::new();
+
+    let mut from_args = FromArgs {
+        sentence: String::new(),
+        source_language: String::new(),
+        target_language: String::new(),
+        mode: ExecutionMode::Normal
+    };
+
     for arg in &args[1..] {
         match arg.as_str() {
             // オプションの抽出
             // ヘルプ
             "-h" | "--help" => {
                 show_help();
-                exit(0);
+                Ok(true, from_args)
             }
             // バージョン情報
             "-v" | "--version" => {
