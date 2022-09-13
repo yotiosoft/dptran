@@ -74,6 +74,18 @@ fn show_help() {
     println!("  -v, --version\t\tShow version");
 }
 
+fn show_version() {
+    println!("dptran {}", env!("CARGO_PKG_VERSION"));
+}
+
+fn get_remain() -> int {
+    let url = "https://api-free.deepl.com/v2/usage".to_string();
+    let d = format!("auth_key={}", get_settings().api_key);
+    let res = translate::connection::send_and_get(url, d).expect("failed to get remain");
+    let v: Value = serde_json::from_str(&res).expect("failed to parse json");
+    v["character_count"].as_i64().unwrap() as int
+}
+
 fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
@@ -90,7 +102,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
             }
             // バージョン情報
             "-v" | "--version" => {
-                println!("dptran {}", env!("CARGO_PKG_VERSION"));
+                show_version()
                 exit(0);
             }
             // 残り翻訳可能文字数
