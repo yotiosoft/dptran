@@ -56,7 +56,7 @@ fn get_settings() -> Settings {
     }
 }
 
-fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
+fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -71,7 +71,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
                 println!("Options:");
                 println!("  -h, --help\t\tShow this help message");
                 println!("  -v, --version\t\tShow version");
-                exit(0);
+                Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()))
             }
             // バージョン情報
             "-v" | "--version" => {
