@@ -56,7 +56,25 @@ fn get_settings() -> Settings {
     }
 }
 
-fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
+fn show_help() {
+    println!("To translate with optional languages, usage: deepl [options] [sentence]");
+    println!("Options:");
+    println!("  -f, --from\t\t\tSet source language");
+    println!("  -t, --to\t\t\tSet target language");
+    println!("");
+    println!("To setup setting options, usage: deepl -s [setting options]");
+    println!("Setting options:");
+    println!("  -s default-lang\t\tSetup default target language");
+    println!("  -s api-key\t\t\tSetup your DeepL API key");
+    println!("  -s clear\t\t\tClear all settings");
+    println!("");
+    println!("For other options, usage: deepl [options]");
+    println!("Options:");
+    println!("  -h, --help\t\tShow this help message");
+    println!("  -v, --version\t\tShow version");
+}
+
+fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -67,11 +85,8 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
             // オプションの抽出
             // ヘルプ
             "-h" | "--help" => {
-                println!("Usage: dptran [options]");
-                println!("Options:");
-                println!("  -h, --help\t\tShow this help message");
-                println!("  -v, --version\t\tShow version");
-                Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()))
+                show_help();
+                exit(0);
             }
             // バージョン情報
             "-v" | "--version" => {
