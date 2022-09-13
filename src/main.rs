@@ -2,7 +2,6 @@ use std::{io, env};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::exit;
 use serde::{Deserialize, Serialize};
 use serde_json::{Result, Value};
 use regex::Regex;
@@ -131,7 +130,6 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                 // 無効なオプション
                 let re = Regex::new(r"^-.+").unwrap();
                 if re.is_match(arg.as_str()) {
-                    println!("Invalid option: {}", arg);
                     return Err(io::Error::new(io::ErrorKind::Other, "Invalid option"))
                 }
 
@@ -232,17 +230,15 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // 引数を解析
-    match get_args(args, &settings) {
-        Ok((to_translate, mode, source_lang, target_lang, text)) => {
-            // 翻訳
-            if to_translate == false {
-                exit(0);
-            }
-        }
+    let (to_translate, mode, source_lang, target_lang, text) = match get_args(args, &settings) {
+        Ok(v) => v,
         Err(e) => {
             println!("Error: {}", e);
-            exit(1);
+            return;
         }
+    };
+    if to_translate == false {
+        return;
     }
 
     // 翻訳
