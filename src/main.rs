@@ -89,41 +89,30 @@ fn get_remain() -> (i32, i32) {
     (character_count, character_limit)
 }
 
-struct FromArgs {
-    sentence: String,
-    source_language: String,
-    target_language: String,
-    mode: ExecutionMode
-}
-fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, FromArgs), io::Error> {
+fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
-
-    let mut from_args = FromArgs {
-        sentence: String::new(),
-        source_language: String::new(),
-        target_language: String::new(),
-        mode: ExecutionMode::Normal
-    };
-
+    let mut source_lang = String::new();
+    let mut target_lang = String::new();
+    let mut text = String::new();
     for arg in &args[1..] {
         match arg.as_str() {
             // オプションの抽出
             // ヘルプ
             "-h" | "--help" => {
                 show_help();
-                Ok(true, from_args)
+                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // バージョン情報
             "-v" | "--version" => {
                 show_version();
-                exit(0);
+                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // 残り翻訳可能文字数
             "-r" | "--remain" => {
                 let (character_count, character_limit) = get_remain();
                 println!("remain: {} / {}", character_count, character_limit);
-                exit(0);
+                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // 設定（次の引数を参照）
             "-s" | "--set" => {
@@ -143,7 +132,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                 let re = Regex::new(r"^-.+").unwrap();
                 if re.is_match(arg.as_str()) {
                     println!("Invalid option: {}", arg);
-                    exit(1);
+                    return Err(io::Error::new(io::ErrorKind::Other, "Invalid option"))
                 }
 
                 // それ以外
@@ -214,7 +203,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
         target_lang = settings.default_target_language.clone();
     }
 
-    (mode, source_lang, target_lang, text)
+    return Ok((true, mode, source_lang, target_lang, text));
 }
 
 /// 翻訳
@@ -243,7 +232,18 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // 引数を解析
-    let (mode, source_lang, target_lang, text) = get_args(args, &settings);
+    match get_args(args, &settings) {
+        Ok((to_translate, mode, source_lang, target_lang, text)) => {
+            // 翻訳
+            if to_translate == false {
+                exit(0);
+            }
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            exit(1);
+        }
+    }
 
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
