@@ -78,12 +78,15 @@ fn show_version() {
     println!("dptran {}", env!("CARGO_PKG_VERSION"));
 }
 
-fn get_remain() -> i32 {
+fn get_remain() -> (i32, i32) {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let d = format!("auth_key={}", get_settings().api_key);
     let res = connection::send_and_get(url, d).expect("failed to get remain");
     let v: Value = serde_json::from_str(&res).expect("failed to parse json");
-    v["character_count"].as_i64().unwrap() as i32
+
+    let character_count = v["character_count"].as_i64().expect("failed to get character_count") as i32;
+    let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit") as i32;
+    (character_count, character_limit)
 }
 
 fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, String, String) {
@@ -102,12 +105,13 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
             }
             // バージョン情報
             "-v" | "--version" => {
-                show_version()
+                show_version();
                 exit(0);
             }
             // 残り翻訳可能文字数
             "-r" | "--remain" => {
-                println!("remain");
+                let (character_count, character_limit) = get_remain();
+                println!("remain: {} / {}", character_count, character_limit);
                 exit(0);
             }
             // 設定（次の引数を参照）
@@ -205,7 +209,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
 }
 
 /// 翻訳
-pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
+pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> core::result::Result<String, io::Error> {
     let url = "https://api-free.deepl.com/v2/translate".to_string();
     let d = if source_lang.trim_matches('"').is_empty() {
         format!("auth_key={}&text={}&target_lang={}", auth_key, text, target_lang)
@@ -262,7 +266,7 @@ fn main() {
         }
 
         // 翻訳
-        let translated_sentence = connection::translate(&settings.api_key, input, &target_lang, &source_lang);
+        let translated_sentence = translate(&settings.api_key, input, &target_lang, &source_lang);
         match translated_sentence {
             Ok(s) => {
                 // 翻訳結果が成功なら取得したJSONデータをパース
