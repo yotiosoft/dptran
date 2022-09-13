@@ -146,13 +146,11 @@ fn get_args(args: Vec<String>, settings: &Settings) -> (ExecutionMode, String, S
                     }
                     // 翻訳先言語指定
                     ArgMode::SourceLanguage => {
-                        println!("translate from: {}", arg);
                         source_lang = arg.to_string();
                         arg_mode = ArgMode::Sentence;
                     }
                     // 翻訳元言語指定
                     ArgMode::TargetLanguage => {
-                        println!("translate to: {}", arg);
                         target_lang = arg.to_string();
                         arg_mode = ArgMode::Sentence;
                     }
