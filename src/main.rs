@@ -218,6 +218,7 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
 
 fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
     let json: serde_json::Value = serde_json::from_str(json_str)?;
+    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
     let translations = &json["translations"];
     for translation in translations.as_array().unwrap() {
         let len = translation["text"].to_string().len();
