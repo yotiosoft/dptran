@@ -180,7 +180,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                     ArgMode::Settings => {
                         match arg.as_str() {
                             // APIキー
-                            "key" => {
+                            "api-key" => {
                                 arg_mode = ArgMode::SettingAPIKey;
                             }
                             // 既定の翻訳先言語
