@@ -77,15 +77,18 @@ fn show_version() {
     println!("dptran {}", env!("CARGO_PKG_VERSION"));
 }
 
-fn get_remain() -> (i32, i32) {
+fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let d = format!("auth_key={}", get_settings().api_key);
-    let res = connection::send_and_get(url, d).expect("failed to get remain");
-    let v: Value = serde_json::from_str(&res).expect("failed to parse json");
+    let res = connection::send_and_get(url, d)?;
+    let v: Value = serde_json::from_str(&res)?;
+
+    v.get("character_count").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_count"))?;
+    v.get("character_limit").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_limit"))?;
 
     let character_count = v["character_count"].as_i64().expect("failed to get character_count") as i32;
     let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit") as i32;
-    (character_count, character_limit)
+    Ok((character_count, character_limit))
 }
 
 fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
@@ -109,7 +112,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
             }
             // 残り翻訳可能文字数
             "-r" | "--remain" => {
-                let (character_count, character_limit) = get_remain();
+                let (character_count, character_limit) = get_remain()?;
                 println!("remain: {} / {}", character_count, character_limit);
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
