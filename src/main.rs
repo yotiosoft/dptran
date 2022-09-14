@@ -216,31 +216,7 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
     connection::send_and_get(url, d)
 }
 
-fn main() {
-    // 設定の取得
-    let settings = get_settings();
-
-    // APIキーの確認
-    if settings.api_key.is_empty() {
-        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s key [YOUR_API_KEY]");
-        return;
-    }
-
-    // 文字列を受け取る
-    let args: Vec<String> = std::env::args().collect();
-
-    // 引数を解析
-    let (to_translate, mode, source_lang, target_lang, text) = match get_args(args, &settings) {
-        Ok(v) => v,
-        Err(e) => {
-            println!("Error: {}", e);
-            return;
-        }
-    };
-    if to_translate == false {
-        return;
-    }
-
+fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &Settings) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
@@ -285,18 +261,54 @@ fn main() {
                     }
                     // パース失敗ならエラー表示
                     Err(e) => {
-                        println!("json parse error: {}", e);
+                        Err(e)?
                     }
                 }
             }
             // 翻訳結果が失敗ならエラー表示
             Err(e) => {
-                println!("send text error: {}", e);
+                Err(e)?
             }
         }
         // 通常モードの場合、一回でループを抜ける
         if mode == ExecutionMode::Normal {
             break;
+        }
+    }
+
+    Ok(())
+}
+
+fn main() {
+    // 設定の取得
+    let settings = get_settings();
+
+    // APIキーの確認
+    if settings.api_key.is_empty() {
+        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s key [YOUR_API_KEY]");
+        return;
+    }
+
+    // 文字列を受け取る
+    let args: Vec<String> = std::env::args().collect();
+
+    // 引数を解析
+    let (to_translate, mode, source_lang, target_lang, text) = match get_args(args, &settings) {
+        Ok(v) => v,
+        Err(e) => {
+            println!("Error: {}", e);
+            return;
+        }
+    };
+    if to_translate == false {
+        return;
+    }
+
+    // (対話＆)翻訳
+    match process(mode, source_lang, target_lang, text, &settings) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Error: {}", e);
         }
     }
 }
