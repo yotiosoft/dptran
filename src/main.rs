@@ -91,6 +91,16 @@ fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     Ok((character_count, character_limit))
 }
 
+fn set_apikey(api_key: String) -> core::result::Result<(), io::Error> {
+    let mut settings = get_settings();
+    settings.api_key = api_key;
+    let json_str = serde_json::to_string(&settings)?;
+    let mut f = File::create(SETTING_FILEPATH)?;
+    f.write_all(json_str.as_bytes())?;
+
+    Ok(())
+}
+
 fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
@@ -140,6 +150,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                 match arg_mode {
                     // 入力原文
                     ArgMode::Sentence => {
+                        // 入力引数文字列間に半角空白文字を挿入
                         if text.len() > 0 {
                             text.push(' ');
                         }
@@ -179,7 +190,7 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                     }
                     // APIキーの設定：APIキー値を取得
                     ArgMode::SettingAPIKey => {
-                        println!("api key: {}", arg);
+                        set_apikey(arg.to_string())?;
                         break;
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
