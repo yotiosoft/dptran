@@ -1,12 +1,9 @@
 use std::{io, env};
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::Path;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use regex::Regex;
 
 mod connection;
+mod settings;
 
 enum ArgMode {
     Sentence,
@@ -21,38 +18,6 @@ enum ArgMode {
 enum ExecutionMode {
     Normal,
     Interactive
-}
-
-#[derive(Serialize, Deserialize)]
-struct Settings {
-    api_key: String,
-    default_target_language: String
-}
-
-const SETTING_FILEPATH: &str = "settings.json";
-fn get_settings() -> Settings {
-    // ファイルが存在しない場合は新規作成＆初期化
-    if Path::new(SETTING_FILEPATH).exists() == false {
-        let mut f = File::create(SETTING_FILEPATH).expect("failed to create settings.json");
-        let settings = Settings {
-            api_key: String::new(),
-            default_target_language: "JA".to_string()
-        };
-        let json_str = serde_json::to_string(&settings).expect("failed to serialize settings");
-        f.write_all(json_str.as_bytes()).expect("failed to write settings.json");
-    }
-
-    // 設定ファイル読み込み
-    let mut f = File::open(SETTING_FILEPATH).expect("settings.json has not been set");
-    let mut s = String::new();
-    f.read_to_string(&mut s).expect(format!("{} is empty", SETTING_FILEPATH).as_str());
-    let v: Value = serde_json::from_str(&s).unwrap();
-
-    // 各設定項目の取得
-    Settings {
-        api_key: v["api_key"].to_string().trim_matches('"').to_string(),
-        default_target_language: v["default_target_language"].to_string().trim_matches('"').to_string()
-    }
 }
 
 fn show_help() {
@@ -79,7 +44,7 @@ fn show_version() {
 
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
-    let d = format!("auth_key={}", get_settings().api_key);
+    let d = format!("auth_key={}", settings::get_settings().api_key);
     let res = connection::send_and_get(url, d)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -91,27 +56,7 @@ fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     Ok((character_count, character_limit))
 }
 
-fn set_apikey(api_key: String) -> core::result::Result<(), io::Error> {
-    let mut settings = get_settings();
-    settings.api_key = api_key;
-    let json_str = serde_json::to_string(&settings)?;
-    let mut f = File::create(SETTING_FILEPATH)?;
-    f.write_all(json_str.as_bytes())?;
-
-    Ok(())
-}
-
-fn set_default_target_language(default_target_language: String) -> core::result::Result<(), io::Error> {
-    let mut settings = get_settings();
-    settings.default_target_language = default_target_language;
-    let json_str = serde_json::to_string(&settings)?;
-    let mut f = File::create(SETTING_FILEPATH)?;
-    f.write_all(json_str.as_bytes())?;
-
-    Ok(())
-}
-
-fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
+fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -199,12 +144,12 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                     }
                     // APIキーの設定：APIキー値を取得
                     ArgMode::SettingAPIKey => {
-                        set_apikey(arg.to_string())?;
+                        settings::set_apikey(arg.to_string())?;
                         return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
                     ArgMode::SettingDefaultTagetLanguage => {
-                        set_default_target_language(arg.to_string())?;
+                        settings::set_default_target_language(arg.to_string())?;
                         return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
                     }
                 }
@@ -252,7 +197,7 @@ fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error
     Ok(())
 }
 
-fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &Settings) -> core::result::Result<(), io::Error> {
+fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &settings::Settings) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
@@ -305,7 +250,7 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
 
 fn main() {
     // 設定の取得
-    let settings = get_settings();
+    let settings = settings::get_settings();
 
     // APIキーの確認
     if settings.api_key.is_empty() {
