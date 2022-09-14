@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use serde::{Deserialize, Serialize};
-use serde_json::{Result, Value};
+use serde_json::Value;
 use regex::Regex;
 
 mod connection;
@@ -216,6 +216,18 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
     connection::send_and_get(url, d)
 }
 
+fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
+    let json: serde_json::Value = serde_json::from_str(json_str)?;
+    let translations = json["translations"].clone();
+    for translation in translations.as_array().unwrap() {
+        let len = translation["text"].to_string().len();
+        let translation_trimmed= translation["text"].to_string()[1..len-1].to_string();
+        println!("{}", translation_trimmed);
+    }
+
+    Ok(())
+}
+
 fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &Settings) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
@@ -251,19 +263,7 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
         match translated_sentence {
             Ok(s) => {
                 // 翻訳結果が成功なら取得したJSONデータをパース
-                let j_translate: Result<Value> = serde_json::from_str(&s);
-                match j_translate {
-                    // パース成功なら翻訳結果を表示
-                    Ok(v) => {
-                        let len = v["translations"][0]["text"].to_string().len();
-                        let translated_text = v["translations"][0]["text"].to_string()[1..len-1].to_string();
-                        println!("{}", translated_text);
-                    }
-                    // パース失敗ならエラー表示
-                    Err(e) => {
-                        Err(e)?
-                    }
-                }
+                show_translated_text(&s)?;
             }
             // 翻訳結果が失敗ならエラー表示
             Err(e) => {
