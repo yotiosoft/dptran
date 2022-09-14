@@ -218,7 +218,7 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
 
 fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
     let json: serde_json::Value = serde_json::from_str(json_str)?;
-    let translations = json["translations"].clone();
+    let translations = &json["translations"];
     for translation in translations.as_array().unwrap() {
         let len = translation["text"].to_string().len();
         let translation_trimmed= translation["text"].to_string()[1..len-1].to_string();
