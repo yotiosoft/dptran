@@ -101,6 +101,16 @@ fn set_apikey(api_key: String) -> core::result::Result<(), io::Error> {
     Ok(())
 }
 
+fn set_default_target_language(default_target_language: String) -> core::result::Result<(), io::Error> {
+    let mut settings = get_settings();
+    settings.default_target_language = default_target_language;
+    let json_str = serde_json::to_string(&settings)?;
+    let mut f = File::create(SETTING_FILEPATH)?;
+    f.write_all(json_str.as_bytes())?;
+
+    Ok(())
+}
+
 fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
@@ -183,20 +193,19 @@ fn get_args(args: Vec<String>, settings: &Settings) -> core::result::Result<(boo
                             }
                             // その他：無効な設定オプション
                             _ => {
-                                println!("Unknown settings: {}", arg);
-                                break;
+                                Err(io::Error::new(io::ErrorKind::Other, "Unknown settings"))?;
                             }
                         }
                     }
                     // APIキーの設定：APIキー値を取得
                     ArgMode::SettingAPIKey => {
                         set_apikey(arg.to_string())?;
-                        break;
+                        return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
                     ArgMode::SettingDefaultTagetLanguage => {
-                        println!("default language to: {}", arg);
-                        break;
+                        set_default_target_language(arg.to_string())?;
+                        return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
                     }
                 }
             }
