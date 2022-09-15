@@ -23,8 +23,8 @@ enum ExecutionMode {
 fn show_help() {
     println!("To translate with optional languages, usage: deepl [options] [sentence]");
     println!("Options:");
-    println!("  -f, --from\t\t\tSet source language");
-    println!("  -t, --to\t\t\tSet target language");
+    println!("  -f or --from\t\t\tSet source language");
+    println!("  -t or --to\t\t\tSet target language");
     println!("");
     println!("To setup setting options, usage: deepl -s [setting options]");
     println!("Setting options:");
@@ -34,8 +34,10 @@ fn show_help() {
     println!("");
     println!("For other options, usage: deepl [options]");
     println!("Options:");
-    println!("  -h, --help\t\tShow this help message");
-    println!("  -v, --version\t\tShow version");
+    println!("  -h or --help\t\t\tShow this help message");
+    println!("  -lt\t\t\t\tShow all supported target language codes");
+    println!("  -ls\t\t\t\tShow all supported source language codes");
+    println!("  -v or --version\t\tShow version");
 }
 
 fn show_version() {
@@ -71,8 +73,12 @@ fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::R
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // 言語コード一覧の表示
-            "-l" | "--list" => {
-                show_language_codes()?;
+            "-ls" => {
+                show_source_language_codes()?;
+                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+            }
+            "-lt" => {
+                show_target_language_codes()?;
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // バージョン情報
@@ -270,7 +276,7 @@ fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, 
     Ok(lang_codes)
 }
 
-fn show_language_codes() -> core::result::Result<(), io::Error> {
+fn show_source_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳元言語コード一覧
     let source_lang_codes = get_language_codes("source".to_string())?;
     println!("Source language codes:");
@@ -278,8 +284,16 @@ fn show_language_codes() -> core::result::Result<(), io::Error> {
         println!("{}: {}", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
     }
 
+    Ok(())
+}
+fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳先言語コード一覧
-    let target_lang_codes = get_language_codes("target".to_string())?;
+    let mut target_lang_codes = get_language_codes("target".to_string())?;
+
+    // 特例コード変換
+    target_lang_codes.push(("EN".to_string(), "English".to_string()));
+    target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
+
     println!("Target languages:");
     for lang_code in target_lang_codes {
         println!("{}: {}", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
