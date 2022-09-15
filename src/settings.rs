@@ -28,7 +28,7 @@ pub fn get_settings() -> Settings {
     let mut f = File::open(SETTING_FILEPATH).expect("settings.json has not been set");
     let mut s = String::new();
     f.read_to_string(&mut s).expect(format!("{} is empty", SETTING_FILEPATH).as_str());
-    let v: Value = serde_json::from_str(&s).unwrap();
+    let v: Value = serde_json::from_str(&s).expect("failed to deserialize settings.json");
 
     // 各設定項目の取得
     Settings {

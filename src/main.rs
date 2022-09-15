@@ -46,8 +46,8 @@ fn show_version() {
 
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
-    let d = format!("auth_key={}", settings::get_settings().api_key);
-    let res = connection::send_and_get(url, d)?;
+    let query = format!("auth_key={}", settings::get_settings().api_key);
+    let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
     v.get("character_count").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_count"))?;
@@ -107,7 +107,7 @@ fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::R
             // それ以外
             _ => {
                 // 無効なオプション
-                let re = Regex::new(r"^-.+").unwrap();
+                let re = Regex::new(r"^-.+").expect("failed to compile regex");
                 if re.is_match(arg.as_str()) {
                     return Err(io::Error::new(io::ErrorKind::Other, "Invalid option"))
                 }
@@ -186,20 +186,20 @@ fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::R
 /// 翻訳
 pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> core::result::Result<String, io::Error> {
     let url = "https://api-free.deepl.com/v2/translate".to_string();
-    let d = if source_lang.trim_matches('"').is_empty() {
+    let query = if source_lang.trim_matches('"').is_empty() {
         format!("auth_key={}&text={}&target_lang={}", auth_key, text, target_lang)
     } else {
         format!("auth_key={}&text={}&target_lang={}&source_lang={}", auth_key, text, target_lang, source_lang)
     };
     
-    connection::send_and_get(url, d)
+    connection::send_and_get(url, query)
 }
 
 fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
     let json: serde_json::Value = serde_json::from_str(json_str)?;
     json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
     let translations = &json["translations"];
-    for translation in translations.as_array().unwrap() {
+    for translation in translations.as_array().expect("failed to get array") {
         let len = translation["text"].to_string().len();
         let translation_trimmed= translation["text"].to_string()[1..len-1].to_string();
         println!("{}", translation_trimmed);
@@ -263,12 +263,12 @@ type LangCode = (String, String);
 // 言語コードの取得
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
-    let d = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
-    let res = connection::send_and_get(url, d)?;
+    let query = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
+    let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
     let mut lang_codes: Vec<LangCode> = Vec::new();
-    for value in v.as_array().unwrap() {
+    for value in v.as_array().expect("Invalid response at get_language_codes") {
         let lang_code = (value["language"].to_string(), value["name"].to_string());
         lang_codes.push(lang_code);
     }

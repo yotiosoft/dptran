@@ -21,7 +21,7 @@ pub fn send_and_get(url: String, post_data: String) -> Result<String, io::Error>
     }
 
     if dst.len() > 0 {
-        let s = str::from_utf8(&dst).unwrap();
+        let s = str::from_utf8(&dst).expect("Invalid UTF-8");
         Ok(s.to_string())
     } else {
         Err(io::Error::new(io::ErrorKind::Other, "No response"))
