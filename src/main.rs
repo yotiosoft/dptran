@@ -255,9 +255,9 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
 
 type LangCode = (String, String);
 // 言語コードの取得
-fn get_language_codes() -> core::result::Result<Vec<LangCode>, io::Error> {
+fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
-    let d = format!("type=target&auth_key={}", settings::get_settings().api_key);
+    let d = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
     let res = connection::send_and_get(url, d)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -271,10 +271,20 @@ fn get_language_codes() -> core::result::Result<Vec<LangCode>, io::Error> {
 }
 
 fn show_language_codes() -> core::result::Result<(), io::Error> {
-    let lang_codes = get_language_codes()?;
-    for lang_code in lang_codes {
-        println!("{}: {}", lang_code.0, lang_code.1);
+    // 翻訳元言語コード一覧
+    let source_lang_codes = get_language_codes("source".to_string())?;
+    println!("Source language codes:");
+    for lang_code in source_lang_codes {
+        println!("{}: {}", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
     }
+
+    // 翻訳先言語コード一覧
+    let target_lang_codes = get_language_codes("target".to_string())?;
+    println!("Target languages:");
+    for lang_code in target_lang_codes {
+        println!("{}: {}", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+    }
+
     Ok(())
 }
 
