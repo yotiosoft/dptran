@@ -70,6 +70,11 @@ fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::R
                 show_help();
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
+            // 言語コード一覧の表示
+            "-l" | "--list" => {
+                show_language_codes()?;
+                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+            }
             // バージョン情報
             "-v" | "--version" => {
                 show_version();
@@ -245,6 +250,31 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
         }
     }
 
+    Ok(())
+}
+
+type LangCode = (String, String);
+// 言語コードの取得
+fn get_language_codes() -> core::result::Result<Vec<LangCode>, io::Error> {
+    let url = "https://api-free.deepl.com/v2/languages".to_string();
+    let d = format!("type=target&auth_key={}", settings::get_settings().api_key);
+    let res = connection::send_and_get(url, d)?;
+    let v: Value = serde_json::from_str(&res)?;
+
+    let mut lang_codes: Vec<LangCode> = Vec::new();
+    for value in v.as_array().unwrap() {
+        let lang_code = (value["language"].to_string(), value["name"].to_string());
+        lang_codes.push(lang_code);
+    }
+
+    Ok(lang_codes)
+}
+
+fn show_language_codes() -> core::result::Result<(), io::Error> {
+    let lang_codes = get_language_codes()?;
+    for lang_code in lang_codes {
+        println!("{}: {}", lang_code.0, lang_code.1);
+    }
     Ok(())
 }
 
