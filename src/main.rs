@@ -43,12 +43,15 @@ fn show_help() {
     println!("  -v or --version\t\tShow version");
 }
 
-/// バージョン情報の表示
+/// バージョン情報の表示  
+/// CARGO_PKG_VERSIONから取得する
 fn show_version() {
     println!("dptran version {}", env!("CARGO_PKG_VERSION"));
 }
 
-/// 翻訳可能な残り文字数の表示
+/// 翻訳可能な残り文字数の表示  
+/// <https://api-free.deepl.com/v2/usage>より取得する  
+/// 取得に失敗したらエラーを返す
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let query = format!("auth_key={}", settings::get_settings().api_key);
@@ -63,7 +66,8 @@ fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     Ok((character_count, character_limit))
 }
 
-/// 引数から各値を抽出
+/// 引数から各値を抽出  
+/// 引数リスト、設定値を渡し、翻訳の実行が必要か否かを示すboolean、実行モード、翻訳元言語、翻訳先言語、原文を抽出してタプルとして返す
 fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
@@ -189,8 +193,9 @@ fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::R
     return Ok((true, mode, source_lang, target_lang, text));
 }
 
-/// 翻訳
-pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> core::result::Result<String, io::Error> {
+/// 翻訳  
+/// 失敗したらエラーを返す
+fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> core::result::Result<String, io::Error> {
     let url = "https://api-free.deepl.com/v2/translate".to_string();
     let query = if source_lang.trim_matches('"').is_empty() {
         format!("auth_key={}&text={}&target_lang={}", auth_key, text, target_lang)
@@ -201,7 +206,9 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
     connection::send_and_get(url, query)
 }
 
-/// 翻訳結果の表示
+/// 翻訳結果の表示  
+/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
+/// jsonのパースに失敗したらエラーを返す
 fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
     let json: serde_json::Value = serde_json::from_str(json_str)?;
     json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
@@ -215,7 +222,9 @@ fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error
     Ok(())
 }
 
-/// 対話と翻訳
+/// 対話と翻訳  
+/// 対話モードであれば繰り返し入力を行う  
+/// 通常モードであれば一回で終了する
 fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &settings::Settings) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
@@ -268,7 +277,8 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
 }
 
 type LangCode = (String, String);
-/// 言語コード一覧の取得
+/// 言語コード一覧の取得  
+/// <https://api-free.deepl.com/v2/languages>から取得する
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
     let query = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
@@ -283,7 +293,8 @@ fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, 
 
     Ok(lang_codes)
 }
-/// 翻訳元言語コード一覧の表示
+/// 翻訳元言語コード一覧の表示  
+/// <https://api-free.deepl.com/v2/languages>から取得する
 fn show_source_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳元言語コード一覧
     let source_lang_codes = get_language_codes("source".to_string())?;
@@ -311,6 +322,8 @@ fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     Ok(())
 }
 
+/// メイン関数
+/// 引数の取得と翻訳処理の呼び出し
 fn main() {
     // 設定の取得
     let settings = settings::get_settings();
@@ -321,7 +334,7 @@ fn main() {
         return;
     }
 
-    // 文字列を受け取る
+    // 引数を受け取る
     let args: Vec<String> = std::env::args().collect();
 
     // 引数を解析
