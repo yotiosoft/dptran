@@ -20,6 +20,7 @@ enum ExecutionMode {
     Interactive
 }
 
+/// ヘルプの表示
 fn show_help() {
     println!("To translate with optional languages, usage: deepl [options] [sentence]");
     println!("Options:");
@@ -42,10 +43,12 @@ fn show_help() {
     println!("  -v or --version\t\tShow version");
 }
 
+/// バージョン情報の表示
 fn show_version() {
     println!("dptran version {}", env!("CARGO_PKG_VERSION"));
 }
 
+/// 翻訳可能な残り文字数の表示
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let query = format!("auth_key={}", settings::get_settings().api_key);
@@ -60,6 +63,7 @@ fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     Ok((character_count, character_limit))
 }
 
+/// 引数から各値を抽出
 fn get_args(args: Vec<String>, settings: &settings::Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
@@ -197,6 +201,7 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
     connection::send_and_get(url, query)
 }
 
+/// 翻訳結果の表示
 fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
     let json: serde_json::Value = serde_json::from_str(json_str)?;
     json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
@@ -210,6 +215,7 @@ fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error
     Ok(())
 }
 
+/// 対話と翻訳
 fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &settings::Settings) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
@@ -262,7 +268,7 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
 }
 
 type LangCode = (String, String);
-// 言語コードの取得
+/// 言語コード一覧の取得
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
     let query = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
@@ -277,7 +283,7 @@ fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, 
 
     Ok(lang_codes)
 }
-
+/// 翻訳元言語コード一覧の表示
 fn show_source_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳元言語コード一覧
     let source_lang_codes = get_language_codes("source".to_string())?;
@@ -288,6 +294,7 @@ fn show_source_language_codes() -> core::result::Result<(), io::Error> {
 
     Ok(())
 }
+/// 翻訳先言語コード一覧の表示
 fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳先言語コード一覧
     let mut target_lang_codes = get_language_codes("target".to_string())?;
@@ -310,7 +317,7 @@ fn main() {
 
     // APIキーの確認
     if settings.api_key.is_empty() {
-        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s key [YOUR_API_KEY]");
+        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s api-key [YOUR_API_KEY]");
         return;
     }
 

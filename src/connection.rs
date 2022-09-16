@@ -4,6 +4,7 @@ use std::str;
 use std::io;
 use curl::easy::Easy;
 
+/// DeepL APIとの通信を行う
 pub fn send_and_get(url: String, post_data: String) -> Result<String, io::Error> {
     let mut dst = Vec::new();
 
