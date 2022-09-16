@@ -12,7 +12,9 @@ pub struct Settings {
 }
 
 const SETTING_FILEPATH: &str = "settings.json";
-/// 設定ファイルの読み込みと値の抽出
+/// 設定ファイルの読み込みと値の抽出  
+/// 設定ファイルsettings.jsonからAPIキーとデフォルトの翻訳先言語を取得する。  
+/// 存在しない場合、既定値を指定して新規作成する。
 pub fn get_settings() -> Settings {
     // ファイルが存在しない場合は新規作成＆初期化
     if Path::new(SETTING_FILEPATH).exists() == false {
@@ -38,7 +40,8 @@ pub fn get_settings() -> Settings {
     }
 }
 
-/// APIキーの設定
+/// APIキーの設定  
+/// 設定ファイルsettings.jsonにAPIキーを設定する。
 pub fn set_apikey(api_key: String) -> Result<(), io::Error> {
     let mut settings = get_settings();
     settings.api_key = api_key;
@@ -49,7 +52,8 @@ pub fn set_apikey(api_key: String) -> Result<(), io::Error> {
     Ok(())
 }
 
-/// デフォルトの翻訳先言語の設定
+/// デフォルトの翻訳先言語の設定  
+/// 設定ファイルsettings.jsonにデフォルトの翻訳先言語を設定する。
 pub fn set_default_target_language(default_target_language: String) -> Result<(), io::Error> {
     let mut settings = get_settings();
     settings.default_target_language = default_target_language;
