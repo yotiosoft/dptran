@@ -25,6 +25,8 @@ fn show_help() {
     println!("Options:");
     println!("  -f or --from\t\t\tSet source language");
     println!("  -t or --to\t\t\tSet target language");
+    println!("If -f is not specified, the source language is automatically inferred by DeepL.");
+    println!("If -t is not specified, the translation is done into the configured default target language.");
     println!("");
     println!("To setup setting options, usage: deepl -s [setting options]");
     println!("Setting options:");
@@ -41,7 +43,7 @@ fn show_help() {
 }
 
 fn show_version() {
-    println!("dptran {}", env!("CARGO_PKG_VERSION"));
+    println!("dptran version {}", env!("CARGO_PKG_VERSION"));
 }
 
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
