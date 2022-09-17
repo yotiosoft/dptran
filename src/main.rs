@@ -287,6 +287,7 @@ fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, 
 
     let mut lang_codes: Vec<LangCode> = Vec::new();
     for value in v.as_array().expect("Invalid response at get_language_codes") {
+        value.get("language").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
         let lang_code = (value["language"].to_string(), value["name"].to_string());
         lang_codes.push(lang_code);
     }
