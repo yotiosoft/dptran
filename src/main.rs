@@ -179,23 +179,15 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
         }
 
         // 翻訳
-        let translated_sentence = interfaces::translate(&settings.api_key, input, &target_lang, &source_lang);
-        match translated_sentence {
+        let translated_texts = interfaces::translate(&settings.api_key, input, &target_lang, &source_lang);
+        match translated_texts {
             Ok(s) => {
-                // 翻訳結果が成功なら取得したJSONデータをパース
-                interfaces::show_translated_text(&s)?;
+                for translated_text in s {
+                    println!("{}", translated_text);
+                }
             }
-            // 翻訳結果が失敗ならエラー表示
-            // DeepL APIが特有の意味を持つエラーコードであればここで検知
-            // https://www.deepl.com/ja/docs-api/api-access/error-handling/
             Err(e) => {
-                if e.to_string().contains("456") {
-                    Err(io::Error::new(io::ErrorKind::Other, 
-                        "The translation limit of your account has been reached. Consider upgrading your subscription."))?
-                }
-                else {
-                    Err(e)?
-                }
+                Err(e)?
             }
         }
         // 通常モードの場合、一回でループを抜ける

@@ -52,7 +52,7 @@ pub fn show_help() {
 
 /// 翻訳  
 /// 失敗したらエラーを返す
-pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> core::result::Result<String, io::Error> {
+fn request_translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
     let url = "https://api-free.deepl.com/v2/translate".to_string();
     let query = if source_lang.trim_matches('"').is_empty() {
         format!("auth_key={}&text={}&target_lang={}", auth_key, text, target_lang)
@@ -63,26 +63,55 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
     connection::send_and_get(url, query)
 }
 
-/// 翻訳結果の表示  
-/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
-/// jsonのパースに失敗したらエラーを返す
-pub fn show_translated_text(json_str: &String) -> core::result::Result<(), io::Error> {
-    let json: serde_json::Value = serde_json::from_str(json_str)?;
+/// json形式で渡された翻訳結果をパースし、ベクタに翻訳文を格納して返す
+fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
+    let json: serde_json::Value = serde_json::from_str(&json)?;
     json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
     let translations = &json["translations"];
+
+    let mut translated_texts = Vec::new();
     for translation in translations.as_array().expect("failed to get array") {
         let len = translation["text"].to_string().len();
         let translation_trimmed= translation["text"].to_string()[1..len-1].to_string();
-        println!("{}", translation_trimmed);
+        translated_texts.push(translation_trimmed);
     }
 
-    Ok(())
+    Ok(translated_texts)
 }
 
-pub type LangCode = (String, String);
+/// 翻訳結果の表示  
+/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
+/// jsonのパースに失敗したらエラーを返す
+pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+    // request_translate()で翻訳結果のjsonを取得
+    let res = request_translate(auth_key, text, target_lang, source_lang);
+    if let Err(e) = res {
+        return Err(e);
+    }
+
+    match res {
+        Ok(res) => {
+            json_to_vec(&res)
+        },
+        // 翻訳結果が失敗ならエラー表示
+        // DeepL APIが特有の意味を持つエラーコードであればここで検知
+        // https://www.deepl.com/ja/docs-api/api-access/error-handling/
+        Err(e) => {
+            if e.to_string().contains("456") {
+                Err(io::Error::new(io::ErrorKind::Other, 
+                    "The translation limit of your account has been reached. Consider upgrading your subscription."))?
+            }
+            else {
+                Err(e)?
+            }
+        }
+    }
+}
+
+type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
+fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
     let query = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
     let res = connection::send_and_get(url, query)?;
