@@ -53,7 +53,7 @@ fn show_version() {
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
-    let url = "https://api-free.deepl.com/v2/uasage".to_string();
+    let url = "https://api-free.deepl.com/v2/usage".to_string();
     let query = format!("auth_key={}", settings::get_settings().api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
@@ -263,8 +263,16 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
                 show_translated_text(&s)?;
             }
             // 翻訳結果が失敗ならエラー表示
+            // DeepL APIが特有の意味を持つエラーコードであればここで検知
+            // https://www.deepl.com/ja/docs-api/api-access/error-handling/
             Err(e) => {
-                Err(e)?
+                if e.to_string().contains("456") {
+                    Err(io::Error::new(io::ErrorKind::Other, 
+                        "The translation limit of your account has been reached. Consider upgrading your subscription."))?
+                }
+                else {
+                    Err(e)?
+                }
             }
         }
         // 通常モードの場合、一回でループを抜ける
