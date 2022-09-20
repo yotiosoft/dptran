@@ -53,7 +53,7 @@ fn show_version() {
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
 fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
-    let url = "https://api-free.deepl.com/v2/usage".to_string();
+    let url = "https://api-free.deepl.com/v2/uasage".to_string();
     let query = format!("auth_key={}", settings::get_settings().api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
