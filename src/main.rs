@@ -82,7 +82,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> cor
                         if text.len() > 0 {
                             text.push(' ');
                         }
-                        text += arg;
+                        text.push_str(arg.as_str());
                     }
                     // 翻訳先言語指定
                     ArgMode::SourceLanguage => {
