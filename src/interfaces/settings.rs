@@ -63,3 +63,16 @@ pub fn set_default_target_language(default_target_language: String) -> Result<()
 
     Ok(())
 }
+
+/// 設定の初期化
+pub fn clear_settings() -> Result<(), io::Error> {
+    let mut f = File::create(SETTING_FILEPATH)?;
+    let settings = Settings {
+        api_key: String::new(),
+        default_target_language: "JA".to_string()
+    };
+    let json_str = serde_json::to_string(&settings)?;
+    f.write_all(json_str.as_bytes())?;
+
+    Ok(())
+}
