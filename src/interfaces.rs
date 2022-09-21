@@ -52,19 +52,28 @@ pub fn show_help() {
 
 /// APIキーの設定  
 /// 設定ファイルsettings.jsonにAPIキーを設定する。
-pub fn set_apikey_interface(api_key: String) -> Result<(), io::Error> {
+pub fn set_apikey(api_key: String) -> Result<(), io::Error> {
     settings::set_apikey(api_key)
 }
 
 /// デフォルトの翻訳先言語の設定  
 /// 設定ファイルsettings.jsonにデフォルトの翻訳先言語を設定する。
-pub fn set_default_target_language_interface(default_target_language: String) -> Result<(), io::Error> {
+pub fn set_default_target_language(default_target_language: String) -> Result<(), io::Error> {
     settings::set_default_target_language(default_target_language)
 }
 
 /// 設定の初期化
-pub fn clear_settings_interface() -> Result<(), io::Error> {
-    settings::clear_settings()
+pub fn clear_settings() -> Result<(), io::Error> {
+    // 今一度確認
+    println!("Are you sure you want to clear all settings? (y/N)");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?;
+    // yが入力されたら設定を初期化する
+    if input.trim().to_ascii_lowercase() == "y" {
+        settings::clear_settings()
+    } else {
+        Ok(())
+    }
 }
 
 /// 翻訳  

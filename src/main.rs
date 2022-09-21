@@ -107,7 +107,8 @@ fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> cor
                             }
                             // 設定のクリア
                             "clear" => {
-                                break;
+                                interfaces::clear_settings()?;
+                                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
                             }
                             // その他：無効な設定オプション
                             _ => {
@@ -117,12 +118,12 @@ fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> cor
                     }
                     // APIキーの設定：APIキー値を取得
                     ArgMode::SettingAPIKey => {
-                        interfaces::settings::set_apikey(arg.to_string())?;
+                        interfaces::set_apikey(arg.to_string())?;
                         return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
                     ArgMode::SettingDefaultTagetLanguage => {
-                        interfaces::settings::set_default_target_language(arg.to_string())?;
+                        interfaces::set_default_target_language(arg.to_string())?;
                         return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
                     }
                 }
@@ -207,7 +208,7 @@ fn main() {
 
     // APIキーの確認
     if settings.api_key.is_empty() {
-        println!("API key is not set. Please set it with the -s option:\n\t$ dptran -s api-key [YOUR_API_KEY]");
+        println!("Error: API key is not set. Please set it with the -s option:\n  $ dptran -s api-key [YOUR_API_KEY]");
         return;
     }
 
