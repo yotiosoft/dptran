@@ -206,12 +206,6 @@ fn main() {
     // 設定の取得
     let settings = interfaces::settings::get_settings();
 
-    // APIキーの確認
-    if settings.api_key.is_empty() {
-        println!("Error: API key is not set. Please set it with the -s option:\n  $ dptran -s api-key [YOUR_API_KEY]");
-        return;
-    }
-
     // 引数を受け取る
     let args: Vec<String> = std::env::args().collect();
 
@@ -224,6 +218,12 @@ fn main() {
         }
     };
     if to_translate == false {
+        return;
+    }
+
+    // APIキーの確認
+    if settings.api_key.is_empty() {
+        println!("Error: API key is not set. Please set it with the -s option:\n  $ dptran -s api-key [YOUR_API_KEY]");
         return;
     }
 
