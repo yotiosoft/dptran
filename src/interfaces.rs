@@ -70,10 +70,10 @@ pub fn clear_settings() -> Result<(), io::Error> {
     io::stdin().read_line(&mut input)?;
     // yが入力されたら設定を初期化する
     if input.trim().to_ascii_lowercase() == "y" {
-        settings::clear_settings()
-    } else {
-        Ok(())
+        settings::clear_settings()?;
+        println!("All settings have been cleared.");
     }
+    Ok(())
 }
 
 /// 翻訳  
