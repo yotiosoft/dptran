@@ -123,7 +123,7 @@ pub fn translate(auth_key: &String, text: String, target_lang: &String, source_l
         // DeepL APIが特有の意味を持つエラーコードであればここで検知
         // https://www.deepl.com/ja/docs-api/api-access/error-handling/
         Err(e) => {
-            if e.to_string().contains("456") {
+            if e.to_string().contains("456") {  // 456 Unprocessable Entity
                 Err(io::Error::new(io::ErrorKind::Other, 
                     "The translation limit of your account has been reached. Consider upgrading your subscription."))?
             }
