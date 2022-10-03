@@ -2,7 +2,7 @@ use std::{io, env};
 use serde_json::Value;
 
 mod connection;
-pub mod settings;
+pub mod configure;
 
 /// バージョン情報の表示  
 /// CARGO_PKG_VERSIONから取得する
@@ -15,7 +15,7 @@ pub fn show_version() {
 /// 取得に失敗したらエラーを返す
 pub fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
-    let query = format!("auth_key={}", settings::get_settings().api_key);
+    let query = format!("auth_key={}", configure::get_settings().api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -30,17 +30,17 @@ pub fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
 /// ヘルプの表示
 pub fn show_help() {
     println!("To translate with optional languages, usage: deepl [options] [sentence]");
-    println!("Options:");
+    println!("Translation options:");
     println!("  -f or --from\t\t\tSet source language");
     println!("  -t or --to\t\t\tSet target language");
     println!("If -f is not specified, the source language is automatically inferred by DeepL.");
     println!("If -t is not specified, the translation is done into the configured default target language.");
     println!("");
-    println!("To setup setting options, usage: deepl -s [setting options]");
+    println!("To setup setting options, usage: deepl -c [setting options] (or --config [setting options])");
     println!("Setting options:");
-    println!("  -s default-lang\t\tSetup default target language");
-    println!("  -s api-key\t\t\tSetup your DeepL API key");
-    println!("  -s clear\t\t\tClear all settings");
+    println!("  -c default-lang\t\tSetup default target language");
+    println!("  -c api-key\t\t\tSetup your DeepL API key");
+    println!("  -c clear\t\t\tClear all settings");
     println!("");
     println!("For other options, usage: deepl [options]");
     println!("Options:");
@@ -51,15 +51,15 @@ pub fn show_help() {
 }
 
 /// APIキーの設定  
-/// 設定ファイルsettings.jsonにAPIキーを設定する。
+/// 設定ファイルconfig.jsonにAPIキーを設定する。
 pub fn set_apikey(api_key: String) -> Result<(), io::Error> {
-    settings::set_apikey(api_key)
+    configure::set_apikey(api_key)
 }
 
 /// デフォルトの翻訳先言語の設定  
-/// 設定ファイルsettings.jsonにデフォルトの翻訳先言語を設定する。
+/// 設定ファイルconfig.jsonにデフォルトの翻訳先言語を設定する。
 pub fn set_default_target_language(default_target_language: String) -> Result<(), io::Error> {
-    settings::set_default_target_language(default_target_language)
+    configure::set_default_target_language(default_target_language)
 }
 
 /// 設定の初期化
@@ -70,7 +70,7 @@ pub fn clear_settings() -> Result<(), io::Error> {
     io::stdin().read_line(&mut input)?;
     // yが入力されたら設定を初期化する
     if input.trim().to_ascii_lowercase() == "y" {
-        settings::clear_settings()?;
+        configure::clear_settings()?;
         println!("All settings have been cleared.");
     }
     Ok(())
@@ -139,7 +139,7 @@ type LangCode = (String, String);
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
-    let query = format!("type={}&auth_key={}", type_name, settings::get_settings().api_key);
+    let query = format!("type={}&auth_key={}", type_name, configure::get_settings().api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 

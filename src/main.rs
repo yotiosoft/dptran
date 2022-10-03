@@ -7,7 +7,7 @@ enum ArgMode {
     Sentence,
     SourceLanguage,
     TargetLanguage,
-    Settings,
+    Configure,
     SettingAPIKey,
     SettingDefaultTagetLanguage
 }
@@ -20,7 +20,7 @@ enum ExecutionMode {
 
 /// 引数から各値を抽出  
 /// 引数リスト、設定値を渡し、翻訳の実行が必要か否かを示すboolean、実行モード、翻訳元言語、翻訳先言語、原文を抽出してタプルとして返す
-fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
+fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -55,8 +55,8 @@ fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> cor
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // 設定（次の引数を参照）
-            "-s" | "--set" => {
-                arg_mode = ArgMode::Settings;
+            "-c" | "--config" => {
+                arg_mode = ArgMode::Configure;
             }
             // 翻訳先言語指定
             "-t" | "--to" => {
@@ -95,7 +95,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> cor
                         arg_mode = ArgMode::Sentence;
                     }
                     // 各設定項目のオプション
-                    ArgMode::Settings => {
+                    ArgMode::Configure => {
                         match arg.as_str() {
                             // APIキー
                             "api-key" => {
@@ -149,7 +149,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::settings::Settings) -> cor
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::settings::Settings) -> core::result::Result<(), io::Error> {
+fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
@@ -204,7 +204,7 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
 /// 引数の取得と翻訳処理の呼び出し
 fn main() {
     // 設定の取得
-    let settings = interfaces::settings::get_settings();
+    let settings = interfaces::configure::get_settings();
 
     // 引数を受け取る
     let args: Vec<String> = std::env::args().collect();
@@ -223,7 +223,7 @@ fn main() {
 
     // APIキーの確認
     if settings.api_key.is_empty() {
-        println!("Error: API key is not set. Please set it with the -s option:\n  $ dptran -s api-key [YOUR_API_KEY]");
+        println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran -c api-key [YOUR_API_KEY]\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return;
     }
 
