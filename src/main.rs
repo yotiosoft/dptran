@@ -112,7 +112,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
                             }
                             // その他：無効な設定オプション
                             _ => {
-                                Err(io::Error::new(io::ErrorKind::Other, "Unknown settings"))?;
+                                Err(io::Error::new(io::ErrorKind::Other, "Unknown configure option"))?;
                             }
                         }
                     }
