@@ -1,4 +1,5 @@
-use std::io;
+use std::io::{self, Write};
+use std::io::stdout;
 use regex::Regex;
 
 mod interfaces;
@@ -157,6 +158,9 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
         // 通常モードでは引数から取得
         let input = match mode {
             ExecutionMode::Interactive => {
+                print!("> ");
+                stdout().flush().unwrap();
+
                 let mut input = String::new();
                 let bytes = io::stdin().read_line(&mut input).expect("Failed to read line.");
                 // 入力が空なら終了
@@ -225,6 +229,11 @@ fn main() {
     if settings.api_key.is_empty() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran -c api-key [YOUR_API_KEY]\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return;
+    }
+
+    // 対話モードなら終了方法を表示
+    if mode == ExecutionMode::Interactive {
+        println!("To quit, type \"exit\".");
     }
 
     // (対話＆)翻訳
