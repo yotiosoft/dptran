@@ -50,9 +50,9 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // 残り翻訳可能文字数
-            "-r" | "--remain" => {
+            "-r" | "--remaining" => {
                 let (character_count, character_limit) = interfaces::get_remain()?;
-                println!("remain: {} / {}", character_count, character_limit);
+                println!("remaining characters: {} / {}", character_count, character_limit);
                 return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
             }
             // 設定（次の引数を参照）

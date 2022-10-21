@@ -29,25 +29,26 @@ pub fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
 
 /// ヘルプの表示
 pub fn show_help() {
-    println!("To translate with optional languages, usage: deepl [options] [sentence]");
+    println!("To translate with optional languages, usage: dptran [options] [sentence]");
     println!("Translation options:");
-    println!("  -f or --from\t\t\tSet source language");
-    println!("  -t or --to\t\t\tSet target language");
+    println!("  -f or --from\t\tSet source language");
+    println!("  -t or --to\t\tSet target language");
     println!("If -f is not specified, the source language is automatically inferred by DeepL.");
     println!("If -t is not specified, the translation is done into the configured default target language.");
     println!("");
-    println!("To setup setting options, usage: deepl -c [setting options] (or --config [setting options])");
+    println!("To setup setting options, usage: dptran -c [setting options] (or --config [setting options])");
     println!("Setting options:");
-    println!("  -c default-lang\t\tSetup default target language");
-    println!("  -c api-key\t\t\tSetup your DeepL API key");
-    println!("  -c clear\t\t\tClear all settings");
+    println!("  -c default-lang\tSetup default target language");
+    println!("  -c api-key\t\tSetup your DeepL API key");
+    println!("  -c clear\t\tClear all settings");
     println!("");
-    println!("For other options, usage: deepl [options]");
+    println!("For other options, usage: dptran [options]");
     println!("Options:");
-    println!("  -h or --help\t\t\tShow this help message");
-    println!("  -lt\t\t\t\tShow all supported target language codes");
-    println!("  -ls\t\t\t\tShow all supported source language codes");
-    println!("  -v or --version\t\tShow version");
+    println!("  -h or --help\t\tShow this help message");
+    println!("  -lt\t\t\tShow all supported target language codes");
+    println!("  -ls\t\t\tShow all supported source language codes");
+    println!("  -r or --remining\tShow remaining characters available for translation with your API key");
+    println!("  -v or --version\tShow version");
 }
 
 /// APIキーの設定  
