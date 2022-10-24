@@ -15,7 +15,7 @@ pub fn show_version() {
 /// 取得に失敗したらエラーを返す
 pub fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
-    let query = format!("auth_key={}", configure::get_settings().api_key);
+    let query = format!("auth_key={}", configure::get_settings().expect("Failed to load settings.").api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -140,7 +140,7 @@ type LangCode = (String, String);
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
-    let query = format!("type={}&auth_key={}", type_name, configure::get_settings().api_key);
+    let query = format!("type={}&auth_key={}", type_name, configure::get_settings().expect("Failed to load settings.").api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 

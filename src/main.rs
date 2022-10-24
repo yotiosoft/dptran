@@ -150,7 +150,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn dialogue(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
+fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     loop {
@@ -208,7 +208,7 @@ fn dialogue(mode: ExecutionMode, source_lang: String, target_lang: String, text:
 /// 引数の取得と翻訳処理の呼び出し
 fn main() {
     // 設定の取得
-    let settings = interfaces::configure::get_settings();
+    let settings = interfaces::configure::get_settings().expect("Failed to get settings.");
 
     // 引数を受け取る
     let args: Vec<String> = std::env::args().collect();
@@ -237,7 +237,7 @@ fn main() {
     }
 
     // (対話＆)翻訳
-    match dialogue(mode, source_lang, target_lang, text, &settings) {
+    match process(mode, source_lang, target_lang, text, &settings) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
