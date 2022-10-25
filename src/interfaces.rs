@@ -13,7 +13,7 @@ pub fn show_version() {
 /// 翻訳可能な残り文字数の表示  
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
-pub fn get_remain() -> core::result::Result<(i32, i32), io::Error> {
+pub fn get_usage() -> core::result::Result<(i32, i32), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let query = format!("auth_key={}", configure::get_settings().expect("Failed to load settings.").api_key);
     let res = connection::send_and_get(url, query)?;
@@ -47,7 +47,7 @@ pub fn show_help() {
     println!("  -h or --help\t\tShow this help message");
     println!("  -lt\t\t\tShow all supported target language codes");
     println!("  -ls\t\t\tShow all supported source language codes");
-    println!("  -r or --remining\tShow remaining characters available for translation with your API key");
+    println!("  -u or --usage\t\tShow usage and remaining characters available for translation with your API key");
     println!("  -v or --version\tShow version");
 }
 
