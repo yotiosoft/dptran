@@ -13,7 +13,7 @@ pub fn show_version() {
 /// 翻訳可能な残り文字数の表示  
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
-pub fn get_usage() -> core::result::Result<(i32, i32), io::Error> {
+pub fn get_usage() -> core::result::Result<(i64, i64), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let query = format!("auth_key={}", configure::get_settings().expect("Failed to load settings.").api_key);
     let res = connection::send_and_get(url, query)?;
@@ -22,8 +22,8 @@ pub fn get_usage() -> core::result::Result<(i32, i32), io::Error> {
     v.get("character_count").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_count"))?;
     v.get("character_limit").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_limit"))?;
 
-    let character_count = v["character_count"].as_i64().expect("failed to get character_count") as i32;
-    let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit") as i32;
+    let character_count = v["character_count"].as_i64().expect("failed to get character_count");
+    let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit");
     Ok((character_count, character_limit))
 }
 
