@@ -159,7 +159,12 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
     let stdin = async_io::stdin();
     let init_input = async_io::timeout(Duration::from_millis(50), async {
         let mut init_input = String::new();
-        stdin.read_line(&mut init_input).await.unwrap();
+        let mut buf = String::new();
+        while stdin.read_line(&mut buf).await.unwrap() > 0 {
+            init_input.push_str(buf.as_str());
+            "\n".to_string().push_str(buf.as_str());
+            buf.clear();
+        }
         Ok(init_input)
     })
     .await;
