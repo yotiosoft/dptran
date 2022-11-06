@@ -1,4 +1,4 @@
-use std::io::{self, Write, Read};
+use std::io::{self, Write};
 use std::io::stdout;
 use regex::Regex;
 use std::time::Duration;
@@ -153,18 +153,24 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
+async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = async_io::stdin();
     let init_input = async_io::timeout(Duration::from_millis(50), async {
         let mut init_input = String::new();
-        let bytes = stdin.read_line(&mut init_input).await.unwrap();
+        stdin.read_line(&mut init_input).await.unwrap();
         Ok(init_input)
     })
     .await;
     if let Ok(init_input) = init_input {
-        println!("init_input : {}", init_input);
+        text = init_input;
+        mode = ExecutionMode::Normal;
+    }
+
+    // 対話モードなら終了方法を表示
+    if mode == ExecutionMode::Interactive {
+        println!("To quit, type \"exit\".");
     }
 
     loop {
@@ -244,11 +250,6 @@ async fn main() {
     if settings.api_key.is_empty() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran -c api-key [YOUR_API_KEY]\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return;
-    }
-
-    // 対話モードなら終了方法を表示
-    if mode == ExecutionMode::Interactive {
-        println!("To quit, type \"exit\".");
     }
 
     // (対話＆)翻訳
