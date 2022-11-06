@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io::{self, Write, Read};
 use std::io::stdout;
 use regex::Regex;
 use std::time::Duration;
@@ -156,9 +156,10 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
+    let mut handle = io::stdin().lock();
     let init_input = async_io::timeout(Duration::from_millis(50), async {
         let mut init_input = String::new();
-        let bytes = async_io::stdin().read_line(&mut init_input).await?;
+        let bytes = handle.read_to_string(&mut init_input).unwrap();
         if bytes == 0 {
             ()
         }
@@ -178,7 +179,7 @@ async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, 
                 stdout().flush().unwrap();
 
                 let mut input = String::new();
-                let bytes = async_io::stdin().read_line(&mut input).await?;
+                let bytes = handle.read_to_string(&mut input)?;
                 // 入力が空なら終了
                 if bytes == 0 {
                     break;
