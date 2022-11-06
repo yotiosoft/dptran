@@ -2,7 +2,7 @@ use std::io::{self, Write};
 use std::io::stdout;
 use regex::Regex;
 use std::time::Duration;
-use async_std::{io, main};
+use async_std::io as async_io;
 
 mod interfaces;
 
@@ -156,9 +156,9 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
-    let init_input;
-    io::timeout(Duration::from_secs(5), async {
-        io::stdin().read_line(&mut init_input).expect("Failed to read line.");
+    let mut init_input = String::new();
+    async_io::timeout(Duration::from_secs(5), async {
+        async_io::stdin().read_line(&mut init_input);
         Ok(())
     })
     .await?;
@@ -248,7 +248,7 @@ async fn main() {
     }
 
     // (対話＆)翻訳
-    match await process(mode, source_lang, target_lang, text, &settings) {
+    match process(mode, source_lang, target_lang, text, &settings).await {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
