@@ -156,12 +156,23 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
-    let mut init_input = String::new();
-    async_io::timeout(Duration::from_secs(5), async {
-        async_io::stdin().read_line(&mut init_input);
-        Ok(())
+    let init_input = async_io::timeout(Duration::from_millis(50), async {
+        let mut init_input = String::new();
+        let bytes = async_io::stdin().read_line(&mut init_input).await?;
+        if bytes == 0 {
+            ()
+        }
+        Ok(init_input)
     })
-    .await?;
+    .await;
+    match init_input {
+        Ok(init_input) => {
+            println!("init_input : {}", init_input);
+        }
+        Err(_) => {
+            // 何もしない
+        }
+    }
 
     loop {
         // 対話モードなら標準入力から取得
