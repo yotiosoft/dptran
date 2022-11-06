@@ -1,6 +1,8 @@
 use std::io::{self, Write};
 use std::io::stdout;
 use regex::Regex;
+use std::time::Duration;
+use async_std::{io, main};
 
 mod interfaces;
 
@@ -151,9 +153,16 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
+async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
+    let init_input;
+    io::timeout(Duration::from_secs(5), async {
+        io::stdin().read_line(&mut init_input).expect("Failed to read line.");
+        Ok(())
+    })
+    .await?;
+
     loop {
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
@@ -207,7 +216,8 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, text: 
 
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
-fn main() {
+#[async_std::main]
+async fn main() {
     // 設定の取得
     let settings = interfaces::configure::get_settings().expect("Failed to get settings.");
 
@@ -238,7 +248,7 @@ fn main() {
     }
 
     // (対話＆)翻訳
-    match process(mode, source_lang, target_lang, text, &settings) {
+    match await process(mode, source_lang, target_lang, text, &settings) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
