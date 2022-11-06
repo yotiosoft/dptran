@@ -165,13 +165,8 @@ async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, 
         Ok(init_input)
     })
     .await;
-    match init_input {
-        Ok(init_input) => {
-            println!("init_input : {}", init_input);
-        }
-        Err(_) => {
-            // 何もしない
-        }
+    if let Ok(init_input) = init_input {
+        println!("init_input : {}", init_input);
     }
 
     loop {
@@ -183,7 +178,7 @@ async fn process(mode: ExecutionMode, source_lang: String, target_lang: String, 
                 stdout().flush().unwrap();
 
                 let mut input = String::new();
-                let bytes = io::stdin().read_line(&mut input).expect("Failed to read line.");
+                let bytes = async_io::stdin().read_line(&mut input).await?;
                 // 入力が空なら終了
                 if bytes == 0 {
                     break;
