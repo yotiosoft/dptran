@@ -110,7 +110,7 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
 pub fn translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
-    let send_text = text.join("");
+    let send_text = text.join(".%0A");
 
     // request_translate()で翻訳結果のjsonを取得
     let res = request_translate(auth_key, send_text, target_lang, source_lang);
@@ -120,7 +120,9 @@ pub fn translate(auth_key: &String, text: Vec<String>, target_lang: &String, sou
 
     match res {
         Ok(res) => {
-            json_to_vec(&res)
+            let replace = |t: String| {t.replace("\\r", "")};
+            let vec = json_to_vec(&res)?;
+            vec.into_iter().map(replace).collect()
         },
         // 翻訳結果が失敗ならエラー表示
         // DeepL APIが特有の意味を持つエラーコードであればここで検知
