@@ -110,33 +110,31 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
 pub fn translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
-    let mut translated_texts = Vec::new();
-    for t in text {
-        // request_translate()で翻訳結果のjsonを取得
-        let res = request_translate(auth_key, t, target_lang, source_lang);
-        if let Err(e) = res {
-            return Err(e);
-        }
+    let send_text = text.join("");
 
-        match res {
-            Ok(res) => {
-                translated_texts.append(json_to_vec(&res).expect("failed to parse json").as_mut());
-            },
-            // 翻訳結果が失敗ならエラー表示
-            // DeepL APIが特有の意味を持つエラーコードであればここで検知
-            // https://www.deepl.com/ja/docs-api/api-access/error-handling/
-            Err(e) => {
-                if e.to_string().contains("456") {  // 456 Unprocessable Entity
-                    Err(io::Error::new(io::ErrorKind::Other, 
-                        "The translation limit of your account has been reached. Consider upgrading your subscription."))?
-                }
-                else {
-                    Err(e)?
-                }
+    // request_translate()で翻訳結果のjsonを取得
+    let res = request_translate(auth_key, send_text, target_lang, source_lang);
+    if let Err(e) = res {
+        return Err(e);
+    }
+
+    match res {
+        Ok(res) => {
+            json_to_vec(&res)
+        },
+        // 翻訳結果が失敗ならエラー表示
+        // DeepL APIが特有の意味を持つエラーコードであればここで検知
+        // https://www.deepl.com/ja/docs-api/api-access/error-handling/
+        Err(e) => {
+            if e.to_string().contains("456") {  // 456 Unprocessable Entity
+                Err(io::Error::new(io::ErrorKind::Other, 
+                    "The translation limit of your account has been reached. Consider upgrading your subscription."))?
+            }
+            else {
+                Err(e)?
             }
         }
     }
-    Ok(translated_texts)
 }
 
 type LangCode = (String, String);
