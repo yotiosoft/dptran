@@ -156,28 +156,28 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: Vec<String>, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
-    let stdin = async_io::stdin();
-    let init_input = async_io::timeout(Duration::from_millis(50), async {
-        let mut init_input = Vec::<String>::new();
-        let mut buf = String::new();
-        while stdin.read_line(&mut buf).await.unwrap() > 0 {
-            init_input.push(buf.clone());
-            buf.clear();
-        }
-        Ok(init_input)
-    })
-    .await;
-    if let Ok(init_input) = init_input {
-        text = init_input.clone();
-        mode = ExecutionMode::Normal;
-    }
-
-    // 対話モードなら終了方法を表示
-    if mode == ExecutionMode::Interactive {
-        println!("To quit, type \"exit\".");
-    }
-
     loop {
+        let stdin = async_io::stdin();
+        let init_input = async_io::timeout(Duration::from_millis(50), async {
+            let mut init_input = Vec::<String>::new();
+            let mut buf = String::new();
+            while stdin.read_line(&mut buf).await? > 0 {
+                init_input.push(buf.clone());
+                buf.clear();
+            }
+            Ok(init_input)
+        })
+        .await;
+        if let Ok(init_input) = init_input {
+            text = init_input.clone();
+            mode = ExecutionMode::Normal;
+        }
+
+        // 対話モードなら終了方法を表示
+        if mode == ExecutionMode::Interactive {
+            println!("To quit, type \"exit\".");
+        }
+
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
         let input = match mode {
@@ -186,7 +186,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 stdout().flush().unwrap();
 
                 let mut input = String::new();
-                let bytes = stdin.read_line(&mut input).await.unwrap();
+                let bytes = stdin.read_line(&mut input).await?;
                 // 入力が空なら終了
                 if bytes == 0 {
                     break;
