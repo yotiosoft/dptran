@@ -153,7 +153,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
+async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: Vec<String>, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = async_io::stdin();
@@ -169,7 +169,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
     })
     .await;
     if let Ok(init_input) = init_input {
-        text = init_input;
+        text.push(init_input);
         mode = ExecutionMode::Normal;
     }
 
@@ -192,7 +192,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 if bytes == 0 {
                     break;
                 }
-                input
+                vec![input]
             }
             ExecutionMode::Normal => {
                 text.clone()
@@ -200,11 +200,11 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
         };
 
         // 対話モード："exit"で終了
-        if mode == ExecutionMode::Interactive && input.clone().trim_end() == "exit" {
+        if mode == ExecutionMode::Interactive && input[0].clone().trim_end() == "exit" {
             break;
         }
         // 通常モード：空文字列なら終了
-        if mode == ExecutionMode::Normal && input.clone().trim_end().is_empty() {
+        if mode == ExecutionMode::Normal && input[0].clone().trim_end().is_empty() {
             break;
         }
 
@@ -258,7 +258,8 @@ async fn main() {
     }
 
     // (対話＆)翻訳
-    match process(mode, source_lang, target_lang, text, &settings).await {
+    let text_vec = vec![text.to_string()];
+    match process(mode, source_lang, target_lang, text_vec, &settings).await {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
