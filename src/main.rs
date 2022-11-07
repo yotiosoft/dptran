@@ -158,18 +158,17 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = async_io::stdin();
     let init_input = async_io::timeout(Duration::from_millis(50), async {
-        let mut init_input = String::new();
+        let mut init_input = Vec::<String>::new();
         let mut buf = String::new();
         while stdin.read_line(&mut buf).await.unwrap() > 0 {
-            init_input.push_str(buf.as_str());
-            "\n".to_string().push_str(buf.as_str());
+            init_input.push(buf.clone());
             buf.clear();
         }
         Ok(init_input)
     })
     .await;
     if let Ok(init_input) = init_input {
-        text.push(init_input);
+        text = init_input.clone();
         mode = ExecutionMode::Normal;
     }
 
