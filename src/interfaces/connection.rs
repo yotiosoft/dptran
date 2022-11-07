@@ -12,13 +12,10 @@ pub fn send_and_get(url: String, post_data: String) -> Result<String, io::Error>
     easy.url(url.as_str())?;
     easy.post(true)?;
     easy.post_fields_copy(post_data.as_bytes())?;
-    println!("post_data: {}", post_data);
-    println!("post_data as_bytes: {:?}", post_data.as_bytes());
     {
         let mut transfer = easy.transfer();
         transfer.write_function(|data| {
             dst.extend_from_slice(data);
-            println!("post_data data: {:?}", data);
             Ok(data.len())
         })?;
         transfer.perform()?;
