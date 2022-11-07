@@ -185,19 +185,11 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 stdout().flush().unwrap();
 
                 let mut input = String::new();
-                let init_input = async_io::timeout(Duration::from_millis(50), async {
-                    let mut init_input = String::new();
-                    let mut buf = String::new();
-                    while stdin.read_line(&mut buf).await? > 0 {
-                        init_input += buf.as_str();
-                        buf.clear();
-                    }
-                    Ok(init_input)
-                }).await;
-                if let Ok(init_input) = init_input {
-                    input += init_input.as_str();
+                let bytes = stdin.read_line(&mut input).await?;
+                // 入力が空なら終了
+                if bytes == 0 {
+                    break;
                 }
-            
                 input
             }
             ExecutionMode::Normal => {
