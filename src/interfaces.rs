@@ -109,8 +109,8 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
-    let send_text = text.join("<dpbr>");
+pub fn translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+    let send_text = text.replace("\n", "<dpbr>");
 
     // request_translate()で翻訳結果のjsonを取得
     let res = request_translate(auth_key, send_text, target_lang, source_lang);

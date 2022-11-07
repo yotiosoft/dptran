@@ -2,7 +2,7 @@ use std::io::{self, Write};
 use std::io::stdout;
 use regex::Regex;
 use std::time::Duration;
-use async_std::io as async_io;
+use async_std::io::{self as async_io, ReadExt};
 
 mod interfaces;
 
@@ -153,31 +153,27 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: Vec<String>, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
+async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: String, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
+    let mut stdin = async_io::stdin();
+    let init_input = async_io::timeout(Duration::from_millis(50), async {
+        let mut buf = String::new();
+        stdin.read_to_string(&mut buf).await?;
+        Ok(buf)
+    })
+    .await;
+    if let Ok(init_input) = init_input {
+        text = init_input.clone();
+        mode = ExecutionMode::Normal;
+    }
+
+    // 対話モードなら終了方法を表示
+    if mode == ExecutionMode::Interactive {
+        println!("To quit, type \"exit\".");
+    }
+
     loop {
-        let stdin = async_io::stdin();
-        let init_input = async_io::timeout(Duration::from_millis(50), async {
-            let mut init_input = Vec::<String>::new();
-            let mut buf = String::new();
-            while stdin.read_line(&mut buf).await? > 0 {
-                init_input.push(buf.clone());
-                buf.clear();
-            }
-            Ok(init_input)
-        })
-        .await;
-        if let Ok(init_input) = init_input {
-            text = init_input.clone();
-            mode = ExecutionMode::Normal;
-        }
-
-        // 対話モードなら終了方法を表示
-        if mode == ExecutionMode::Interactive {
-            println!("To quit, type \"exit\".");
-        }
-
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
         let input = match mode {
@@ -186,12 +182,13 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 stdout().flush().unwrap();
 
                 let mut input = String::new();
-                let bytes = stdin.read_line(&mut input).await?;
+                let bytes = stdin.read_to_string(&mut input).await.unwrap();
+                input = input.trim().to_string();
                 // 入力が空なら終了
                 if bytes == 0 {
                     break;
                 }
-                vec![input]
+                input
             }
             ExecutionMode::Normal => {
                 text.clone()
@@ -199,11 +196,11 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
         };
 
         // 対話モード："exit"で終了
-        if mode == ExecutionMode::Interactive && input[0].clone().trim_end() == "exit" {
+        if mode == ExecutionMode::Interactive && input.clone().trim_end() == "exit" {
             break;
         }
         // 通常モード：空文字列なら終了
-        if mode == ExecutionMode::Normal && input[0].clone().trim_end().is_empty() {
+        if mode == ExecutionMode::Normal && input.clone().trim_end().is_empty() {
             break;
         }
 
@@ -257,8 +254,7 @@ async fn main() {
     }
 
     // (対話＆)翻訳
-    let text_vec = vec![text.to_string()];
-    match process(mode, source_lang, target_lang, text_vec, &settings).await {
+    match process(mode, source_lang, target_lang, text, &settings).await {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
