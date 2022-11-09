@@ -186,17 +186,48 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 stdout().flush().unwrap();
 
                 let mut input = String::new();
+                let mut input_vec = Vec::<String>::new();
                 let bytes = stdin.read_line(&mut input).await.unwrap();
                 // 入力が空なら終了
                 if bytes == 0 {
                     break;
                 }
-                vec![input]
+                input_vec.push(input.clone());
+
+                let multiple_inputs = async_io::timeout(Duration::from_millis(50), async {
+                    let mut input = String::new();
+                    let mut input_vec = Vec::<String>::new();
+                    while stdin.read_line(&mut input).await.unwrap() > 0 {
+                        input_vec.push(input.clone());
+                        input.clear();
+                    }
+                    Ok(input_vec)
+                }).await;
+
+                loop {
+                    let multiple_inputs = async_io::timeout(Duration::from_millis(50), async {
+                        let mut input = String::new();
+                        let mut input_vec = Vec::<String>::new();
+                        while stdin.read_line(&mut input).await.unwrap() > 0 {
+                            input_vec.push(input.clone());
+                            input.clear();
+                        }
+                        Ok(input_vec)
+                    }).await;
+                }
+
+                if let Ok(multiple_inputs) = multiple_inputs {
+                    input_vec.append(&mut multiple_inputs.clone());
+                }
+
+                input_vec
             }
             ExecutionMode::Normal => {
                 text.clone()
             }
         };
+
+        println!("{}", input.join("\n"));
 
         // 対話モード："exit"で終了
         if mode == ExecutionMode::Interactive && input[0].clone().trim_end() == "exit" {
