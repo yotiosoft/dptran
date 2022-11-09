@@ -185,13 +185,15 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 print!("> ");
                 stdout().flush().unwrap();
 
+                let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
-                let bytes = stdin.read_line(&mut input).await.unwrap();
-                // 入力が空なら終了
-                if bytes == 0 {
-                    break;
+                while stdin.read_line(&mut input).await.unwrap() > 0 {
+                    input_vec.push(input.clone());
+                    if input.ends_with("\n") {
+                        break;
+                    }
                 }
-                vec![input]
+                input_vec
             }
             ExecutionMode::Normal => {
                 text.clone()
