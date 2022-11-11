@@ -187,9 +187,17 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
 
                 let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
-                while stdin.read_line(&mut input).await.unwrap() > 0 {
-                    input_vec.push(input.clone());
-                    if input.ends_with("\n") {
+                while input_vec.len() == 0 {
+                    let async_ret = async_io::timeout(Duration::from_millis(50), async {
+                        while stdin.read_line(&mut input).await? > 0 {
+                            println!("input: {}", input);
+                            input_vec.push(input.clone());
+                        }
+                        Ok(())
+                    }
+                    ).await;
+
+                    if let Ok(_) = async_ret {
                         break;
                     }
                 }
