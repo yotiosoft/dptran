@@ -174,7 +174,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
 
     // 対話モードなら終了方法を表示
     if mode == ExecutionMode::Interactive {
-        println!("To quit, type \"exit\".");
+        println!("To quit, type \"quit\".");
     }
 
     let mut stdout = stdout();
@@ -202,9 +202,9 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
             }
         };
 
-        // 対話モード："exit"で終了
+        // 対話モード："quit"で終了
         if mode == ExecutionMode::Interactive {
-            if input[0].clone().trim_end() == "exit" {
+            if input[0].clone().trim_end() == "quit" {
                 break;
             }
             if input[0].clone().trim_end().is_empty() {
