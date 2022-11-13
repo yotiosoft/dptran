@@ -6,23 +6,15 @@ A tool to run DeepL translations on command line.
 
 ### for Windows
 
-comming soon..
+1. Download the latest version from Releases.
+1. Add folder that contains dptran.exe to the PATH on Windows.
 
 ### for macOS & Linux
 
-To run, you need the following library.  
-
-- libcurl-devel
-
 ```bash
-$ git clone https://github.com/YotioSoft/dptran.git
-$ cd ./dptran
-$ make
-$ bash ./install.sh
+$ brew tap YotioSoft/dptran
+$ brew install dptran
 ```
-
-After executing the above command, restart the terminal to make the dptran command available.  
-For Apple-Chip macOS, please use the clang (Xcode) compiler to build because it can't be built with g++.
 
 ## How to use?
 
@@ -57,22 +49,18 @@ $ dptran -h
 ```bash
 $ dptran
 > Hello
-
 こんにちは
 > Ich stehe jeden Tag um 7 Uhr auf.
-
 毎日7時に起きています。
 > Seriously, Hiro, you need to improve your English.
-
 マジでヒロさん、英語力アップしてください。
 > 今天玩儿得真开心！
-
 今日は素晴らしい時間を過ごせました
-> :q
+> quit
 ```
 
 Multiple source texts can be translated interactively.  
-Exit with ``:q``.
+Exit with ``quit``.
 
 ### Translate in pipeline mode
 
