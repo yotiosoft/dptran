@@ -7,7 +7,7 @@ A tool to run DeepL translations on command line.
 ### for Windows
 
 1. Download the latest version from Releases.
-1. Add folder that contains dptran.exe to the PATH on Windows.
+1. Add the folder that contains dptran.exe to the PATH on Windows.
 
 ### for macOS & Linux
 
@@ -20,7 +20,7 @@ $ brew install dptran
 
 ### Setting API key
 
-Please be sure to get your DeepL API key (it's free) and set it up on dptran before using the service.
+Please be sure to get your DeepL API key (it's free!) and set it up on dptran before using the service.
 
 ```bash
 $ dptran -s key [API key]
@@ -38,10 +38,11 @@ Bonjour
 You can specify the source language with the ``-f`` option and the target language with the ``-t`` option.  
 If you omit the ``-destination language`` option, the translation will be done in Japanese.  
 
-For more information about language codes, see help:  
+For more information about language codes, see the language list:  
 
 ```bash
-$ dptran -h
+$ dptran -ls    # for the list of source languages
+$ dptran -lt    # for the list of target languages
 ```
 
 ### Translate in interactive mode
@@ -62,18 +63,19 @@ $ dptran
 Multiple source texts can be translated interactively.  
 Exit with ``quit``.
 
-### Translate in pipeline mode
+### Translate from pipeline
 
-例）Translate man page content into Japanese  
+You can translate the execution result of other commands.  
+
+ex: Translate man page content into Japanese  
 
 ```bash
-$ man ls | col -b | dptran -p
+$ man ls | col -b | dptran
 ```
 
-Can be run in pipeline mode with the ``-p`` option.  
-You can translate the execution result of other commands.
-
 ### Show help
+
+For more information about commands, see help:  
 
 ```bash
 $ dptran -h
