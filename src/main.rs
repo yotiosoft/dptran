@@ -177,19 +177,21 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
         println!("To quit, type \"exit\".");
     }
 
+    let mut stdout = stdout();
+
     loop {
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
         let input = match mode {
             ExecutionMode::Interactive => {
                 print!("> ");
-                stdout().flush().unwrap();
 
                 let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
                 while stdin.read_line(&mut input).await? > 0 {
                     input_vec.push(input.clone());
                     if input.ends_with("\n") {
+                        stdout.flush().unwrap();
                         break;
                     }
                 }
