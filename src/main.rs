@@ -191,7 +191,6 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
                 while stdin.read_line(&mut input).await? > 0 {
                     input_vec.push(input.clone());
                     if input.ends_with("\n") {
-                        stdout.flush().unwrap();
                         break;
                     }
                 }
