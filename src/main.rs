@@ -185,6 +185,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
         let input = match mode {
             ExecutionMode::Interactive => {
                 print!("> ");
+                stdout.flush()?;
 
                 let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
@@ -202,8 +203,13 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
         };
 
         // 対話モード："exit"で終了
-        if mode == ExecutionMode::Interactive && input[0].clone().trim_end() == "exit" {
-            break;
+        if mode == ExecutionMode::Interactive {
+            if input[0].clone().trim_end() == "exit" {
+                break;
+            }
+            if input[0].clone().trim_end().is_empty() {
+                continue;
+            }
         }
         // 通常モード：空文字列なら終了
         if mode == ExecutionMode::Normal && input[0].clone().trim_end().is_empty() {
