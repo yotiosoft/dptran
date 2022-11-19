@@ -84,9 +84,9 @@ $ dptran -h
 ### Displays the number of characters remaining to be translated
 
 ```bash
-$ dptran -r
-Character count:		16965
-Character limit (per month):	500000
+$ dptran -u
+usage: 64785 / 500000
+remaining: 435215
 ```
 
 You can view the number of remaining characters that can be translated by DeepL API.  
@@ -95,11 +95,11 @@ DeepL API's free plan allows you to translate up to 500,000 characters per month
 ## Change default target language
 
 It is set to Japanese (JA) by default.  
-You can change it with ``-s default_lang``.  
+You can change it with ``-c default-lang``.  
 For example, to change it to English (EN), do the following:
 
 ```bash
-$ dptran -s default_lang EN
+$ dptran -c default-lang EN
 ```
 
 ## Reset settings
@@ -108,7 +108,7 @@ You can reset all settings.
 Note: The API key will be reset as well. If you wish to use dptran again, please set the API key again.  
 
 ```bash
-$ dptran -s clear
+$ dptran -c clear
 ```
 
 
@@ -117,12 +117,13 @@ $ dptran -s clear
 
 ### for Windows
 
-comming soon..
+1. Remove dptran.exe
+1. Remove the filepath from the PATH on Windows
 
 ### for macOS & Linux
 
 ```bash
-$ bash ./uninstall.sh
+$ brew uninstall dptran
 ```
 
 After executing the above command, reboot the terminal to complete uninstallation.
