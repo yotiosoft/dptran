@@ -1,6 +1,8 @@
 # dptran
 
-A tool to run DeepL translations on command line.
+A tool to run DeepL translations on your command line.   
+It's written in Rust, and uses curl to connect to the DeepL API.  
+To use, you need to get DeepL API key.
 
 ## How to install?
 

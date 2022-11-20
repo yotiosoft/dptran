@@ -73,6 +73,7 @@ pub fn clear_settings() -> Result<(), confy::ConfyError> {
     if input.trim().to_ascii_lowercase() == "y" {
         configure::clear_settings()?;
         println!("All settings have been cleared.");
+        println!("Note: You need to set the API key again to use dptran.");
     }
     Ok(())
 }
