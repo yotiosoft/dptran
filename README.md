@@ -25,7 +25,7 @@ $ brew install dptran
 Please be sure to get your DeepL API key (it's free!) and set it up on dptran before using the service.
 
 ```bash
-$ dptran -s key [API key]
+$ dptran -c key [API key]
 ```
 
 ### Translate in normal mode
