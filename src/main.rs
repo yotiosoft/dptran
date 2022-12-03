@@ -1,5 +1,4 @@
-use std::io::{self, Write};
-use std::io::stdout;
+use std::io::{self, Write, stdout};
 use regex::Regex;
 use std::time::Duration;
 use async_std::io as async_io;
