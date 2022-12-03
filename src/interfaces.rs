@@ -110,11 +110,12 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+    let auth_key = get_api_key()?;
     let send_text = text.join("<dpbr>");
 
     // request_translate()で翻訳結果のjsonを取得
-    let res = request_translate(auth_key, send_text, target_lang, source_lang);
+    let res = request_translate(&auth_key, send_text, target_lang, source_lang);
     if let Err(e) = res {
         return Err(e);
     }
@@ -186,4 +187,16 @@ pub fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     }
 
     Ok(())
+}
+
+/// 設定済みの既定の翻訳先言語コードを取得
+pub fn get_default_target_language_code() -> core::result::Result<String, io::Error> {
+    let settings = configure::get_settings().expect("Failed to load settings.");
+    Ok(settings.default_target_language)
+}
+
+/// APIキーを取得
+pub fn get_api_key() -> core::result::Result<String, io::Error> {
+    let settings = configure::get_settings().expect("Failed to load settings.");
+    Ok(settings.api_key)
 }

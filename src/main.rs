@@ -23,7 +23,7 @@ enum ExecutionMode {
 
 /// 引数から各値を抽出  
 /// 引数リスト、設定値を渡し、翻訳の実行が必要か否かを示すboolean、実行モード、翻訳元言語、翻訳先言語、原文を抽出してタプルとして返す
-fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
+fn get_args(args: Vec<String>) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -144,7 +144,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 
     // 翻訳先言語が未指定なら既定値へ
     if target_lang.is_empty() {
-        target_lang = settings.default_target_language.clone();
+        target_lang = interfaces::get_default_target_language_code()?;
     }
 
     return Ok((true, mode, source_lang, target_lang, text));
@@ -153,7 +153,7 @@ fn get_args(args: Vec<String>, settings: &interfaces::configure::Configure) -> c
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: Vec<String>, settings: &interfaces::configure::Configure) -> core::result::Result<(), io::Error> {
+async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: String, mut text: Vec<String>) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = async_io::stdin();
@@ -217,7 +217,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
         }
 
         // 翻訳
-        let translated_texts = interfaces::translate(&settings.api_key, input, &target_lang, &source_lang);
+        let translated_texts = interfaces::translate(input, &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -241,14 +241,11 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
 /// 引数の取得と翻訳処理の呼び出し
 #[async_std::main]
 async fn main() {
-    // 設定の取得
-    let settings = interfaces::configure::get_settings().expect("Failed to get settings.");
-
     // 引数を受け取る
     let args: Vec<String> = std::env::args().collect();
 
     // 引数を解析
-    let (to_translate, mode, source_lang, target_lang, text) = match get_args(args, &settings) {
+    let (to_translate, mode, source_lang, target_lang, text) = match get_args(args) {
         Ok(v) => v,
         Err(e) => {
             println!("Error: {}", e);
@@ -260,14 +257,14 @@ async fn main() {
     }
 
     // APIキーの確認
-    if settings.api_key.is_empty() {
+    if interfaces::get_api_key().unwrap_or_default().is_empty() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran -c api-key [YOUR_API_KEY]\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return;
     }
 
     // (対話＆)翻訳
     let text_vec = vec![text.to_string()];
-    match process(mode, source_lang, target_lang, text_vec, &settings).await {
+    match process(mode, source_lang, target_lang, text_vec).await {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
