@@ -15,7 +15,7 @@ pub fn show_version() {
 /// 取得に失敗したらエラーを返す
 pub fn get_usage() -> core::result::Result<(i64, i64), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
-    let query = format!("auth_key={}", configure::get_settings().expect("Failed to load settings.").api_key);
+    let query = format!("auth_key={}", get_api_key()?);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -147,7 +147,7 @@ type LangCode = (String, String);
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
-    let query = format!("type={}&auth_key={}", type_name, configure::get_settings().expect("Failed to load settings.").api_key);
+    let query = format!("type={}&auth_key={}", type_name, get_api_key()?);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -191,12 +191,12 @@ pub fn show_target_language_codes() -> core::result::Result<(), io::Error> {
 
 /// 設定済みの既定の翻訳先言語コードを取得
 pub fn get_default_target_language_code() -> core::result::Result<String, io::Error> {
-    let settings = configure::get_settings().expect("Failed to load settings.");
-    Ok(settings.default_target_language)
+    let default_target_lang = configure::get_default_target_language_code().expect("failed to get default target language code");
+    Ok(default_target_lang)
 }
 
 /// APIキーを取得
 pub fn get_api_key() -> core::result::Result<String, io::Error> {
-    let settings = configure::get_settings().expect("Failed to load settings.");
-    Ok(settings.api_key)
+    let api_key = configure::get_api_key().expect("failed to get api key");
+    Ok(api_key)
 }
