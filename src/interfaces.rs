@@ -2,7 +2,7 @@ use std::{io, env};
 use serde_json::Value;
 
 mod connection;
-pub mod configure;
+mod configure;
 
 /// バージョン情報の表示  
 /// CARGO_PKG_VERSIONから取得する
