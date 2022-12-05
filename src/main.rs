@@ -17,12 +17,13 @@ enum ArgMode {
 #[derive(PartialEq)]
 enum ExecutionMode {
     Normal,
-    Interactive
+    Interactive,
+    None
 }
 
 /// 引数から各値を抽出  
 /// 引数リスト、設定値を渡し、翻訳の実行が必要か否かを示すboolean、実行モード、翻訳元言語、翻訳先言語、原文を抽出してタプルとして返す
-fn get_args(args: Vec<String>) -> core::result::Result<(bool, ExecutionMode, String, String, String), io::Error> {
+fn get_args(args: Vec<String>) -> core::result::Result<(ExecutionMode, String, String, String), io::Error> {
     // 引数を解析
     let mut arg_mode: ArgMode = ArgMode::Sentence;
     let mut source_lang = String::new();
@@ -34,28 +35,28 @@ fn get_args(args: Vec<String>) -> core::result::Result<(bool, ExecutionMode, Str
             // ヘルプ
             "-h" | "--help" => {
                 interfaces::show_help();
-                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+                return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
             }
             // 言語コード一覧の表示
             "-ls" => {
                 interfaces::show_source_language_codes()?;
-                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+                return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
             }
             "-lt" => {
                 interfaces::show_target_language_codes()?;
-                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+                return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
             }
             // バージョン情報
             "-v" | "--version" => {
                 interfaces::show_version();
-                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+                return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
             }
             // 残り翻訳可能文字数
             "-u" | "--usage" => {
                 let (character_count, character_limit) = interfaces::get_usage()?;
                 println!("usage: {} / {}", character_count, character_limit);
                 println!("remaining: {}", character_limit - character_count);
-                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+                return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
             }
             // 設定（次の引数を参照）
             "-c" | "--config" => {
@@ -111,7 +112,7 @@ fn get_args(args: Vec<String>) -> core::result::Result<(bool, ExecutionMode, Str
                             // 設定のクリア
                             "clear" => {
                                 interfaces::clear_settings().expect("failed to clear settings");
-                                return Ok((false, ExecutionMode::Normal, String::new(), String::new(), String::new()));
+                                return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
                             }
                             // その他：無効な設定オプション
                             _ => {
@@ -122,12 +123,12 @@ fn get_args(args: Vec<String>) -> core::result::Result<(bool, ExecutionMode, Str
                     // APIキーの設定：APIキー値を取得
                     ArgMode::SettingAPIKey => {
                         interfaces::set_apikey(arg.to_string()).expect("failed to set api key");
-                        return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
+                        return Ok((ExecutionMode::None, source_lang, target_lang, text));
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
                     ArgMode::SettingDefaultTagetLanguage => {
                         interfaces::set_default_target_language(arg.to_string()).expect("failed to set default target language");
-                        return Ok((false, ExecutionMode::Normal, source_lang, target_lang, text));
+                        return Ok((ExecutionMode::None, source_lang, target_lang, text));
                     }
                 }
             }
@@ -146,7 +147,7 @@ fn get_args(args: Vec<String>) -> core::result::Result<(bool, ExecutionMode, Str
         target_lang = interfaces::get_default_target_language_code()?;
     }
 
-    return Ok((true, mode, source_lang, target_lang, text));
+    return Ok((mode, source_lang, target_lang, text));
 }
 
 /// 対話と翻訳  
@@ -199,6 +200,9 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
             ExecutionMode::Normal => {
                 text.clone()
             }
+            ExecutionMode::None => {
+                break;
+            }
         };
 
         // 対話モード："quit"で終了
@@ -244,14 +248,14 @@ async fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // 引数を解析
-    let (to_translate, mode, source_lang, target_lang, text) = match get_args(args) {
+    let (mode, source_lang, target_lang, text) = match get_args(args) {
         Ok(v) => v,
         Err(e) => {
             println!("Error: {}", e);
             return;
         }
     };
-    if to_translate == false {
+    if mode == ExecutionMode::None {
         return;
     }
 
