@@ -168,7 +168,7 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
     })
     .await;
     if let Ok(init_input) = init_input {
-        text = init_input.clone();
+        text = init_input;
         mode = ExecutionMode::Normal;
     }
 
