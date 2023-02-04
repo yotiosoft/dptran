@@ -2,7 +2,7 @@ use std::{io, env};
 use serde_json::Value;
 
 mod connection;
-pub mod configure;
+mod configure;
 
 /// バージョン情報の表示  
 /// CARGO_PKG_VERSIONから取得する
@@ -15,7 +15,7 @@ pub fn show_version() {
 /// 取得に失敗したらエラーを返す
 pub fn get_usage() -> core::result::Result<(i64, i64), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
-    let query = format!("auth_key={}", configure::get_settings().expect("Failed to load settings.").api_key);
+    let query = format!("auth_key={}", get_api_key()?);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -110,11 +110,12 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+    let auth_key = get_api_key()?;
     let send_text = text.join("<dpbr>");
 
     // request_translate()で翻訳結果のjsonを取得
-    let res = request_translate(auth_key, send_text, target_lang, source_lang);
+    let res = request_translate(&auth_key, send_text, target_lang, source_lang);
     if let Err(e) = res {
         return Err(e);
     }
@@ -146,7 +147,7 @@ type LangCode = (String, String);
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
-    let query = format!("type={}&auth_key={}", type_name, configure::get_settings().expect("Failed to load settings.").api_key);
+    let query = format!("type={}&auth_key={}", type_name, get_api_key()?);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
 
@@ -186,4 +187,26 @@ pub fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     }
 
     Ok(())
+}
+/// 言語コードの有効性をチェック
+pub fn check_language_code(lang_code: &String, type_name: String) -> bool {
+    let lang_codes = get_language_codes(type_name.to_string()).expect("failed to get language codes");
+    for lang in lang_codes {
+        if lang.0.trim_matches('"') == lang_code.to_uppercase() {
+            return true;
+        }
+    }
+    false
+}
+
+/// 設定済みの既定の翻訳先言語コードを取得
+pub fn get_default_target_language_code() -> core::result::Result<String, io::Error> {
+    let default_target_lang = configure::get_default_target_language_code().expect("failed to get default target language code");
+    Ok(default_target_lang)
+}
+
+/// APIキーを取得
+pub fn get_api_key() -> core::result::Result<String, io::Error> {
+    let api_key = configure::get_api_key().expect("failed to get api key");
+    Ok(api_key)
 }

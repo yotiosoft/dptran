@@ -3,7 +3,7 @@ use confy;
 use confy::ConfyError;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Configure {
+struct Configure {
     pub api_key: String,
     pub default_target_language: String
 }
@@ -19,7 +19,7 @@ impl Default for Configure {
 /// 設定ファイルの読み込みと値の抽出  
 /// 設定ファイルからAPIキーとデフォルトの翻訳先言語を取得する。  
 /// 存在しない場合、既定値を指定して新規作成する。
-pub fn get_settings() -> Result<Configure, ConfyError> {
+fn get_settings() -> Result<Configure, ConfyError> {
     confy::load::<Configure>("dptran", "configure")
 }
 
@@ -46,4 +46,16 @@ pub fn clear_settings() -> Result<(), ConfyError> {
     let settings = Configure::default();
     confy::store("dptran", "configure", settings)?;
     Ok(())
+}
+
+/// 設定済みの既定の翻訳先言語コードを取得
+pub fn get_default_target_language_code() -> core::result::Result<String, ConfyError> {
+    let settings = get_settings()?;
+    Ok(settings.default_target_language)
+}
+
+/// APIキーを取得
+pub fn get_api_key() -> core::result::Result<String, ConfyError> {
+    let settings = get_settings()?;
+    Ok(settings.api_key)
 }

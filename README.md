@@ -11,7 +11,7 @@ To use, you need to get DeepL API key.
 1. Download the latest version from Releases.
 1. Add the folder that contains dptran.exe to the PATH on Windows.
 
-### for macOS & Linux
+### for macOS
 
 ```bash
 $ brew tap YotioSoft/dptran
@@ -122,7 +122,7 @@ $ dptran -c clear
 1. Remove dptran.exe
 1. Remove the filepath from the PATH on Windows
 
-### for macOS & Linux
+### for macOS
 
 ```bash
 $ brew uninstall dptran
