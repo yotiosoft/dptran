@@ -147,14 +147,6 @@ fn get_args(args: Vec<String>) -> core::result::Result<(ExecutionMode, String, S
         target_lang = interfaces::get_default_target_language_code()?;
     }
 
-    // 言語コードのチェック
-    if source_lang.len() > 0 && interfaces::check_language_code(&source_lang, "source".to_string()) == false {
-        return Err(io::Error::new(io::ErrorKind::Other, "Invalid source language code: ".to_string() + source_lang.as_str()));
-    }
-    if interfaces::check_language_code(&target_lang, "target".to_string()) == false {
-        return Err(io::Error::new(io::ErrorKind::Other, "Invalid target language code: ".to_string() + target_lang.as_str()));
-    }
-
     return Ok((mode, source_lang, target_lang, text));
 }
 
@@ -275,6 +267,16 @@ async fn main() {
     // APIキーの確認
     if interfaces::get_api_key().unwrap_or_default().is_empty() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran -c api-key [YOUR_API_KEY]\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
+        return;
+    }
+
+    // 言語コードのチェック
+    if source_lang.len() > 0 && interfaces::check_language_code(&source_lang, "source".to_string()) == false {
+        println!("Invalid source language code: {}", source_lang);
+        return;
+    }
+    if interfaces::check_language_code(&target_lang, "target".to_string()) == false {
+        println!("Invalid target language code: {}", target_lang);
         return;
     }
 
