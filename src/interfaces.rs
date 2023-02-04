@@ -188,6 +188,16 @@ pub fn show_target_language_codes() -> core::result::Result<(), io::Error> {
 
     Ok(())
 }
+/// 言語コードの有効性をチェック
+pub fn check_language_code(lang_code: &String, type_name: String) -> bool {
+    let lang_codes = get_language_codes(type_name.to_string()).expect("failed to get language codes");
+    for lang in lang_codes {
+        if lang.0.trim_matches('"') == lang_code.to_uppercase() {
+            return true;
+        }
+    }
+    false
+}
 
 /// 設定済みの既定の翻訳先言語コードを取得
 pub fn get_default_target_language_code() -> core::result::Result<String, io::Error> {

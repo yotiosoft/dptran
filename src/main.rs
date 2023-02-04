@@ -147,6 +147,14 @@ fn get_args(args: Vec<String>) -> core::result::Result<(ExecutionMode, String, S
         target_lang = interfaces::get_default_target_language_code()?;
     }
 
+    // 言語コードのチェック
+    if source_lang.len() > 0 && interfaces::check_language_code(&source_lang, "source".to_string()) == false {
+        return Err(io::Error::new(io::ErrorKind::Other, "Invalid source language code"));
+    }
+    if interfaces::check_language_code(&target_lang, "target".to_string()) == false {
+        return Err(io::Error::new(io::ErrorKind::Other, "Invalid target language code"));
+    }
+
     return Ok((mode, source_lang, target_lang, text));
 }
 
