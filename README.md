@@ -2,7 +2,7 @@
 
 A tool to run DeepL translations on your command line.   
 It's written in Rust, and uses curl to connect to the DeepL API.  
-To use, you need to get DeepL API key.
+To use, you need to get the DeepL API key from [https://www.deepl.com/ja/pro-api?cta=header-pro-api/](https://www.deepl.com/ja/pro-api?cta=header-pro-api/).
 
 ## How to install?
 
@@ -37,8 +37,8 @@ $ dptran -t FR Hello
 Bonjour
 ```
 
-You can specify the source language with the ``-f`` option and the target language with the ``-t`` option.  
-If you omit the ``-destination language`` option, the translation will be done in Japanese.  
+It is possible to specify the source language with the ``-f`` option and the destination language with the ``-t`` option.
+If you omit the destination language option, the translation will be done in Japanese.  
 
 For more information about language codes, see the language list:  
 
@@ -65,11 +65,11 @@ $ dptran
 Multiple source texts can be translated interactively.  
 Exit with ``quit``.
 
-### Translate from pipeline
+### Translate from the pipeline
 
-You can translate the execution result of other commands.  
+You can translate the output of other commands with dptran.
 
-ex: Translate man page content into Japanese  
+ex: Translate the content of the man page into Japanese  
 
 ```bash
 $ man ls | col -b | dptran
@@ -91,8 +91,8 @@ usage: 64785 / 500000
 remaining: 435215
 ```
 
-You can view the number of remaining characters that can be translated by DeepL API.  
-DeepL API's free plan allows you to translate up to 500,000 characters per month.
+You can see the number of remaining characters that can be translated by DeepL API. 
+The free DeepL API plan lets you translate up to 500,000 characters per month.
 
 ## Change default target language
 
@@ -128,4 +128,4 @@ $ dptran -c clear
 $ brew uninstall dptran
 ```
 
-After executing the above command, reboot the terminal to complete uninstallation.
+After running the command above, restart the terminal to complete the uninstallation.
