@@ -166,8 +166,14 @@ pub fn show_source_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳元言語コード一覧
     let source_lang_codes = get_language_codes("source".to_string())?;
     println!("Source language codes:");
+    let mut i = 0;
+    let len = source_lang_codes.len();
     for lang_code in source_lang_codes {
-        println!("{}: {}", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+        print!("{}: {}\t", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+        i += 1;
+        if (i % 3) == 0 || i == len {
+            println!();
+        }
     }
 
     Ok(())
@@ -182,8 +188,14 @@ pub fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
 
     println!("Target languages:");
+    let mut i = 0;
+    let len = target_lang_codes.len();
     for lang_code in target_lang_codes {
-        println!("{}: {}", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+        print!("{}: {:<20}\t", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+        i += 1;
+        if (i % 2) == 0 || i == len {
+            println!();
+        }
     }
 
     Ok(())
