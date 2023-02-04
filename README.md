@@ -2,7 +2,7 @@
 
 A tool to run DeepL translations on your command line.   
 It's written in Rust, and uses curl to connect to the DeepL API.  
-To use, you need to get the DeepL API key from [https://www.deepl.com/ja/pro-api?cta=header-pro-api/](https://www.deepl.com/ja/pro-api?cta=header-pro-api/).
+To use, you need to get the DeepL API key from [https://www.deepl.com/ja/pro-api/](https://www.deepl.com/ja/pro-api/).
 
 ## How to install?
 
