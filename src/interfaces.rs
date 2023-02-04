@@ -165,11 +165,15 @@ fn get_language_codes(type_name: String) -> core::result::Result<Vec<LangCode>, 
 pub fn show_source_language_codes() -> core::result::Result<(), io::Error> {
     // 翻訳元言語コード一覧
     let source_lang_codes = get_language_codes("source".to_string())?;
-    println!("Source language codes:");
+    
     let mut i = 0;
     let len = source_lang_codes.len();
+    let max_code_len = source_lang_codes.iter().map(|x| x.0.len()).max().unwrap();
+    let max_str_len = source_lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+
+    println!("Source language codes:");
     for lang_code in source_lang_codes {
-        print!("{}: {}\t", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+        print!(" {lc:<cl$}: {ls:<sl$}", lc=lang_code.0.trim_matches('"'), ls=lang_code.1.trim_matches('"'), cl=max_code_len, sl=max_str_len);
         i += 1;
         if (i % 3) == 0 || i == len {
             println!();
@@ -187,11 +191,14 @@ pub fn show_target_language_codes() -> core::result::Result<(), io::Error> {
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
     target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
 
-    println!("Target languages:");
     let mut i = 0;
     let len = target_lang_codes.len();
+    let max_code_len = target_lang_codes.iter().map(|x| x.0.len()).max().unwrap();
+    let max_str_len = target_lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+
+    println!("Target languages:");
     for lang_code in target_lang_codes {
-        print!("{}: {:<20}\t", lang_code.0.trim_matches('"'), lang_code.1.trim_matches('"'));
+        print!(" {lc:<cl$}: {ls:<sl$}", lc=lang_code.0.trim_matches('"'), ls=lang_code.1.trim_matches('"'), cl=max_code_len, sl=max_str_len);
         i += 1;
         if (i % 2) == 0 || i == len {
             println!();
