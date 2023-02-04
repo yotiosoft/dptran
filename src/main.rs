@@ -174,6 +174,11 @@ async fn process(mut mode: ExecutionMode, source_lang: String, target_lang: Stri
 
     // 対話モードなら終了方法を表示
     if mode == ExecutionMode::Interactive {
+        if source_lang.len() == 0 {
+            println!("Now translating from detected language to {}.", target_lang);
+        } else {
+            println!("Now translating from {} to {}.", source_lang, target_lang);
+        }
         println!("To quit, type \"quit\".");
     }
 
