@@ -29,12 +29,12 @@ pub fn get_usage() -> core::result::Result<(i64, i64), io::Error> {
 
 /// ヘルプの表示
 pub fn show_help() {
+    let default_lang = get_default_target_language_code().unwrap_or("JA".to_string());
+    
     println!("To translate with optional languages, usage: dptran [options] [sentence]");
     println!("Translation options:");
-    println!("  -f or --from\t\tSet source language");
-    println!("  -t or --to\t\tSet target language");
-    println!("If -f is not specified, the source language is automatically inferred by DeepL.");
-    println!("If -t is not specified, the translation is done into the configured default target language.");
+    println!("  -f or --from\t\tSet source language (default: auto)");
+    println!("  -t or --to\t\tSet target language (default: {})", default_lang);
     println!("");
     println!("To setup setting options, usage: dptran -c [setting options] (or --config [setting options])");
     println!("Setting options:");
