@@ -53,25 +53,41 @@ pub fn show_help() {
 
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
-pub fn set_apikey(api_key: String) -> Result<(), confy::ConfyError> {
-    configure::set_apikey(api_key)
+pub fn set_apikey(api_key: String) -> Result<(), io::Error> {
+    configure::set_apikey(api_key).expect("Failed to set API key");
+    Ok(())
 }
 
 /// デフォルトの翻訳先言語の設定  
 /// 設定ファイルconfig.jsonにデフォルトの翻訳先言語を設定する。
-pub fn set_default_target_language(default_target_language: String) -> Result<(), confy::ConfyError> {
-    configure::set_default_target_language(default_target_language)
+pub fn set_default_target_language(arg_default_target_language: String) -> Result<(), io::Error> {
+    // EN, PTは変換
+    let default_target_language = match arg_default_target_language.to_ascii_uppercase().as_str() {
+        "EN" => "EN-US".to_string(),
+        "PT" => "PT-PT".to_string(),
+        _ => arg_default_target_language.to_ascii_uppercase(),
+    };
+
+    // 言語コードが正しいか確認
+    match check_language_code(&default_target_language, "target".to_string()) {
+        true => {
+            configure::set_default_target_language(&default_target_language).expect("Failed to set default target language");
+            println!("Default target language has been set to {}.", default_target_language);
+            Ok(())
+        }
+        false => Err(io::Error::new(io::ErrorKind::Other, "Invalid language code")),
+    }
 }
 
 /// 設定の初期化
-pub fn clear_settings() -> Result<(), confy::ConfyError> {
+pub fn clear_settings() -> Result<(), io::Error> {
     // 今一度確認
     println!("Are you sure you want to clear all settings? (y/N)");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     // yが入力されたら設定を初期化する
     if input.trim().to_ascii_lowercase() == "y" {
-        configure::clear_settings()?;
+        configure::clear_settings().expect("Failed to clear settings");
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }

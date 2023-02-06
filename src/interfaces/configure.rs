@@ -34,9 +34,9 @@ pub fn set_apikey(api_key: String) -> Result<(), ConfyError> {
 
 /// デフォルトの翻訳先言語の設定  
 /// 設定ファイルにデフォルトの翻訳先言語を設定する。
-pub fn set_default_target_language(default_target_language: String) -> Result<(), ConfyError> {
+pub fn set_default_target_language(default_target_language: &String) -> Result<(), ConfyError> {
     let mut settings = get_settings()?;
-    settings.default_target_language = default_target_language;
+    settings.default_target_language = default_target_language.to_string();
     confy::store("dptran", "configure", settings)?;
     Ok(())
 }

@@ -111,7 +111,7 @@ fn get_args(args: Vec<String>) -> core::result::Result<(ExecutionMode, String, S
                             }
                             // 設定のクリア
                             "clear" => {
-                                interfaces::clear_settings().expect("failed to clear settings");
+                                interfaces::clear_settings()?;
                                 return Ok((ExecutionMode::None, String::new(), String::new(), String::new()));
                             }
                             // その他：無効な設定オプション
@@ -122,12 +122,12 @@ fn get_args(args: Vec<String>) -> core::result::Result<(ExecutionMode, String, S
                     }
                     // APIキーの設定：APIキー値を取得
                     ArgMode::SettingAPIKey => {
-                        interfaces::set_apikey(arg.to_string()).expect("failed to set api key");
+                        interfaces::set_apikey(arg.to_string())?;
                         return Ok((ExecutionMode::None, source_lang, target_lang, text));
                     }
                     // 既定の翻訳先言語の設定：言語コードを取得
                     ArgMode::SettingDefaultTagetLanguage => {
-                        interfaces::set_default_target_language(arg.to_string()).expect("failed to set default target language");
+                        interfaces::set_default_target_language(arg.to_string())?;
                         return Ok((ExecutionMode::None, source_lang, target_lang, text));
                     }
                 }
