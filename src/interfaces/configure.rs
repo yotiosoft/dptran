@@ -25,7 +25,7 @@ fn get_settings() -> Result<Configure, ConfyError> {
 
 /// APIキーの設定  
 /// 設定ファイルにAPIキーを設定する。
-pub fn set_apikey(api_key: String) -> Result<(), ConfyError> {
+pub fn set_api_key(api_key: String) -> Result<(), ConfyError> {
     let mut settings = get_settings()?;
     settings.api_key = api_key;
     confy::store("dptran", "configure", settings)?;

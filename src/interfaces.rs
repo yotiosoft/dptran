@@ -1,14 +1,8 @@
-use std::{io, env};
+use std::io;
 use serde_json::Value;
 
 mod connection;
 mod configure;
-
-/// バージョン情報の表示  
-/// CARGO_PKG_VERSIONから取得する
-pub fn show_version() {
-    println!("dptran version {}", env!("CARGO_PKG_VERSION"));
-}
 
 /// 翻訳可能な残り文字数の表示  
 /// <https://api-free.deepl.com/v2/usage>より取得する  
@@ -27,34 +21,10 @@ pub fn get_usage() -> core::result::Result<(i64, i64), io::Error> {
     Ok((character_count, character_limit))
 }
 
-/// ヘルプの表示
-pub fn show_help() {
-    let default_lang = get_default_target_language_code().unwrap_or("JA".to_string());
-    
-    println!("To translate with optional languages, usage: dptran [options] [sentence]");
-    println!("Translation options:");
-    println!("  -f or --from\t\tSet source language (default: auto)");
-    println!("  -t or --to\t\tSet target language (default: {})", default_lang);
-    println!("");
-    println!("To setup setting options, usage: dptran -c [setting options] (or --config [setting options])");
-    println!("Setting options:");
-    println!("  -c default-lang\tSetup default target language");
-    println!("  -c api-key\t\tSetup your DeepL API key");
-    println!("  -c clear\t\tClear all settings");
-    println!("");
-    println!("For other options, usage: dptran [options]");
-    println!("Options:");
-    println!("  -h or --help\t\tShow this help message");
-    println!("  -lt\t\t\tShow all supported target language codes");
-    println!("  -ls\t\t\tShow all supported source language codes");
-    println!("  -u or --usage\t\tShow usage and remaining characters available for translation with your API key");
-    println!("  -v or --version\tShow version");
-}
-
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
-pub fn set_apikey(api_key: String) -> Result<(), io::Error> {
-    configure::set_apikey(api_key).expect("Failed to set API key");
+pub fn set_api_key(api_key: String) -> Result<(), io::Error> {
+    configure::set_api_key(api_key).expect("Failed to set API key");
     Ok(())
 }
 
@@ -244,4 +214,12 @@ pub fn get_default_target_language_code() -> core::result::Result<String, io::Er
 pub fn get_api_key() -> core::result::Result<String, io::Error> {
     let api_key = configure::get_api_key().expect("failed to get api key");
     Ok(api_key)
+}
+
+/// 残り文字数を表示
+pub fn show_usage() -> core::result::Result<(), io::Error> {
+    let (character_count, character_limit) = get_usage()?;
+    println!("usage: {} / {}", character_count, character_limit);
+    println!("remaining: {}", character_limit - character_count);
+    return Ok(());
 }
