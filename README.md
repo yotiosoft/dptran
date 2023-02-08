@@ -25,7 +25,7 @@ $ brew install dptran
 Please be sure to get your DeepL API key (it's free!) and set it up on dptran before using the service.
 
 ```bash
-$ dptran -c key [API key]
+$ dptran set --api-key [API key]
 ```
 
 ### Translate in normal mode
@@ -43,8 +43,8 @@ If you omit the destination language option, the translation will be done in Jap
 For more information about language codes, see the language list:  
 
 ```bash
-$ dptran -ls    # for the list of source languages
-$ dptran -lt    # for the list of target languages
+$ dptran list -s    # for the list of source languages
+$ dptran list -t    # for the list of target languages
 ```
 
 ### Translate in interactive mode
@@ -64,6 +64,10 @@ $ dptran
 
 Multiple source texts can be translated interactively.  
 Exit with ``quit``.
+
+If you want to translate the source texts into a specific language, use the ``-t`` option. 
+
+```bash
 
 ### Translate from the pipeline
 
@@ -97,11 +101,11 @@ The free DeepL API plan lets you translate up to 500,000 characters per month.
 ## Change default target language
 
 It is set to Japanese (JA) by default.  
-You can change it with ``-c default-lang``.  
+You can change it with ``set --default-lang``.  
 For example, to change it to English (EN), do the following:
 
 ```bash
-$ dptran -c default-lang EN
+$ dptran set --default-lang EN
 ```
 
 ## Reset settings
@@ -110,7 +114,7 @@ You can reset all settings.
 Note: The API key will be reset as well. If you wish to use dptran again, please set the API key again.  
 
 ```bash
-$ dptran -c clear
+$ dptran set --clear
 ```
 
 
