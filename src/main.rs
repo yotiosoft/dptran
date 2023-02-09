@@ -158,6 +158,13 @@ async fn main() {
                     Err(e) => Err(e).unwrap(),
                 }
             }
+            // EN, PT は EN-US, PT-PT に変換
+            if target_lang == "EN" {
+                target_lang = "EN-US".to_string();
+            }
+            if target_lang == "PT" {
+                target_lang = "PT-PT".to_string();
+            }
         }
     };
 
