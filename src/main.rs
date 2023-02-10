@@ -51,9 +51,11 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
                 let mut input = String::new();
                 while stdin.read_line(&mut input).await? > 0 {
                     input_vec.push(input.clone());
-                    if input.ends_with("\n") {
+                    // \\ + 改行で改行を含む入力を受け付ける
+                    if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
                         break;
                     }
+                    input.clear();
                 }
                 input_vec
             }
