@@ -98,7 +98,7 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// jsonのパースに失敗したらエラーを返す
 pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
     let auth_key = get_api_key()?;
-    let send_text = text.join("<dpbr>");
+    let send_text = text.join("\\");
 
     // request_translate()で翻訳結果のjsonを取得
     let res = request_translate(&auth_key, send_text, target_lang, source_lang);
@@ -108,7 +108,7 @@ pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) 
 
     match res {
         Ok(res) => {
-            let replace = |t: String| t.replace("<dpbr>", "\n");
+            let replace = |t: String| t.replace("\\", "\n");
             let vec = json_to_vec(&res)?;
             let ret: Vec<_> = vec.into_iter().map(replace).collect();
             Ok(ret)
