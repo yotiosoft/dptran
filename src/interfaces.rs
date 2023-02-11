@@ -111,8 +111,7 @@ pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) 
 
     match res {
         Ok(res) => {
-            let vec = json_to_vec(&res)?;
-            Ok(vec)
+            json_to_vec(&res)
         },
         // 翻訳結果が失敗ならエラー表示
         // DeepL APIが特有の意味を持つエラーコードであればここで検知
