@@ -60,8 +60,6 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
                         if input == "\r\n" || input == "\n" {
                             break;
                         }
-                        print!("..");
-                        stdout.flush()?;
                     }
                     // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
                     else {
@@ -69,12 +67,13 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
                             input_vec.push(input.clone());
                             break;
                         }
-                        print!("..");
-                        stdout.flush()?;
                     }
 
                     input_vec.push(input.clone());
                     input.clear();
+
+                    print!("..");
+                    stdout.flush()?;
                 }
                 input_vec
             }
