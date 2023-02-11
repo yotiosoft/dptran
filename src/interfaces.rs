@@ -66,13 +66,17 @@ pub fn clear_settings() -> Result<(), io::Error> {
 
 /// 翻訳  
 /// 失敗したらエラーを返す
-fn request_translate(auth_key: &String, text: String, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
+fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
     let url = "https://api-free.deepl.com/v2/translate".to_string();
-    let query = if source_lang.trim_matches('"').is_empty() {
-        format!("auth_key={}&text={}&target_lang={}", auth_key, text, target_lang)
+    let mut query = if source_lang.trim_matches('"').is_empty() {
+        format!("auth_key={}&target_lang={}", auth_key, target_lang)
     } else {
-        format!("auth_key={}&text={}&target_lang={}&source_lang={}", auth_key, text, target_lang, source_lang)
+        format!("auth_key={}&target_lang={}&source_lang={}", auth_key, target_lang, source_lang)
     };
+
+    for t in text {
+        query = format!("{}&text={}", query, t);
+    }
     
     connection::send_and_get(url, query)
 }
@@ -98,20 +102,17 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// jsonのパースに失敗したらエラーを返す
 pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
     let auth_key = get_api_key()?;
-    let send_text = text.join("\\");
 
     // request_translate()で翻訳結果のjsonを取得
-    let res = request_translate(&auth_key, send_text, target_lang, source_lang);
+    let res = request_translate(&auth_key, text, target_lang, source_lang);
     if let Err(e) = res {
         return Err(e);
     }
 
     match res {
         Ok(res) => {
-            let replace = |t: String| t.replace("\\", "\n");
             let vec = json_to_vec(&res)?;
-            let ret: Vec<_> = vec.into_iter().map(replace).collect();
-            Ok(ret)
+            Ok(vec)
         },
         // 翻訳結果が失敗ならエラー表示
         // DeepL APIが特有の意味を持つエラーコードであればここで検知
