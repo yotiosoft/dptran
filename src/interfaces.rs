@@ -219,7 +219,11 @@ pub fn get_api_key() -> core::result::Result<String, io::Error> {
 /// 残り文字数を表示
 pub fn show_usage() -> core::result::Result<(), io::Error> {
     let (character_count, character_limit) = get_usage()?;
-    println!("usage: {} / {}", character_count, character_limit);
+    if character_limit == 0 {
+        println!("usage: {} / unlimited", character_count);
+        return Ok(());
+    }
+    println!("usage: {} / {} ({}%)", character_count, character_limit, (character_count as f64 / character_limit as f64 * 100.0).round());
     println!("remaining: {}", character_limit - character_count);
     return Ok(());
 }
