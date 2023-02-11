@@ -21,13 +21,12 @@ pub fn set_default_target_language(arg_default_target_language: String) -> Resul
     };
 
     // 言語コードが正しいか確認
-    match deeplapi::check_language_code(&get_api_key()?, &default_target_language, "target".to_string()) {
-        true => {
-            configure::set_default_target_language(&default_target_language).expect("Failed to set default target language");
-            println!("Default target language has been set to {}.", default_target_language);
-            Ok(())
-        }
-        false => Err(io::Error::new(io::ErrorKind::Other, "Invalid language code")),
+    if let Ok(validated_language_code) = validate_language_code(&default_target_language.to_string()) {
+        configure::set_default_target_language(&validated_language_code).expect("Failed to set default target language");
+        println!("Default target language has been set to {}.", validated_language_code);
+        Ok(())
+    } else {
+        Err(io::Error::new(io::ErrorKind::Other, "Invalid language code"))
     }
 }
 
@@ -47,13 +46,28 @@ pub fn clear_settings() -> Result<(), io::Error> {
 }
 
 /// 設定済みの既定の翻訳先言語コードを取得
-pub fn get_default_target_language_code() -> core::result::Result<String, io::Error> {
+pub fn get_default_target_language_code() -> Result<String, io::Error> {
     let default_target_lang = configure::get_default_target_language_code().expect("failed to get default target language code");
     Ok(default_target_lang)
 }
 
 /// APIキーを取得
-pub fn get_api_key() -> core::result::Result<String, io::Error> {
+pub fn get_api_key() -> Result<String, io::Error> {
     let api_key = configure::get_api_key().expect("failed to get api key");
     Ok(api_key)
+}
+
+/// 正しい言語コードに変換
+pub fn validate_language_code(language_code: &str) -> Result<String, io::Error> {
+    // EN, PTは変換
+    let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
+        "EN" => "EN-US".to_string(),
+        "PT" => "PT-PT".to_string(),
+        _ => language_code.to_ascii_uppercase(),
+    };
+
+    match deeplapi::check_language_code(&get_api_key()?, &language_code_uppercase, "target".to_string()) {
+        true => Ok(language_code_uppercase),
+        false => Err(io::Error::new(io::ErrorKind::Other, "Invalid language code")),
+    }
 }

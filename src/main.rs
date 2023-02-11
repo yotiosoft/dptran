@@ -226,13 +226,6 @@ fn main() {
                     Err(e) => Err(e).unwrap(),
                 }
             }
-            // EN, PT は EN-US, PT-PT に変換
-            if target_lang == "EN" {
-                target_lang = "EN-US".to_string();
-            }
-            if target_lang == "PT" {
-                target_lang = "PT-PT".to_string();
-            }
         }
     };
 
@@ -242,14 +235,24 @@ fn main() {
         return;
     }
 
-    // 言語コードのチェック
-    if source_lang.len() > 0 && interfaces::deeplapi::check_language_code(&api_key, &source_lang, "source".to_string()) == false {
-        println!("Invalid source language code: {}", source_lang);
-        return;
+    // 言語コードのチェック & 正しい言語コードに変換
+    if source_lang.len() > 0 {
+        match interfaces::validate_language_code(&source_lang.to_string()) {
+            Ok(s) => source_lang = s,
+            Err(e) => {
+                println!("Error: {}", e);
+                return;
+            },
+        }
     }
-    if target_lang.len() > 0 && interfaces::deeplapi::check_language_code(&api_key, &target_lang, "target".to_string()) == false {
-        println!("Invalid target language code: {}", target_lang);
-        return;
+    if target_lang.len() > 0 {
+        match interfaces::validate_language_code(&target_lang.to_string()) {
+            Ok(t) => target_lang = t,
+            Err(e) => {
+                println!("Error: {}", e);
+                return;
+            },
+        }
     }
 
     // (対話＆)翻訳
