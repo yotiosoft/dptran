@@ -1,6 +1,4 @@
-use std::io::{self, Write, stdout};
-use std::time::Duration;
-use async_std::io as async_io;
+use std::io::{self, Write, stdin, stdout};
 
 mod interfaces;
 mod parse;
@@ -8,24 +6,10 @@ mod parse;
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, mut text: Vec<String>) -> core::result::Result<(), io::Error> {
+fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
-    let stdin = async_io::stdin();
-    let init_input = async_io::timeout(Duration::from_millis(50), async {
-        let mut init_input = Vec::<String>::new();
-        let mut buf = String::new();
-        while stdin.read_line(&mut buf).await.unwrap() > 0 {
-            init_input.push(buf.clone());
-            buf.clear();
-        }
-        Ok(init_input)
-    })
-    .await;
-    if let Ok(init_input) = init_input {
-        text = init_input;
-        mode = parse::ExecutionMode::TranslateNormal;
-    }
+    let stdin = stdin();
 
     // 対話モードなら終了方法を表示
     if mode == parse::ExecutionMode::TranslateInteractive {
@@ -49,7 +33,7 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
 
                 let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
-                while stdin.read_line(&mut input).await? > 0 {
+                while stdin.read_line(&mut input)? > 0 {
                     if input.clone().trim_end() == "quit" {
                         input_vec.push(input.clone());
                         break;
@@ -122,8 +106,7 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
 
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
-#[async_std::main]
-async fn main() {
+fn main() {
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
@@ -208,7 +191,7 @@ async fn main() {
 
     // (対話＆)翻訳
     let text_vec = vec![text.to_string()];
-    match process(mode, source_lang, target_lang, multilines, text_vec).await {
+    match process(mode, source_lang, target_lang, multilines, text_vec) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
