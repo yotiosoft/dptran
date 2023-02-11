@@ -8,7 +8,7 @@ mod parse;
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lang: String, mut text: Vec<String>) -> core::result::Result<(), io::Error> {
+async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, mut text: Vec<String>) -> core::result::Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = async_io::stdin();
@@ -50,11 +50,27 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
                 let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
                 while stdin.read_line(&mut input).await? > 0 {
-                    input_vec.push(input.clone());
-                    // \\ + 改行で改行を含む入力を受け付ける
-                    if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
+                    if input.clone().trim_end() == "quit" {
+                        input_vec.push(input.clone());
                         break;
                     }
+
+                    // \\ + 改行で改行を含む入力を受け付ける
+                    if !multilines && input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
+                        input_vec.push(input.clone());
+                        break;
+                    }
+
+                    // multilineモードなら改行を含む入力を受け付ける
+                    if multilines {
+                        if input == "\r\n" || input == "\n" {
+                            break;
+                        }
+                        print!("..");
+                        stdout.flush()?;
+                    }
+
+                    input_vec.push(input.clone());
                     input.clear();
                 }
                 input_vec
@@ -112,6 +128,7 @@ async fn main() {
     let mut source_lang = String::new();
     let mut target_lang = String::new();
     let mut text = String::new();
+    let mut multilines = false;
     match mode {
         parse::ExecutionMode::PrintUsage => {
             match interfaces::show_usage() {
@@ -153,6 +170,7 @@ async fn main() {
             source_lang = arg_struct.translate_from;
             target_lang = arg_struct.translate_to;
             text = arg_struct.source_text;
+            multilines = arg_struct.multilines;
 
             if target_lang.len() == 0 {
                 target_lang = match interfaces::get_default_target_language_code() {
@@ -188,7 +206,7 @@ async fn main() {
 
     // (対話＆)翻訳
     let text_vec = vec![text.to_string()];
-    match process(mode, source_lang, target_lang, text_vec).await {
+    match process(mode, source_lang, target_lang, multilines, text_vec).await {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);

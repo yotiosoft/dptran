@@ -17,6 +17,7 @@ pub struct ArgStruct {
     pub api_key: String,
     pub default_target_lang: String,
     pub translate_from: String,
+    pub multilines: bool,
     pub translate_to: String,
     pub source_text: String,
 }
@@ -34,6 +35,10 @@ struct Args {
     /// Set target language
     #[arg(short, long)]
     to: Option<String>,
+
+    /// Input multiple lines
+    #[arg(short, long)]
+    multilines: bool,
 
     /// Print usage of DeepL API
     #[arg(short, long)]
@@ -91,8 +96,14 @@ pub fn parser() -> ArgStruct {
         default_target_lang: String::new(),
         translate_from: String::new(),
         translate_to: String::new(),
+        multilines: false,
         source_text: String::new(),
     };
+
+    // Multilines
+    if args.multilines == true {
+        arg_struct.multilines = true;
+    }
 
     // Usage
     if args.usage == true {
