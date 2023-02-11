@@ -55,15 +55,18 @@ async fn process(mut mode: parse::ExecutionMode, source_lang: String, target_lan
                         break;
                     }
 
-                    // \\ + 改行で改行を含む入力を受け付ける
-                    if !multilines && input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
-                        input_vec.push(input.clone());
-                        break;
-                    }
-
                     // multilineモードなら改行を含む入力を受け付ける
                     if multilines {
                         if input == "\r\n" || input == "\n" {
+                            break;
+                        }
+                        print!("..");
+                        stdout.flush()?;
+                    }
+                    // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
+                    else {
+                        if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
+                            input_vec.push(input.clone());
                             break;
                         }
                         print!("..");
