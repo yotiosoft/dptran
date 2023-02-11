@@ -177,42 +177,24 @@ fn main() {
     let mut target_lang = String::new();
     let mut text = String::new();
     let mut multilines = false;
-    match mode {
+    let mode_switch = match mode {
         parse::ExecutionMode::PrintUsage => {
-            match show_usage(&api_key) {
-                Ok(_) => return,
-                Err(e) => Err(e).unwrap(),
-            }
+            show_usage(&api_key)
         }
         parse::ExecutionMode::SetApiKey => {
-            match interfaces::set_api_key(arg_struct.api_key) {
-                Ok(_) => return,
-                Err(e) => Err(e).unwrap(),
-            }
+            interfaces::set_api_key(arg_struct.api_key)
         }
         parse::ExecutionMode::SetDefaultTargetLang => {
-            match interfaces::set_default_target_language(arg_struct.default_target_lang) {
-                Ok(_) => return,
-                Err(e) => Err(e).unwrap(),
-            }
+            interfaces::set_default_target_language(arg_struct.default_target_lang)
         }
         parse::ExecutionMode::ClearSettings => {
-            match interfaces::clear_settings() {
-                Ok(_) => return,
-                Err(e) => Err(e).unwrap(),
-            }
+            interfaces::clear_settings()
         }
         parse::ExecutionMode::ListSourceLangs => {
-            match show_source_language_codes(&api_key) {
-                Ok(_) => return,
-                Err(e) => Err(e).unwrap(),
-            }
+            show_source_language_codes(&api_key)
         }
         parse::ExecutionMode::ListTargetLangs => {
-            match show_target_language_codes(&api_key) {
-                Ok(_) => return,
-                Err(e) => Err(e).unwrap(),
-            }
+            show_target_language_codes(&api_key)
         }
         _ => {
             source_lang = arg_struct.translate_from;
@@ -221,13 +203,22 @@ fn main() {
             multilines = arg_struct.multilines;
 
             if target_lang.len() == 0 {
-                target_lang = match interfaces::get_default_target_language_code() {
-                    Ok(s) => s,
+                match interfaces::get_default_target_language_code() {
+                    Ok(s) => target_lang = s,
                     Err(e) => Err(e).unwrap(),
                 }
             }
+
+            Ok(())
         }
     };
+    if mode_switch.is_err() {
+        println!("Error: {}", mode_switch.err().unwrap());
+        return;
+    }
+    if mode != parse::ExecutionMode::TranslateInteractive && mode != parse::ExecutionMode::TranslateNormal {
+        return;
+    }
 
     // APIキーの確認
     if interfaces::get_api_key().unwrap_or_default().is_empty() {
