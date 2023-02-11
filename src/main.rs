@@ -3,10 +3,70 @@ use std::io::{self, Write, stdin, stdout};
 mod interfaces;
 mod parse;
 
+/// 残り文字数を表示
+pub fn show_usage(api_key: &String) -> core::result::Result<(), io::Error> {
+    let (character_count, character_limit) = interfaces::deeplapi::get_usage(api_key)?;
+    if character_limit == 0 {
+        println!("usage: {} / unlimited", character_count);
+        return Ok(());
+    }
+    println!("usage: {} / {} ({}%)", character_count, character_limit, (character_count as f64 / character_limit as f64 * 100.0).round());
+    println!("remaining: {}", character_limit - character_count);
+    return Ok(());
+}
+
+/// 翻訳元言語コード一覧の表示  
+/// <https://api-free.deepl.com/v2/languages>から取得する
+pub fn show_source_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
+    // 翻訳元言語コード一覧
+    let source_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "source".to_string())?;
+    
+    let mut i = 0;
+    let len = source_lang_codes.len();
+    let max_code_len = source_lang_codes.iter().map(|x| x.0.len()).max().unwrap();
+    let max_str_len = source_lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+
+    println!("Source language codes:");
+    for lang_code in source_lang_codes {
+        print!(" {lc:<cl$}: {ls:<sl$}", lc=lang_code.0.trim_matches('"'), ls=lang_code.1.trim_matches('"'), cl=max_code_len, sl=max_str_len);
+        i += 1;
+        if (i % 3) == 0 || i == len {
+            println!();
+        }
+    }
+
+    Ok(())
+}
+/// 翻訳先言語コード一覧の表示
+pub fn show_target_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
+    // 翻訳先言語コード一覧
+    let mut target_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "target".to_string())?;
+
+    // 特例コード変換
+    target_lang_codes.push(("EN".to_string(), "English".to_string()));
+    target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
+
+    let mut i = 0;
+    let len = target_lang_codes.len();
+    let max_code_len = target_lang_codes.iter().map(|x| x.0.len()).max().unwrap();
+    let max_str_len = target_lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+
+    println!("Target languages:");
+    for lang_code in target_lang_codes {
+        print!(" {lc:<cl$}: {ls:<sl$}", lc=lang_code.0.trim_matches('"'), ls=lang_code.1.trim_matches('"'), cl=max_code_len, sl=max_str_len);
+        i += 1;
+        if (i % 2) == 0 || i == len {
+            println!();
+        }
+    }
+
+    Ok(())
+}
+
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
+fn process(api_key: String, mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = stdin();
@@ -84,7 +144,7 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
         }
 
         // 翻訳
-        let translated_texts = interfaces::translate(input, &target_lang, &source_lang);
+        let translated_texts = interfaces::deeplapi::translate(&api_key, input, &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -107,6 +167,9 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
 fn main() {
+    // API keyの取得
+    let api_key = interfaces::get_api_key().expect("Failed to get API key.");
+
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
@@ -116,7 +179,7 @@ fn main() {
     let mut multilines = false;
     match mode {
         parse::ExecutionMode::PrintUsage => {
-            match interfaces::show_usage() {
+            match show_usage(&api_key) {
                 Ok(_) => return,
                 Err(e) => Err(e).unwrap(),
             }
@@ -140,13 +203,13 @@ fn main() {
             }
         }
         parse::ExecutionMode::ListSourceLangs => {
-            match interfaces::show_source_language_codes() {
+            match show_source_language_codes(&api_key) {
                 Ok(_) => return,
                 Err(e) => Err(e).unwrap(),
             }
         }
         parse::ExecutionMode::ListTargetLangs => {
-            match interfaces::show_target_language_codes() {
+            match show_target_language_codes(&api_key) {
                 Ok(_) => return,
                 Err(e) => Err(e).unwrap(),
             }
@@ -180,18 +243,18 @@ fn main() {
     }
 
     // 言語コードのチェック
-    if source_lang.len() > 0 && interfaces::check_language_code(&source_lang, "source".to_string()) == false {
+    if source_lang.len() > 0 && interfaces::deeplapi::check_language_code(&api_key, &source_lang, "source".to_string()) == false {
         println!("Invalid source language code: {}", source_lang);
         return;
     }
-    if target_lang.len() > 0 && interfaces::check_language_code(&target_lang, "target".to_string()) == false {
+    if target_lang.len() > 0 && interfaces::deeplapi::check_language_code(&api_key, &target_lang, "target".to_string()) == false {
         println!("Invalid target language code: {}", target_lang);
         return;
     }
 
     // (対話＆)翻訳
     let text_vec = vec![text.to_string()];
-    match process(mode, source_lang, target_lang, multilines, text_vec) {
+    match process(api_key, mode, source_lang, target_lang, multilines, text_vec) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);

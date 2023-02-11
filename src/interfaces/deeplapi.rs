@@ -1,0 +1,115 @@
+use std::io;
+use serde_json::Value;
+
+mod connection;
+
+/// 翻訳  
+/// 失敗したらエラーを返す
+fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
+    let url = "https://api-free.deepl.com/v2/translate".to_string();
+    let mut query = if source_lang.trim_matches('"').is_empty() {
+        format!("auth_key={}&target_lang={}", auth_key, target_lang)
+    } else {
+        format!("auth_key={}&target_lang={}&source_lang={}", auth_key, target_lang, source_lang)
+    };
+
+    for t in text {
+        query = format!("{}&text={}", query, t);
+    }
+    
+    connection::send_and_get(url, query)
+}
+
+/// json形式で渡された翻訳結果をパースし、ベクタに翻訳文を格納して返す
+fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
+    let json: serde_json::Value = serde_json::from_str(&json)?;
+    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
+    let translations = &json["translations"];
+
+    let mut translated_texts = Vec::new();
+    for translation in translations.as_array().expect("failed to get array") {
+        let len = translation["text"].to_string().len();
+        let translation_trimmed= translation["text"].to_string()[1..len-1].to_string();
+        translated_texts.push(translation_trimmed);
+    }
+
+    Ok(translated_texts)
+}
+
+/// 翻訳結果の表示  
+/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
+/// jsonのパースに失敗したらエラーを返す
+pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+    let auth_key = api_key;
+
+    // request_translate()で翻訳結果のjsonを取得
+    let res = request_translate(&auth_key, text, target_lang, source_lang);
+    if let Err(e) = res {
+        return Err(e);
+    }
+
+    match res {
+        Ok(res) => {
+            json_to_vec(&res)
+        },
+        // 翻訳結果が失敗ならエラー表示
+        // DeepL APIが特有の意味を持つエラーコードであればここで検知
+        // https://www.deepl.com/ja/docs-api/api-access/error-handling/
+        Err(e) => {
+            if e.to_string().contains("456") {  // 456 Unprocessable Entity
+                Err(io::Error::new(io::ErrorKind::Other, 
+                    "The translation limit of your account has been reached. Consider upgrading your subscription."))?
+            }
+            else {
+                Err(e)?
+            }
+        }
+    }
+}
+
+/// 翻訳可能な残り文字数の取得
+/// <https://api-free.deepl.com/v2/usage>より取得する  
+/// 取得に失敗したらエラーを返す
+pub fn get_usage(api_key: &String) -> core::result::Result<(i64, i64), io::Error> {
+    let url = "https://api-free.deepl.com/v2/usage".to_string();
+    let query = format!("auth_key={}", api_key);
+    let res = connection::send_and_get(url, query)?;
+    let v: Value = serde_json::from_str(&res)?;
+
+    v.get("character_count").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_count"))?;
+    v.get("character_limit").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_limit"))?;
+
+    let character_count = v["character_count"].as_i64().expect("failed to get character_count");
+    let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit");
+    Ok((character_count, character_limit))
+}
+
+type LangCode = (String, String);
+/// 言語コード一覧の取得  
+/// <https://api-free.deepl.com/v2/languages>から取得する
+pub fn get_language_codes(api_key: &String, type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
+    let url = "https://api-free.deepl.com/v2/languages".to_string();
+    let query = format!("type={}&auth_key={}", type_name, api_key);
+    let res = connection::send_and_get(url, query)?;
+    let v: Value = serde_json::from_str(&res)?;
+
+    let mut lang_codes: Vec<LangCode> = Vec::new();
+    for value in v.as_array().expect("Invalid response at get_language_codes") {
+        value.get("language").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
+        let lang_code = (value["language"].to_string(), value["name"].to_string());
+        lang_codes.push(lang_code);
+    }
+
+    Ok(lang_codes)
+}
+
+/// 言語コードの有効性をチェック
+pub fn check_language_code(api_key: &String, lang_code: &String, type_name: String) -> bool {
+    let lang_codes = get_language_codes(api_key, type_name.to_string()).expect("failed to get language codes");
+    for lang in lang_codes {
+        if lang.0.trim_matches('"') == lang_code.to_uppercase() {
+            return true;
+        }
+    }
+    false
+}
