@@ -4,7 +4,7 @@ mod interfaces;
 mod parse;
 
 /// 残り文字数を表示
-pub fn show_usage(api_key: &String) -> core::result::Result<(), io::Error> {
+fn show_usage(api_key: &String) -> core::result::Result<(), io::Error> {
     let (character_count, character_limit) = interfaces::deeplapi::get_usage(api_key)?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
@@ -17,7 +17,7 @@ pub fn show_usage(api_key: &String) -> core::result::Result<(), io::Error> {
 
 /// 翻訳元言語コード一覧の表示  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn show_source_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
+fn show_source_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
     // 翻訳元言語コード一覧
     let source_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "source".to_string())?;
     
@@ -38,7 +38,7 @@ pub fn show_source_language_codes(api_key: &String) -> core::result::Result<(), 
     Ok(())
 }
 /// 翻訳先言語コード一覧の表示
-pub fn show_target_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
+fn show_target_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
     // 翻訳先言語コード一覧
     let mut target_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "target".to_string())?;
 
