@@ -13,15 +13,8 @@ pub fn set_api_key(api_key: String) -> Result<(), io::Error> {
 /// デフォルトの翻訳先言語の設定  
 /// 設定ファイルconfig.jsonにデフォルトの翻訳先言語を設定する。
 pub fn set_default_target_language(arg_default_target_language: String) -> Result<(), io::Error> {
-    // EN, PTは変換
-    let default_target_language = match arg_default_target_language.to_ascii_uppercase().as_str() {
-        "EN" => "EN-US".to_string(),
-        "PT" => "PT-PT".to_string(),
-        _ => arg_default_target_language.to_ascii_uppercase(),
-    };
-
     // 言語コードが正しいか確認
-    if let Ok(validated_language_code) = validate_language_code(&default_target_language.to_string()) {
+    if let Ok(validated_language_code) = correct_language_code(&arg_default_target_language.to_string()) {
         configure::set_default_target_language(&validated_language_code).expect("Failed to set default target language");
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
@@ -58,7 +51,7 @@ pub fn get_api_key() -> Result<String, io::Error> {
 }
 
 /// 正しい言語コードに変換
-pub fn validate_language_code(language_code: &str) -> Result<String, io::Error> {
+pub fn correct_language_code(language_code: &str) -> Result<String, io::Error> {
     // EN, PTは変換
     let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
         "EN" => "EN-US".to_string(),

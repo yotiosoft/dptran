@@ -228,7 +228,7 @@ fn main() {
 
     // 言語コードのチェック & 正しい言語コードに変換
     if source_lang.len() > 0 {
-        match interfaces::validate_language_code(&source_lang.to_string()) {
+        match interfaces::correct_language_code(&source_lang.to_string()) {
             Ok(s) => source_lang = s,
             Err(e) => {
                 println!("Error: {}", e);
@@ -237,7 +237,7 @@ fn main() {
         }
     }
     if target_lang.len() > 0 {
-        match interfaces::validate_language_code(&target_lang.to_string()) {
+        match interfaces::correct_language_code(&target_lang.to_string()) {
             Ok(t) => target_lang = t,
             Err(e) => {
                 println!("Error: {}", e);
