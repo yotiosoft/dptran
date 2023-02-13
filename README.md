@@ -67,6 +67,22 @@ Exit with ``quit``.
 
 If you want to translate the source texts into a specific language, use the ``-t`` option. 
 
+#### Translate multiple lines
+
+To enter multiple lines, use the -m option.  
+Then enter a blank line to send the input.
+
+```
+$ dptran -m -t JA
+> A tool to run DeepL translations on your command line.
+..It's written in Rust, and uses curl to connect to the DeepL API.
+..To use, you need to get the DeepL API key from https://www.deepl.com/ja/pro-api/.
+..
+コマンドラインでDeepL翻訳を実行するためのツールです。
+これはRustで書かれており、DeepL APIへの接続にはcurlを使用します。
+使用するには、https://www.deepl.com/ja/pro-api/ から DeepL API キーを取得する必要があります。
+```
+
 ```bash
 
 ### Translate from the pipeline
