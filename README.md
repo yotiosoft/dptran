@@ -81,8 +81,6 @@ $ dptran -m -t JA
 コマンドラインでDeepL翻訳を実行するためのツールです。
 これはRustで書かれており、DeepL APIへの接続にはcurlを使用します。
 使用するには、https://www.deepl.com/ja/pro-api/ から DeepL API キーを取得する必要があります。
-```
-
 ```bash
 
 ### Translate from the pipeline
