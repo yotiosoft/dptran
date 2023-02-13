@@ -22,9 +22,7 @@ fn show_source_language_codes(api_key: &String) -> core::result::Result<(), io::
     let source_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "source".to_string())?;
     
     let mut i = 0;
-    let len = source_lang_codes.len();
-    let max_code_len = source_lang_codes.iter().map(|x| x.0.len()).max().unwrap();
-    let max_str_len = source_lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+    let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
 
     println!("Source language codes:");
     for lang_code in source_lang_codes {
@@ -47,9 +45,7 @@ fn show_target_language_codes(api_key: &String) -> core::result::Result<(), io::
     target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
 
     let mut i = 0;
-    let len = target_lang_codes.len();
-    let max_code_len = target_lang_codes.iter().map(|x| x.0.len()).max().unwrap();
-    let max_str_len = target_lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+    let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&target_lang_codes);
 
     println!("Target languages:");
     for lang_code in target_lang_codes {
@@ -61,6 +57,12 @@ fn show_target_language_codes(api_key: &String) -> core::result::Result<(), io::
     }
 
     Ok(())
+}
+fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, usize) {
+    let len = lang_codes.len();
+    let max_code_len = lang_codes.iter().map(|x| x.0.len()).max().unwrap();
+    let max_str_len = lang_codes.iter().map(|x| x.1.len()).max().unwrap();
+    (len, max_code_len, max_str_len)
 }
 
 /// 対話と翻訳  
