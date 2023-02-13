@@ -78,7 +78,7 @@ fn process(api_key: String, mode: parse::ExecutionMode, source_lang: String, tar
         } else {
             println!("Now translating from {} to {}.", source_lang, target_lang);
         }
-        println!("To quit, type \"quit\".");
+        println!("Type \"quit\" to exit dptran.");
     }
 
     let mut stdout = stdout();
