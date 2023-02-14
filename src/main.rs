@@ -80,6 +80,9 @@ fn process(api_key: String, mode: parse::ExecutionMode, source_lang: String, tar
         } else {
             println!("Now translating from {} to {}.", source_lang, target_lang);
         }
+        if multilines {
+            println!("Multiline mode: Enter a blank line to send the input.");
+        }
         println!("Type \"quit\" to exit dptran.");
     }
 
