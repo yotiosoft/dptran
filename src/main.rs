@@ -8,11 +8,12 @@ fn show_usage(api_key: &String) -> core::result::Result<(), io::Error> {
     let (character_count, character_limit) = interfaces::deeplapi::get_usage(api_key)?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
-        return Ok(());
     }
-    println!("usage: {} / {} ({}%)", character_count, character_limit, (character_count as f64 / character_limit as f64 * 100.0).round());
-    println!("remaining: {}", character_limit - character_count);
-    return Ok(());
+    else {
+        println!("usage: {} / {} ({}%)", character_count, character_limit, (character_count as f64 / character_limit as f64 * 100.0).round());
+        println!("remaining: {}", character_limit - character_count);
+    }
+    Ok(())
 }
 
 /// 翻訳元言語コード一覧の表示  

@@ -151,5 +151,5 @@ pub fn parser() -> ArgStruct {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
         arg_struct.source_text = source_text.join(" ");
     }
-    return arg_struct;
+    arg_struct
 }
