@@ -49,13 +49,13 @@ pub fn clear_settings() -> Result<(), ConfyError> {
 }
 
 /// 設定済みの既定の翻訳先言語コードを取得
-pub fn get_default_target_language_code() -> core::result::Result<String, ConfyError> {
+pub fn get_default_target_language_code() -> Result<String, ConfyError> {
     let settings = get_settings()?;
     Ok(settings.default_target_language)
 }
 
 /// APIキーを取得
-pub fn get_api_key() -> core::result::Result<String, ConfyError> {
+pub fn get_api_key() -> Result<String, ConfyError> {
     let settings = get_settings()?;
     Ok(settings.api_key)
 }

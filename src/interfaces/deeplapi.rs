@@ -70,7 +70,7 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 /// 翻訳可能な残り文字数の取得
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
-pub fn get_usage(api_key: &String) -> core::result::Result<(i64, i64), io::Error> {
+pub fn get_usage(api_key: &String) -> Result<(i64, i64), io::Error> {
     let url = "https://api-free.deepl.com/v2/usage".to_string();
     let query = format!("auth_key={}", api_key);
     let res = connection::send_and_get(url, query)?;
@@ -87,7 +87,7 @@ pub fn get_usage(api_key: &String) -> core::result::Result<(i64, i64), io::Error
 type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(api_key: &String, type_name: String) -> core::result::Result<Vec<LangCode>, io::Error> {
+pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, io::Error> {
     let url = "https://api-free.deepl.com/v2/languages".to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);
     let res = connection::send_and_get(url, query)?;
