@@ -8,6 +8,7 @@ pub enum ExecutionMode {
     ListTargetLangs,
     SetApiKey,
     SetDefaultTargetLang,
+    DisplaySettings,
     ClearSettings,
     PrintUsage,
 }
@@ -15,6 +16,7 @@ pub enum ExecutionMode {
 pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
     pub api_key: String,
+    pub display_settings: bool,
     pub default_target_lang: String,
     pub translate_from: String,
     pub multilines: bool,
@@ -55,7 +57,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "default_lang", "clear"]),
+            .args(["api_key", "target_lang", "display", "clear"]),
     ))]
     Set {
         /// Set api-key
@@ -64,7 +66,11 @@ enum SubCommands {
     
         /// Set default target language
         #[arg(short, long)]
-        default_lang: Option<String>,
+        target_lang: Option<String>,
+
+        /// Display settings
+        #[arg(short, long)]
+        display: bool,
     
         /// Clear settings
         #[arg(short, long)]
@@ -96,6 +102,7 @@ pub fn parser() -> ArgStruct {
         default_target_lang: String::new(),
         translate_from: String::new(),
         translate_to: String::new(),
+        display_settings: false,
         multilines: false,
         source_text: String::new(),
     };
@@ -114,7 +121,7 @@ pub fn parser() -> ArgStruct {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, default_lang, clear } => {
+            SubCommands::Set { api_key, target_lang: default_lang, display, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
                     arg_struct.api_key = api_key;
@@ -122,6 +129,9 @@ pub fn parser() -> ArgStruct {
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
                     arg_struct.default_target_lang = default_lang;
+                }
+                if display == true {
+                    arg_struct.execution_mode = ExecutionMode::DisplaySettings;
                 }
                 if clear == true {
                     arg_struct.execution_mode = ExecutionMode::ClearSettings;

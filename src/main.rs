@@ -16,6 +16,15 @@ fn show_usage(api_key: &String) -> core::result::Result<(), io::Error> {
     Ok(())
 }
 
+/// 設定内容の表示
+fn display_settings() -> core::result::Result<(), io::Error> {
+    let api_key = interfaces::get_api_key()?;
+    let default_target_lang = interfaces::get_default_target_language_code()?;
+    println!("API key: {}", api_key);
+    println!("Default target language: {}", default_target_lang);
+    Ok(())
+}
+
 /// 翻訳元言語コード一覧の表示  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn show_source_language_codes(api_key: &String) -> core::result::Result<(), io::Error> {
@@ -192,6 +201,9 @@ fn main() {
         }
         parse::ExecutionMode::SetDefaultTargetLang => {
             interfaces::set_default_target_language(arg_struct.default_target_lang)
+        }
+        parse::ExecutionMode::DisplaySettings => {
+            display_settings()
         }
         parse::ExecutionMode::ClearSettings => {
             interfaces::clear_settings()
