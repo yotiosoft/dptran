@@ -48,10 +48,6 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 
     // request_translate()で翻訳結果のjsonを取得
     let res = request_translate(&auth_key, text, target_lang, source_lang);
-    if let Err(e) = res {
-        return Err(e);
-    }
-
     match res {
         Ok(res) => {
             json_to_vec(&res)
