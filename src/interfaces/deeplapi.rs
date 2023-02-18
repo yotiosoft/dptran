@@ -3,10 +3,14 @@ use serde_json::Value;
 
 mod connection;
 
+const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
+const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
+const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
+
 /// 翻訳  
 /// 失敗したらエラーを返す
 fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
-    let url = "https://api-free.deepl.com/v2/translate".to_string();
+    let url = DEEPL_API_TRANSLATE.to_string();
     let mut query = if source_lang.trim_matches('"').is_empty() {
         format!("auth_key={}&target_lang={}", auth_key, target_lang)
     } else {
@@ -71,7 +75,7 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
 pub fn get_usage(api_key: &String) -> Result<(i64, i64), io::Error> {
-    let url = "https://api-free.deepl.com/v2/usage".to_string();
+    let url = DEEPL_API_USAGE.to_string();
     let query = format!("auth_key={}", api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
@@ -88,7 +92,7 @@ type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, io::Error> {
-    let url = "https://api-free.deepl.com/v2/languages".to_string();
+    let url = DEEPL_API_LANGUAGES.to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res)?;
