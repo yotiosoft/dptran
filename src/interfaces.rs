@@ -64,3 +64,10 @@ pub fn correct_language_code(language_code: &str) -> Result<String, io::Error> {
         false => Err(io::Error::new(io::ErrorKind::Other, "Invalid language code")),
     }
 }
+
+/// 言語コード一覧の取得  
+/// <https://api-free.deepl.com/v2/languages>から取得する
+pub fn get_language_codes(type_name: String) -> Result<Vec<deeplapi::LangCode>, io::Error> {
+    let api_key = get_api_key()?;
+    deeplapi::get_language_codes(&api_key, type_name)
+}

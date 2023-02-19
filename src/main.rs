@@ -27,9 +27,9 @@ fn display_settings() -> Result<(), io::Error> {
 
 /// 翻訳元言語コード一覧の表示  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-fn show_source_language_codes(api_key: &String) -> Result<(), io::Error> {
+fn show_source_language_codes() -> Result<(), io::Error> {
     // 翻訳元言語コード一覧
-    let source_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "source".to_string())?;
+    let source_lang_codes = interfaces::get_language_codes("source".to_string())?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -46,9 +46,9 @@ fn show_source_language_codes(api_key: &String) -> Result<(), io::Error> {
     Ok(())
 }
 /// 翻訳先言語コード一覧の表示
-fn show_target_language_codes(api_key: &String) -> Result<(), io::Error> {
+fn show_target_language_codes() -> Result<(), io::Error> {
     // 翻訳先言語コード一覧
-    let mut target_lang_codes = interfaces::deeplapi::get_language_codes(api_key, "target".to_string())?;
+    let mut target_lang_codes = interfaces::get_language_codes("target".to_string())?;
 
     // 特例コード変換
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
@@ -209,10 +209,10 @@ fn main() {
             interfaces::clear_settings()
         }
         parse::ExecutionMode::ListSourceLangs => {
-            show_source_language_codes(&api_key)
+            show_source_language_codes()
         }
         parse::ExecutionMode::ListTargetLangs => {
-            show_target_language_codes(&api_key)
+            show_target_language_codes()
         }
         _ => {
             source_lang = arg_struct.translate_from;
