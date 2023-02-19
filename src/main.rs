@@ -4,8 +4,8 @@ mod interfaces;
 mod parse;
 
 /// 残り文字数を表示
-fn show_usage(api_key: &String) -> Result<(), io::Error> {
-    let (character_count, character_limit) = interfaces::deeplapi::get_usage(api_key)?;
+fn show_usage() -> Result<(), io::Error> {
+    let (character_count, character_limit) = interfaces::get_usage()?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
     }
@@ -78,7 +78,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(api_key: String, mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
+fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
     let stdin = stdin();
@@ -159,7 +159,7 @@ fn process(api_key: String, mode: parse::ExecutionMode, source_lang: String, tar
         }
 
         // 翻訳
-        let translated_texts = interfaces::deeplapi::translate(&api_key, input, &target_lang, &source_lang);
+        let translated_texts = interfaces::translate(input, &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -182,9 +182,6 @@ fn process(api_key: String, mode: parse::ExecutionMode, source_lang: String, tar
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
 fn main() {
-    // API keyの取得
-    let api_key = interfaces::get_api_key().expect("Failed to get API key.");
-
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
@@ -194,7 +191,7 @@ fn main() {
     let mut multilines = false;
     let mode_switch = match mode {
         parse::ExecutionMode::PrintUsage => {
-            show_usage(&api_key)
+            show_usage()
         }
         parse::ExecutionMode::SetApiKey => {
             interfaces::set_api_key(arg_struct.api_key)
@@ -266,7 +263,7 @@ fn main() {
 
     // (対話＆)翻訳
     let text_vec = vec![text.to_string()];
-    match process(api_key, mode, source_lang, target_lang, multilines, text_vec) {
+    match process(mode, source_lang, target_lang, multilines, text_vec) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);

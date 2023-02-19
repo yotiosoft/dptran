@@ -1,7 +1,7 @@
 use std::io;
 
 mod configure;
-pub mod deeplapi;
+mod deeplapi;
 
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
@@ -70,4 +70,20 @@ pub fn correct_language_code(language_code: &str) -> Result<String, io::Error> {
 pub fn get_language_codes(type_name: String) -> Result<Vec<deeplapi::LangCode>, io::Error> {
     let api_key = get_api_key()?;
     deeplapi::get_language_codes(&api_key, type_name)
+}
+
+/// 翻訳可能な残り文字数の取得
+/// <https://api-free.deepl.com/v2/usage>より取得する  
+/// 取得に失敗したらエラーを返す
+pub fn get_usage() -> Result<(i64, i64), io::Error> {
+    let api_key = get_api_key()?;
+    deeplapi::get_usage(&api_key)
+}
+
+/// 翻訳結果の表示  
+/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
+/// jsonのパースに失敗したらエラーを返す
+pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+    let api_key = get_api_key()?;
+    deeplapi::translate(&api_key, text, target_lang, source_lang)
 }
