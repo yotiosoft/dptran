@@ -1,11 +1,11 @@
 use std::io::{self, Write, stdin, stdout};
 
-mod interfaces;
+mod interface;
 mod parse;
 
 /// 残り文字数を表示
 fn show_usage() -> Result<(), io::Error> {
-    let (character_count, character_limit) = interfaces::get_usage()?;
+    let (character_count, character_limit) = interface::get_usage()?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
     }
@@ -18,8 +18,8 @@ fn show_usage() -> Result<(), io::Error> {
 
 /// 設定内容の表示
 fn display_settings() -> Result<(), io::Error> {
-    let api_key = interfaces::get_api_key()?;
-    let default_target_lang = interfaces::get_default_target_language_code()?;
+    let api_key = interface::get_api_key()?;
+    let default_target_lang = interface::get_default_target_language_code()?;
     println!("API key: {}", api_key);
     println!("Default target language: {}", default_target_lang);
     Ok(())
@@ -29,7 +29,7 @@ fn display_settings() -> Result<(), io::Error> {
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn show_source_language_codes() -> Result<(), io::Error> {
     // 翻訳元言語コード一覧
-    let source_lang_codes = interfaces::get_language_codes("source".to_string())?;
+    let source_lang_codes = interface::get_language_codes("source".to_string())?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -48,7 +48,7 @@ fn show_source_language_codes() -> Result<(), io::Error> {
 /// 翻訳先言語コード一覧の表示
 fn show_target_language_codes() -> Result<(), io::Error> {
     // 翻訳先言語コード一覧
-    let mut target_lang_codes = interfaces::get_language_codes("target".to_string())?;
+    let mut target_lang_codes = interface::get_language_codes("target".to_string())?;
 
     // 特例コード変換
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
@@ -159,7 +159,7 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
         }
 
         // 翻訳
-        let translated_texts = interfaces::translate(input, &target_lang, &source_lang);
+        let translated_texts = interface::translate(input, &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -194,16 +194,16 @@ fn main() {
             show_usage()
         }
         parse::ExecutionMode::SetApiKey => {
-            interfaces::set_api_key(arg_struct.api_key)
+            interface::set_api_key(arg_struct.api_key)
         }
         parse::ExecutionMode::SetDefaultTargetLang => {
-            interfaces::set_default_target_language(arg_struct.default_target_lang)
+            interface::set_default_target_language(arg_struct.default_target_lang)
         }
         parse::ExecutionMode::DisplaySettings => {
             display_settings()
         }
         parse::ExecutionMode::ClearSettings => {
-            interfaces::clear_settings()
+            interface::clear_settings()
         }
         parse::ExecutionMode::ListSourceLangs => {
             show_source_language_codes()
@@ -218,7 +218,7 @@ fn main() {
             multilines = arg_struct.multilines;
 
             if target_lang.len() == 0 {
-                match interfaces::get_default_target_language_code() {
+                match interface::get_default_target_language_code() {
                     Ok(s) => target_lang = s,
                     Err(e) => Err(e).unwrap(),
                 }
@@ -236,14 +236,14 @@ fn main() {
     }
 
     // APIキーの確認
-    if interfaces::get_api_key().unwrap_or_default().is_empty() {
+    if interface::get_api_key().unwrap_or_default().is_empty() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return;
     }
 
     // 言語コードのチェック & 正しい言語コードに変換
     if source_lang.len() > 0 {
-        match interfaces::correct_language_code(&source_lang.to_string()) {
+        match interface::correct_language_code(&source_lang.to_string()) {
             Ok(s) => source_lang = s,
             Err(e) => {
                 println!("Error: {}", e);
@@ -252,7 +252,7 @@ fn main() {
         }
     }
     if target_lang.len() > 0 {
-        match interfaces::correct_language_code(&target_lang.to_string()) {
+        match interface::correct_language_code(&target_lang.to_string()) {
             Ok(t) => target_lang = t,
             Err(e) => {
                 println!("Error: {}", e);
