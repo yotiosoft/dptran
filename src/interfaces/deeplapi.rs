@@ -84,7 +84,7 @@ pub fn get_usage(api_key: &String) -> Result<(i64, i64), io::Error> {
     Ok((character_count, character_limit))
 }
 
-pub type LangCode = (String, String);
+type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, io::Error> {
@@ -101,15 +101,4 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     }
 
     Ok(lang_codes)
-}
-
-/// 言語コードの有効性をチェック
-pub fn check_language_code(api_key: &String, lang_code: &String, type_name: String) -> bool {
-    let lang_codes = get_language_codes(api_key, type_name.to_string()).expect("failed to get language codes");
-    for lang in lang_codes {
-        if lang.0.trim_matches('"') == lang_code.to_uppercase() {
-            return true;
-        }
-    }
-    false
 }

@@ -3,6 +3,8 @@ use std::io;
 mod configure;
 mod deeplapi;
 
+pub type LangCode = (String, String);
+
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
 pub fn set_api_key(api_key: String) -> Result<(), io::Error> {
@@ -50,6 +52,24 @@ pub fn get_api_key() -> Result<String, io::Error> {
     Ok(api_key)
 }
 
+/// 言語コード一覧の取得  
+/// <https://api-free.deepl.com/v2/languages>から取得する
+pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, io::Error> {
+    let api_key = get_api_key()?;
+    deeplapi::get_language_codes(&api_key, type_name)
+}
+
+/// 言語コードの有効性をチェック
+fn check_language_code(lang_code: &String, type_name: String) -> bool {
+    let lang_codes = get_language_codes(type_name.to_string()).expect("failed to get language codes");
+    for lang in lang_codes {
+        if lang.0.trim_matches('"') == lang_code.to_uppercase() {
+            return true;
+        }
+    }
+    false
+}
+
 /// 正しい言語コードに変換
 pub fn correct_language_code(language_code: &str) -> Result<String, io::Error> {
     // EN, PTは変換
@@ -59,17 +79,10 @@ pub fn correct_language_code(language_code: &str) -> Result<String, io::Error> {
         _ => language_code.to_ascii_uppercase(),
     };
 
-    match deeplapi::check_language_code(&get_api_key()?, &language_code_uppercase, "target".to_string()) {
+    match check_language_code(&language_code_uppercase, "target".to_string()) {
         true => Ok(language_code_uppercase),
         false => Err(io::Error::new(io::ErrorKind::Other, "Invalid language code")),
     }
-}
-
-/// 言語コード一覧の取得  
-/// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(type_name: String) -> Result<Vec<deeplapi::LangCode>, io::Error> {
-    let api_key = get_api_key()?;
-    deeplapi::get_language_codes(&api_key, type_name)
 }
 
 /// 翻訳可能な残り文字数の取得
