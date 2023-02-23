@@ -109,8 +109,8 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
                 let mut input_vec = Vec::<String>::new();
                 let mut input = String::new();
                 while stdin.read_line(&mut input)? > 0 {
-                    if input.clone().trim_end() == "quit" {
-                        input_vec.push(input.clone());
+                    if input.trim_end() == "quit" {
+                        input_vec.push(input);
                         break;
                     }
 
@@ -123,7 +123,7 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
                     // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
                     else {
                         if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
-                            input_vec.push(input.clone());
+                            input_vec.push(input);
                             break;
                         }
                     }
