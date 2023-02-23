@@ -146,10 +146,10 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
 
         // 対話モード："quit"で終了
         if mode == parse::ExecutionMode::TranslateInteractive {
-            if input[0].clone().trim_end() == "quit" {
+            if input[0].trim_end() == "quit" {
                 break;
             }
-            if input[0].clone().trim_end().is_empty() {
+            if input[0].trim_end().is_empty() {
                 continue;
             }
         }
