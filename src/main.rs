@@ -1,5 +1,7 @@
 use std::io::{self, Write, stdin, stdout};
 
+use parse::ExecutionMode;
+
 mod interface;
 mod parse;
 
@@ -75,13 +77,61 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
     (len, max_code_len, max_str_len)
 }
 
+/// 標準入力より原文取得
+fn get_input(mode: &ExecutionMode, multilines: bool, text: &Vec<String>) -> Vec<String> {
+    let stdin = stdin();
+    let mut stdout = stdout();
+
+    match mode {
+        parse::ExecutionMode::TranslateInteractive => {
+            print!("> ");
+            stdout.flush().unwrap();
+
+            let mut input_vec = Vec::<String>::new();
+            let mut input = String::new();
+            while stdin.read_line(&mut input).unwrap() > 0 {
+                if input.trim_end() == "quit" {
+                    input_vec.push(input);
+                    break;
+                }
+
+                // multilineモードなら改行を含む入力を受け付ける
+                if multilines {
+                    if input == "\r\n" || input == "\n" {
+                        break;
+                    }
+                }
+                // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
+                else {
+                    if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
+                        input_vec.push(input);
+                        break;
+                    }
+                }
+
+                input_vec.push(input.clone());
+                input.clear();
+
+                print!("..");
+                stdout.flush().unwrap();
+            }
+            input_vec
+        }
+        parse::ExecutionMode::TranslateNormal => {
+            text.clone()
+        }
+        _ => {
+            panic!("Invalid mode.");
+        }
+    }
+}
+
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
 fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
-    let stdin = stdin();
 
     // 対話モードなら終了方法を表示
     if mode == parse::ExecutionMode::TranslateInteractive {
@@ -96,53 +146,10 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
         println!("Type \"quit\" to exit dptran.");
     }
 
-    let mut stdout = stdout();
-
     loop {
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
-        let input = match mode {
-            parse::ExecutionMode::TranslateInteractive => {
-                print!("> ");
-                stdout.flush()?;
-
-                let mut input_vec = Vec::<String>::new();
-                let mut input = String::new();
-                while stdin.read_line(&mut input)? > 0 {
-                    if input.trim_end() == "quit" {
-                        input_vec.push(input);
-                        break;
-                    }
-
-                    // multilineモードなら改行を含む入力を受け付ける
-                    if multilines {
-                        if input == "\r\n" || input == "\n" {
-                            break;
-                        }
-                    }
-                    // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
-                    else {
-                        if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
-                            input_vec.push(input);
-                            break;
-                        }
-                    }
-
-                    input_vec.push(input.clone());
-                    input.clear();
-
-                    print!("..");
-                    stdout.flush()?;
-                }
-                input_vec
-            }
-            parse::ExecutionMode::TranslateNormal => {
-                text.clone()
-            }
-            _ => {
-                panic!("Invalid mode.");
-            }
-        };
+        let input = get_input(&mode, multilines, &text);
 
         // 対話モード："quit"で終了
         if mode == parse::ExecutionMode::TranslateInteractive {
