@@ -3,7 +3,7 @@ use std::io;
 mod configure;
 mod deeplapi;
 
-pub type LangCode = (String, String);
+use deeplapi::LangCode;
 
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。

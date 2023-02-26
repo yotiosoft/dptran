@@ -1,9 +1,9 @@
 use std::io::{self, Write, stdin, stdout};
 
-use parse::ExecutionMode;
-
 mod interface;
 mod parse;
+
+use parse::ExecutionMode;
 
 /// 残り文字数を表示
 fn show_usage() -> Result<(), io::Error> {
@@ -83,7 +83,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &String) -> Vec<Strin
     let mut stdout = stdout();
 
     match mode {
-        parse::ExecutionMode::TranslateInteractive => {
+        ExecutionMode::TranslateInteractive => {
             print!("> ");
             stdout.flush().unwrap();
 
@@ -117,7 +117,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &String) -> Vec<Strin
             }
             input_vec
         }
-        parse::ExecutionMode::TranslateNormal => {
+        ExecutionMode::TranslateNormal => {
             vec![text.to_string()]
         }
         _ => {
@@ -129,12 +129,12 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &String) -> Vec<Strin
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: String) -> Result<(), io::Error> {
+fn process(mode: ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: String) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
     // 対話モードなら終了方法を表示
-    if mode == parse::ExecutionMode::TranslateInteractive {
+    if mode == ExecutionMode::TranslateInteractive {
         if source_lang.len() == 0 {
             println!("Now translating from detected language to {}.", target_lang);
         } else {
@@ -152,7 +152,7 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
         let input = get_input(&mode, multilines, &text);
 
         // 対話モード："quit"で終了
-        if mode == parse::ExecutionMode::TranslateInteractive {
+        if mode == ExecutionMode::TranslateInteractive {
             if input[0].trim_end() == "quit" {
                 break;
             }
@@ -161,7 +161,7 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
             }
         }
         // 通常モード：空文字列なら終了
-        if mode == parse::ExecutionMode::TranslateNormal && input[0].clone().trim_end().is_empty() {
+        if mode == ExecutionMode::TranslateNormal && input[0].clone().trim_end().is_empty() {
             break;
         }
 
@@ -178,7 +178,7 @@ fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String,
             }
         }
         // 通常モードの場合、一回でループを抜ける
-        if mode == parse::ExecutionMode::TranslateNormal {
+        if mode == ExecutionMode::TranslateNormal {
             break;
         }
     }
@@ -197,25 +197,25 @@ fn main() {
     let mut text = String::new();
     let mut multilines = false;
     let mode_switch = match mode {
-        parse::ExecutionMode::PrintUsage => {
+        ExecutionMode::PrintUsage => {
             show_usage()
         }
-        parse::ExecutionMode::SetApiKey => {
+        ExecutionMode::SetApiKey => {
             interface::set_api_key(arg_struct.api_key)
         }
-        parse::ExecutionMode::SetDefaultTargetLang => {
+        ExecutionMode::SetDefaultTargetLang => {
             interface::set_default_target_language(arg_struct.default_target_lang)
         }
-        parse::ExecutionMode::DisplaySettings => {
+        ExecutionMode::DisplaySettings => {
             display_settings()
         }
-        parse::ExecutionMode::ClearSettings => {
+        ExecutionMode::ClearSettings => {
             interface::clear_settings()
         }
-        parse::ExecutionMode::ListSourceLangs => {
+        ExecutionMode::ListSourceLangs => {
             show_source_language_codes()
         }
-        parse::ExecutionMode::ListTargetLangs => {
+        ExecutionMode::ListTargetLangs => {
             show_target_language_codes()
         }
         _ => {
@@ -238,7 +238,7 @@ fn main() {
         println!("Error: {}", mode_switch.err().unwrap());
         return;
     }
-    if mode != parse::ExecutionMode::TranslateInteractive && mode != parse::ExecutionMode::TranslateNormal {
+    if mode != ExecutionMode::TranslateInteractive && mode != ExecutionMode::TranslateNormal {
         return;
     }
 

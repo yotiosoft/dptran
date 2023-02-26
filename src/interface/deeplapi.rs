@@ -84,7 +84,7 @@ pub fn get_usage(api_key: &String) -> Result<(i64, i64), io::Error> {
     Ok((character_count, character_limit))
 }
 
-type LangCode = (String, String);
+pub type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, io::Error> {
