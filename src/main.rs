@@ -78,7 +78,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// 標準入力より原文取得
-fn get_input(mode: &ExecutionMode, multilines: bool, text: &Vec<String>) -> Vec<String> {
+fn get_input(mode: &ExecutionMode, multilines: bool, text: &String) -> Vec<String> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -118,7 +118,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Vec<String>) -> Vec<
             input_vec
         }
         parse::ExecutionMode::TranslateNormal => {
-            text.clone()
+            vec![text.to_string()]
         }
         _ => {
             panic!("Invalid mode.");
@@ -129,7 +129,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Vec<String>) -> Vec<
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: Vec<String>) -> Result<(), io::Error> {
+fn process(mode: parse::ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: String) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
@@ -269,8 +269,7 @@ fn main() {
     }
 
     // (対話＆)翻訳
-    let text_vec = vec![text.to_string()];
-    match process(mode, source_lang, target_lang, multilines, text_vec) {
+    match process(mode, source_lang, target_lang, multilines, text) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);
