@@ -201,10 +201,18 @@ fn main() {
             show_usage()
         }
         ExecutionMode::SetApiKey => {
-            interface::set_api_key(arg_struct.api_key)
+            if let Some(s) = arg_struct.api_key {
+                interface::set_api_key(s)
+            } else {
+                Err(io::Error::new(io::ErrorKind::Other, "No API key specified."))
+            }
         }
         ExecutionMode::SetDefaultTargetLang => {
-            interface::set_default_target_language(arg_struct.default_target_lang)
+            if let Some(s) = arg_struct.default_target_lang {
+                interface::set_default_target_language(s)
+            } else {
+                Err(io::Error::new(io::ErrorKind::Other, "No target language specified."))
+            }
         }
         ExecutionMode::DisplaySettings => {
             display_settings()
@@ -227,9 +235,9 @@ fn main() {
             text = arg_struct.source_text;
             multilines = arg_struct.multilines;
 
-            if target_lang.len() == 0 {
+            if let Some(t) = target_lang {
                 match interface::get_default_target_language_code() {
-                    Ok(s) => target_lang = s,
+                    Ok(s) => target_lang = Some(s),
                     Err(e) => Err(e).unwrap(),
                 }
             }

@@ -98,13 +98,13 @@ pub fn parser() -> ArgStruct {
     let args = Args::parse();
     let mut arg_struct = ArgStruct {
         execution_mode: ExecutionMode::TranslateInteractive,
-        api_key: String::new(),
-        default_target_lang: String::new(),
-        translate_from: String::new(),
-        translate_to: String::new(),
+        api_key: None,
+        default_target_lang: None,
+        translate_from: None,
+        translate_to: None,
         display_settings: false,
         multilines: false,
-        source_text: String::new(),
+        source_text: None,
     };
 
     // Multilines
@@ -124,11 +124,11 @@ pub fn parser() -> ArgStruct {
             SubCommands::Set { api_key, target_lang: default_lang, display, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
-                    arg_struct.api_key = api_key;
+                    arg_struct.api_key = Some(api_key);
                 }
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
-                    arg_struct.default_target_lang = default_lang;
+                    arg_struct.default_target_lang = Some(default_lang);
                 }
                 if display == true {
                     arg_struct.execution_mode = ExecutionMode::DisplaySettings;
@@ -152,14 +152,14 @@ pub fn parser() -> ArgStruct {
 
     // Translation mode (normal mode)
     if let Some(from) = args.from {
-        arg_struct.translate_from = from;
+        arg_struct.translate_from = Some(from);
     }
     if let Some(to) = args.to {
-        arg_struct.translate_to = to;
+        arg_struct.translate_to = Some(to);
     }
     if let Some(source_text) = args.source_text {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-        arg_struct.source_text = source_text.join(" ");
+        arg_struct.source_text = Some(source_text.join(" "));
     }
     arg_struct
 }
