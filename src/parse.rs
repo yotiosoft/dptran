@@ -15,13 +15,13 @@ pub enum ExecutionMode {
 
 pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
-    pub api_key: String,
+    pub api_key: Option<String>,
     pub display_settings: bool,
-    pub default_target_lang: String,
-    pub translate_from: String,
+    pub default_target_lang: Option<String>,
+    pub translate_from: Option<String>,
     pub multilines: bool,
-    pub translate_to: String,
-    pub source_text: String,
+    pub translate_to: Option<String>,
+    pub source_text: Option<String>,
 }
 
 #[derive(clap::Parser, Debug)]

@@ -192,9 +192,9 @@ fn main() {
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
-    let mut source_lang = String::new();
-    let mut target_lang = String::new();
-    let mut text = String::new();
+    let mut source_lang: Option<String> = None;
+    let mut target_lang: Option<String> = None;
+    let mut text: Option<String> = None;
     let mut multilines = false;
     let mode_switch = match mode {
         ExecutionMode::PrintUsage => {
@@ -219,6 +219,9 @@ fn main() {
             show_target_language_codes()
         }
         _ => {
+            if let Some(s) = arg_struct.translate_from {
+                source_lang = Some(s);
+            }
             source_lang = arg_struct.translate_from;
             target_lang = arg_struct.translate_to;
             text = arg_struct.source_text;
