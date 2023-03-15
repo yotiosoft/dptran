@@ -235,7 +235,7 @@ fn main() {
             text = arg_struct.source_text;
             multilines = arg_struct.multilines;
 
-            if let Some(t) = target_lang {
+            if target_lang == None {
                 match interface::get_default_target_language_code() {
                     Ok(s) => target_lang = Some(s),
                     Err(e) => Err(e).unwrap(),
@@ -260,18 +260,18 @@ fn main() {
     }
 
     // 言語コードのチェック & 正しい言語コードに変換
-    if source_lang.len() > 0 {
-        match interface::correct_language_code(&source_lang.to_string()) {
-            Ok(s) => source_lang = s,
+    if let Some(sl) = source_lang {
+        match interface::correct_language_code(&sl.to_string()) {
+            Ok(s) => source_lang = Some(s),
             Err(e) => {
                 println!("Error: {}", e);
                 return;
             },
         }
     }
-    if target_lang.len() > 0 {
-        match interface::correct_language_code(&target_lang.to_string()) {
-            Ok(t) => target_lang = t,
+    if let Some(tl) = target_lang {
+        match interface::correct_language_code(&tl.to_string()) {
+            Ok(t) => target_lang = Some(t),
             Err(e) => {
                 println!("Error: {}", e);
                 return;
