@@ -129,16 +129,16 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &String) -> Vec<Strin
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: String, target_lang: String, multilines: bool, text: String) -> Result<(), io::Error> {
+fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), io::Error> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
     // 対話モードなら終了方法を表示
     if mode == ExecutionMode::TranslateInteractive {
-        if source_lang.len() == 0 {
+        if source_lang.is_none() {
             println!("Now translating from detected language to {}.", target_lang);
         } else {
-            println!("Now translating from {} to {}.", source_lang, target_lang);
+            println!("Now translating from {} to {}.", source_lang.as_ref().unwrap(), target_lang);
         }
         if multilines {
             println!("Multiline mode: Enter a blank line to send the input.");
@@ -149,7 +149,7 @@ fn process(mode: ExecutionMode, source_lang: String, target_lang: String, multil
     loop {
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
-        let input = get_input(&mode, multilines, &text);
+        let input = get_input(&mode, multilines, text.as_ref().unwrap());
 
         // 対話モード："quit"で終了
         if mode == ExecutionMode::TranslateInteractive {
@@ -227,15 +227,12 @@ fn main() {
             show_target_language_codes()
         }
         _ => {
-            if let Some(s) = arg_struct.translate_from {
-                source_lang = Some(s);
-            }
             source_lang = arg_struct.translate_from;
             target_lang = arg_struct.translate_to;
             text = arg_struct.source_text;
             multilines = arg_struct.multilines;
 
-            if target_lang == None {
+            if target_lang.is_none() {
                 match interface::get_default_target_language_code() {
                     Ok(s) => target_lang = Some(s),
                     Err(e) => Err(e).unwrap(),
@@ -280,7 +277,7 @@ fn main() {
     }
 
     // (対話＆)翻訳
-    match process(mode, source_lang, target_lang, multilines, text) {
+    match process(mode, source_lang, target_lang.unwrap(), multilines, text) {
         Ok(_) => {}
         Err(e) => {
             println!("Error: {}", e);

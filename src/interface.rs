@@ -96,7 +96,7 @@ pub fn get_usage() -> Result<(i64, i64), io::Error> {
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, io::Error> {
     let api_key = get_api_key()?;
     deeplapi::translate(&api_key, text, target_lang, source_lang)
 }

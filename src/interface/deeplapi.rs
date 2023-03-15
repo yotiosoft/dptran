@@ -9,12 +9,12 @@ const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
 
 /// 翻訳  
 /// 失敗したらエラーを返す
-fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<String, io::Error> {
+fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, io::Error> {
     let url = DEEPL_API_TRANSLATE.to_string();
-    let mut query = if source_lang.trim_matches('"').is_empty() {
+    let mut query = if source_lang.is_none() {
         format!("auth_key={}&target_lang={}", auth_key, target_lang)
     } else {
-        format!("auth_key={}&target_lang={}&source_lang={}", auth_key, target_lang, source_lang)
+        format!("auth_key={}&target_lang={}&source_lang={}", auth_key, target_lang, source_lang.as_ref().unwrap())
     };
 
     for t in text {
@@ -43,7 +43,7 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, io::Error> {
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &String) -> Result<Vec<String>, io::Error> {
+pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, io::Error> {
     let auth_key = api_key;
 
     // request_translate()で翻訳結果のjsonを取得
