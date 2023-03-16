@@ -191,7 +191,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
 
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
-fn main() {
+fn main() -> Result<(), io::Error> {
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
@@ -199,35 +199,35 @@ fn main() {
     let mut target_lang: Option<String> = None;
     let mut text: Option<String> = None;
     let mut multilines = false;
-    let mode_switch = match mode {
+    match mode {
         ExecutionMode::PrintUsage => {
-            show_usage()
+            show_usage()?;
         }
         ExecutionMode::SetApiKey => {
             if let Some(s) = arg_struct.api_key {
-                interface::set_api_key(s)
+                interface::set_api_key(s)?;
             } else {
-                Err(io::Error::new(io::ErrorKind::Other, "No API key specified."))
+                return Err(io::Error::new(io::ErrorKind::Other, "No API key specified."));
             }
         }
         ExecutionMode::SetDefaultTargetLang => {
             if let Some(s) = arg_struct.default_target_lang {
-                interface::set_default_target_language(s)
+                interface::set_default_target_language(s)?;
             } else {
-                Err(io::Error::new(io::ErrorKind::Other, "No target language specified."))
+                return Err(io::Error::new(io::ErrorKind::Other, "No target language specified."));
             }
         }
         ExecutionMode::DisplaySettings => {
-            display_settings()
+            display_settings()?;
         }
         ExecutionMode::ClearSettings => {
-            interface::clear_settings()
+            interface::clear_settings()?;
         }
         ExecutionMode::ListSourceLangs => {
-            show_source_language_codes()
+            show_source_language_codes()?;
         }
         ExecutionMode::ListTargetLangs => {
-            show_target_language_codes()
+            show_target_language_codes()?;
         }
         _ => {
             source_lang = arg_struct.translate_from;
@@ -236,54 +236,27 @@ fn main() {
             multilines = arg_struct.multilines;
 
             if target_lang.is_none() {
-                match interface::get_default_target_language_code() {
-                    Ok(s) => target_lang = Some(s),
-                    Err(e) => Err(e).unwrap(),
-                }
+                target_lang = Some(interface::get_default_target_language_code()?);
             }
-
-            Ok(())
         }
     };
-    if mode_switch.is_err() {
-        println!("Error: {}", mode_switch.err().unwrap());
-        return;
-    }
-    if mode != ExecutionMode::TranslateInteractive && mode != ExecutionMode::TranslateNormal {
-        return;
-    }
 
     // APIキーの確認
     if interface::get_api_key().unwrap_or_default().is_empty() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
-        return;
+        return Ok(());
     }
 
     // 言語コードのチェック & 正しい言語コードに変換
     if let Some(sl) = source_lang {
-        match interface::correct_language_code(&sl.to_string()) {
-            Ok(s) => source_lang = Some(s),
-            Err(e) => {
-                println!("Error: {}", e);
-                return;
-            },
-        }
+        source_lang = Some(interface::correct_language_code(&sl.to_string())?);
     }
     if let Some(tl) = target_lang {
-        match interface::correct_language_code(&tl.to_string()) {
-            Ok(t) => target_lang = Some(t),
-            Err(e) => {
-                println!("Error: {}", e);
-                return;
-            },
-        }
+        target_lang = Some(interface::correct_language_code(&tl.to_string())?);
     }
 
     // (対話＆)翻訳
-    match process(mode, source_lang, target_lang.unwrap(), multilines, text) {
-        Ok(_) => {}
-        Err(e) => {
-            println!("Error: {}", e);
-        }
-    }
+    process(mode, source_lang, target_lang.unwrap(), multilines, text)?;
+
+    Ok(())
 }
