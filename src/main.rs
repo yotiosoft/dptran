@@ -205,7 +205,7 @@ fn main() -> Result<(), String> {
                 interface::set_api_key(s)?;
                 return Ok(());
             } else {
-                return Err(io::Error::new(io::ErrorKind::Other, "No API key specified."));
+                return Err("No API key specified.".to_string());
             }
         }
         ExecutionMode::SetDefaultTargetLang => {
@@ -213,7 +213,7 @@ fn main() -> Result<(), String> {
                 interface::set_default_target_language(s)?;
                 return Ok(());
             } else {
-                return Err(io::Error::new(io::ErrorKind::Other, "No target language specified."));
+                return Err("No target language specified.".to_string());
             }
         }
         ExecutionMode::DisplaySettings => {

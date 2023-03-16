@@ -26,8 +26,8 @@ fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String,
 
 /// json形式で渡された翻訳結果をパースし、ベクタに翻訳文を格納して返す
 fn json_to_vec(json: &String) -> Result<Vec<String>, String> {
-    let json: serde_json::Value = serde_json::from_str(&json)?;
-    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
+    let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| e.to_string())?;
+    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response")).map_err(|e| e.to_string())?;
     let translations = &json["translations"];
 
     let mut translated_texts = Vec::new();
@@ -57,8 +57,7 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
         // https://www.deepl.com/ja/docs-api/api-access/error-handling/
         Err(e) => {
             if e.to_string().contains("456") {  // 456 Unprocessable Entity
-                Err(io::Error::new(io::ErrorKind::Other, 
-                    "The translation limit of your account has been reached. Consider upgrading your subscription."))?
+                Err("The translation limit of your account has been reached. Consider upgrading your subscription.".to_string())
             }
             else {
                 Err(e)?
@@ -74,10 +73,10 @@ pub fn get_usage(api_key: &String) -> Result<(i64, i64), String> {
     let url = DEEPL_API_USAGE.to_string();
     let query = format!("auth_key={}", api_key);
     let res = connection::send_and_get(url, query)?;
-    let v: Value = serde_json::from_str(&res)?;
+    let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
 
-    v.get("character_count").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_count"))?;
-    v.get("character_limit").ok_or(io::Error::new(io::ErrorKind::Other, "failed to get character_limit"))?;
+    v.get("character_count").ok_or("failed to get character_count".to_string());
+    v.get("character_limit").ok_or("failed to get character_limit".to_string());
 
     let character_count = v["character_count"].as_i64().expect("failed to get character_count");
     let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit");
@@ -91,11 +90,11 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     let url = DEEPL_API_LANGUAGES.to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);
     let res = connection::send_and_get(url, query)?;
-    let v: Value = serde_json::from_str(&res)?;
+    let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
 
     let mut lang_codes: Vec<LangCode> = Vec::new();
     for value in v.as_array().expect("Invalid response at get_language_codes") {
-        value.get("language").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response"))?;
+        value.get("language").ok_or("Invalid response".to_string());
         let lang_code = (value["language"].to_string(), value["name"].to_string());
         lang_codes.push(lang_code);
     }

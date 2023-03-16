@@ -21,7 +21,7 @@ pub fn set_default_target_language(arg_default_target_language: String) -> Resul
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
     } else {
-        Err(io::Error::new(io::ErrorKind::Other, "Invalid language code"))
+        Err("Invalid language code".to_string())
     }
 }
 
@@ -81,7 +81,7 @@ pub fn correct_language_code(language_code: &str) -> Result<String, String> {
 
     match check_language_code(&language_code_uppercase, "target".to_string()) {
         true => Ok(language_code_uppercase),
-        false => Err(io::Error::new(io::ErrorKind::Other, "Invalid language code")),
+        false => Err("Invalid language code".to_string()),
     }
 }
 
