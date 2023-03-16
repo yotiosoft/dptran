@@ -75,8 +75,8 @@ pub fn get_usage(api_key: &String) -> Result<(i64, i64), String> {
     let res = connection::send_and_get(url, query)?;
     let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
 
-    v.get("character_count").ok_or("failed to get character_count".to_string());
-    v.get("character_limit").ok_or("failed to get character_limit".to_string());
+    v.get("character_count").ok_or("failed to get character_count".to_string())?;
+    v.get("character_limit").ok_or("failed to get character_limit".to_string())?;
 
     let character_count = v["character_count"].as_i64().expect("failed to get character_count");
     let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit");
@@ -94,7 +94,7 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
 
     let mut lang_codes: Vec<LangCode> = Vec::new();
     for value in v.as_array().expect("Invalid response at get_language_codes") {
-        value.get("language").ok_or("Invalid response".to_string());
+        value.get("language").ok_or("Invalid response".to_string())?;
         let lang_code = (value["language"].to_string(), value["name"].to_string());
         lang_codes.push(lang_code);
     }

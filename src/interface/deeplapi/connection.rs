@@ -1,7 +1,6 @@
 //! curlを用いたDeepL APIとの通信
 
 use std::str;
-use std::io;
 use curl::easy::Easy;
 
 /// curl::easyの準備
