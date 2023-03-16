@@ -195,17 +195,15 @@ fn main() -> Result<(), io::Error> {
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
-    let mut source_lang: Option<String> = None;
-    let mut target_lang: Option<String> = None;
-    let mut text: Option<String> = None;
-    let mut multilines = false;
     match mode {
         ExecutionMode::PrintUsage => {
             show_usage()?;
+            return Ok(());
         }
         ExecutionMode::SetApiKey => {
             if let Some(s) = arg_struct.api_key {
                 interface::set_api_key(s)?;
+                return Ok(());
             } else {
                 return Err(io::Error::new(io::ErrorKind::Other, "No API key specified."));
             }
@@ -213,33 +211,36 @@ fn main() -> Result<(), io::Error> {
         ExecutionMode::SetDefaultTargetLang => {
             if let Some(s) = arg_struct.default_target_lang {
                 interface::set_default_target_language(s)?;
+                return Ok(());
             } else {
                 return Err(io::Error::new(io::ErrorKind::Other, "No target language specified."));
             }
         }
         ExecutionMode::DisplaySettings => {
             display_settings()?;
+            return Ok(());
         }
         ExecutionMode::ClearSettings => {
             interface::clear_settings()?;
+            return Ok(());
         }
         ExecutionMode::ListSourceLangs => {
             show_source_language_codes()?;
+            return Ok(());
         }
         ExecutionMode::ListTargetLangs => {
             show_target_language_codes()?;
+            return Ok(());
         }
-        _ => {
-            source_lang = arg_struct.translate_from;
-            target_lang = arg_struct.translate_to;
-            text = arg_struct.source_text;
-            multilines = arg_struct.multilines;
-
-            if target_lang.is_none() {
-                target_lang = Some(interface::get_default_target_language_code()?);
-            }
-        }
+        _ => {}
     };
+
+    let mut source_lang = arg_struct.translate_from;
+    let mut target_lang = arg_struct.translate_to;
+
+    if target_lang.is_none() {
+        target_lang = Some(interface::get_default_target_language_code()?);
+    }
 
     // APIキーの確認
     if interface::get_api_key().unwrap_or_default().is_empty() {
@@ -256,7 +257,7 @@ fn main() -> Result<(), io::Error> {
     }
 
     // (対話＆)翻訳
-    process(mode, source_lang, target_lang.unwrap(), multilines, text)?;
+    process(mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
 
     Ok(())
 }
