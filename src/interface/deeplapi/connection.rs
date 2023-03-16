@@ -5,46 +5,46 @@ use std::io;
 use curl::easy::Easy;
 
 /// curl::easyの準備
-fn make_session(url: String, post_data: String) -> Result<Easy, io::Error> {
+fn make_session(url: String, post_data: String) -> Result<Easy, String> {
     let mut easy = Easy::new();
-    easy.url(url.as_str())?;
-    easy.post(true)?;
-    easy.post_fields_copy(post_data.as_bytes())?;
+    easy.url(url.as_str()).map_err(|e| e.to_string())?;
+    easy.post(true).map_err(|e| e.to_string())?;
+    easy.post_fields_copy(post_data.as_bytes()).map_err(|e| e.to_string())?;
     Ok(easy)
 }
 
 /// 送受信
-fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), io::Error> {
+fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), String> {
     let mut dst = Vec::new();
     {
         let mut transfer = easy.transfer();
         transfer.write_function(|data| {
             dst.extend_from_slice(data);
             Ok(data.len())
-        })?;
-        transfer.perform()?;
+        }).map_err(|e| e.to_string())?;
+        transfer.perform().map_err(|e| e.to_string())?;
     }
-    let response_code = easy.response_code()?;
+    let response_code = easy.response_code().map_err(|e| e.to_string())?;
     Ok((dst, response_code))
 }
 
 /// エラー文生成
-fn handle_error(response_code: u32) -> io::Error {
+fn handle_error(response_code: u32) -> String {
     match response_code {
-        400 => io::Error::new(io::ErrorKind::Other, "400 Bad Request"),
-        403 => io::Error::new(io::ErrorKind::Other, "403 Forbidden"),
-        404 => io::Error::new(io::ErrorKind::Other, "404 Not Found"),
-        413 => io::Error::new(io::ErrorKind::Other, "413 Request Entity Too Large"),
-        429 => io::Error::new(io::ErrorKind::Other, "429 Too Many Requests"),
-        456 => io::Error::new(io::ErrorKind::Other, "456 Unprocessable Entity"),
-        503 => io::Error::new(io::ErrorKind::Other, "503 Service Unavailable"),
-        529 => io::Error::new(io::ErrorKind::Other, "529 Too Many Requests"),
-        _ => io::Error::new(io::ErrorKind::Other, "Unknown Error: No response"),
+        400 => "400 Bad Request".to_string(),
+        403 => "403 Forbidden".to_string(),
+        404 => "404 Not Found".to_string(),
+        413 => "413 Request Entity Too Large".to_string(),
+        429 => "429 Too Many Requests".to_string(),
+        456 => "456 Unprocessable Entity".to_string(),
+        503 => "503 Service Unavailable".to_string(),
+        529 => "529 Too Many Requests".to_string(),
+        _ => "Unknown Error: No response".to_string(),
     }
 }
 
 /// DeepL APIとの通信を行う
-pub fn send_and_get(url: String, post_data: String) -> Result<String, io::Error> {
+pub fn send_and_get(url: String, post_data: String) -> Result<String, String> {
     let easy = make_session(url, post_data)?;
     let (dst, response_code) = transfer(easy)?;
 

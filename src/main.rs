@@ -6,7 +6,7 @@ mod parse;
 use parse::ExecutionMode;
 
 /// 残り文字数を表示
-fn show_usage() -> Result<(), io::Error> {
+fn show_usage() -> Result<(), String> {
     let (character_count, character_limit) = interface::get_usage()?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
@@ -19,7 +19,7 @@ fn show_usage() -> Result<(), io::Error> {
 }
 
 /// 設定内容の表示
-fn display_settings() -> Result<(), io::Error> {
+fn display_settings() -> Result<(), String> {
     let api_key = interface::get_api_key()?;
     let default_target_lang = interface::get_default_target_language_code()?;
     println!("API key: {}", api_key);
@@ -29,7 +29,7 @@ fn display_settings() -> Result<(), io::Error> {
 
 /// 翻訳元言語コード一覧の表示  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-fn show_source_language_codes() -> Result<(), io::Error> {
+fn show_source_language_codes() -> Result<(),  String> {
     // 翻訳元言語コード一覧
     let source_lang_codes = interface::get_language_codes("source".to_string())?;
     
@@ -48,7 +48,7 @@ fn show_source_language_codes() -> Result<(), io::Error> {
     Ok(())
 }
 /// 翻訳先言語コード一覧の表示
-fn show_target_language_codes() -> Result<(), io::Error> {
+fn show_target_language_codes() -> Result<(), String> {
     // 翻訳先言語コード一覧
     let mut target_lang_codes = interface::get_language_codes("target".to_string())?;
 
@@ -132,7 +132,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> V
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), io::Error> {
+fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), String> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
