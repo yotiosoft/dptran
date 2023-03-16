@@ -191,7 +191,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
 
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), String> {
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
