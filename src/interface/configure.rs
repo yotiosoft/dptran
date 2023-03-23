@@ -19,7 +19,7 @@ impl Default for Configure {
 /// 設定ファイルからAPIキーとデフォルトの翻訳先言語を取得する。  
 /// 存在しない場合、既定値を指定して新規作成する。
 fn get_settings() -> Result<Configure, String> {
-    confy::load::<Configure>("dptran", "configure").map_err(|e| e.to_string())
+    confy::load::<Configure>("dptran", "configure").map_err(|e| format!("failed to get settings: {}", e))
 }
 
 /// APIキーの設定  
@@ -27,7 +27,7 @@ fn get_settings() -> Result<Configure, String> {
 pub fn set_api_key(api_key: String) -> Result<(), String> {
     let mut settings = get_settings()?;
     settings.api_key = api_key;
-    confy::store("dptran", "configure", settings).map_err(|e| e.to_string())?;
+    confy::store("dptran", "configure", settings).map_err(|e| format!("Failed to set API key: {}", e))?;
     Ok(())
 }
 
@@ -36,14 +36,14 @@ pub fn set_api_key(api_key: String) -> Result<(), String> {
 pub fn set_default_target_language(default_target_language: &String) -> Result<(), String> {
     let mut settings = get_settings()?;
     settings.default_target_language = default_target_language.to_string();
-    confy::store("dptran", "configure", settings).map_err(|e| e.to_string())?;
+    confy::store("dptran", "configure", settings).map_err(|e| format!("Failed to set default target language: {}", e))?;
     Ok(())
 }
 
 /// 設定の初期化
 pub fn clear_settings() -> Result<(), String> {
     let settings = Configure::default();
-    confy::store("dptran", "configure", settings).map_err(|e| e.to_string())?;
+    confy::store("dptran", "configure", settings).map_err(|e| format!("Failed to clear settings: {}", e))?;
     Ok(())
 }
 
