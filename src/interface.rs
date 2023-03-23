@@ -8,7 +8,7 @@ use deeplapi::LangCode;
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
 pub fn set_api_key(api_key: String) -> Result<(), String> {
-    configure::set_api_key(api_key).expect("Failed to set API key");
+    configure::set_api_key(api_key)?;
     Ok(())
 }
 
@@ -17,7 +17,7 @@ pub fn set_api_key(api_key: String) -> Result<(), String> {
 pub fn set_default_target_language(arg_default_target_language: String) -> Result<(), String> {
     // 言語コードが正しいか確認
     if let Ok(validated_language_code) = correct_language_code(&arg_default_target_language.to_string()) {
-        configure::set_default_target_language(&validated_language_code).expect("Failed to set default target language");
+        configure::set_default_target_language(&validated_language_code)?;
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
     } else {
@@ -33,7 +33,7 @@ pub fn clear_settings() -> Result<(), String> {
     io::stdin().read_line(&mut input).unwrap();
     // yが入力されたら設定を初期化する
     if input.trim().to_ascii_lowercase() == "y" {
-        configure::clear_settings().expect("Failed to clear settings");
+        configure::clear_settings()?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
@@ -42,13 +42,13 @@ pub fn clear_settings() -> Result<(), String> {
 
 /// 設定済みの既定の翻訳先言語コードを取得
 pub fn get_default_target_language_code() -> Result<String, String> {
-    let default_target_lang = configure::get_default_target_language_code().expect("failed to get default target language code");
+    let default_target_lang = configure::get_default_target_language_code()?;
     Ok(default_target_lang)
 }
 
 /// APIキーを取得
 pub fn get_api_key() -> Result<Option<String>, String> {
-    let api_key = configure::get_api_key().expect("failed to get api key");
+    let api_key = configure::get_api_key()?;
     Ok(api_key)
 }
 
