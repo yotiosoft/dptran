@@ -47,9 +47,9 @@ pub fn get_default_target_language_code() -> Result<String, String> {
 }
 
 /// APIキーを取得
-pub fn get_api_key() -> Result<String, String> {
+pub fn get_api_key() -> Result<Option<String>, String> {
     let api_key = configure::get_api_key().expect("failed to get api key");
-    Ok(api_key)
+    Ok(Some(api_key))
 }
 
 /// 言語コード一覧の取得  
