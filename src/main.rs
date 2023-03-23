@@ -83,7 +83,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// 標準入力より原文取得
-fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Vec<String> {
+fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -120,12 +120,17 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> V
                 print!("..");
                 stdout.flush().unwrap();
             }
-            input_vec
+            if input_vec.len() == 0 {
+                None
+            }
+            else {
+                Some(input_vec)
+            }
         }
         ExecutionMode::TranslateNormal => {
             match text {
-                Some(text) => vec![text.to_string()],
-                None => vec![String::new()]
+                Some(text) => Some(vec![text.to_string()]),
+                None => Some(vec![String::new()])
             }
         }
         _ => {
@@ -158,6 +163,10 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
         let input = get_input(&mode, multilines, &text);
+        if input.is_none() {
+            return Err("Could not get input text.".to_string());
+        }
+        let input = input.unwrap();
 
         // 対話モード："quit"で終了
         if mode == ExecutionMode::TranslateInteractive {
