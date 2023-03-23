@@ -49,14 +49,19 @@ pub fn get_default_target_language_code() -> Result<String, String> {
 /// APIキーを取得
 pub fn get_api_key() -> Result<Option<String>, String> {
     let api_key = configure::get_api_key().expect("failed to get api key");
-    Ok(Some(api_key))
+    Ok(api_key)
 }
 
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, String> {
     let api_key = get_api_key()?;
-    deeplapi::get_language_codes(&api_key, type_name)
+    if let Some(api_key) = api_key {
+        let lang_codes = deeplapi::get_language_codes(&api_key, type_name)?;
+        Ok(lang_codes)
+    } else {
+        Err("API key is not set.".to_string())
+    }
 }
 
 /// 言語コードの有効性をチェック
@@ -90,7 +95,11 @@ pub fn correct_language_code(language_code: &str) -> Result<String, String> {
 /// 取得に失敗したらエラーを返す
 pub fn get_usage() -> Result<(i64, i64), String> {
     let api_key = get_api_key()?;
-    deeplapi::get_usage(&api_key)
+    if let Some(api_key) = api_key {
+        deeplapi::get_usage(&api_key)
+    } else {
+        Err("API key is not set.".to_string())
+    }
 }
 
 /// 翻訳結果の表示  
@@ -98,5 +107,9 @@ pub fn get_usage() -> Result<(i64, i64), String> {
 /// jsonのパースに失敗したらエラーを返す
 pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, String> {
     let api_key = get_api_key()?;
-    deeplapi::translate(&api_key, text, target_lang, source_lang)
+    if let Some(api_key) = api_key {
+        deeplapi::translate(&api_key, text, target_lang, source_lang)
+    } else {
+        Err("API key is not set.".to_string())
+    }
 }

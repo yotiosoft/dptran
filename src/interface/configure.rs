@@ -55,7 +55,10 @@ pub fn get_default_target_language_code() -> Result<String, ConfyError> {
 }
 
 /// APIキーを取得
-pub fn get_api_key() -> Result<String, ConfyError> {
+pub fn get_api_key() -> Result<Option<String>, ConfyError> {
     let settings = get_settings()?;
-    Ok(settings.api_key)
+    if settings.api_key.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(settings.api_key))
 }
