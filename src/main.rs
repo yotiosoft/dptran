@@ -178,7 +178,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
             }
         }
         // 通常モード：空文字列なら終了
-        if mode == ExecutionMode::TranslateNormal && input[0].clone().trim_end().is_empty() {
+        if mode == ExecutionMode::TranslateNormal && input[0].trim_end().is_empty() {
             break;
         }
 
