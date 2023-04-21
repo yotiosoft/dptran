@@ -22,7 +22,12 @@ fn show_usage() -> Result<(), String> {
 fn display_settings() -> Result<(), String> {
     let api_key = interface::get_api_key()?;
     let default_target_lang = interface::get_default_target_language_code()?;
-    println!("API key: {}", api_key);
+    if let Some(api_key) = api_key {
+        println!("API key: {}", api_key);
+    }
+    else {
+        println!("API key: not set");
+    }
     println!("Default target language: {}", default_target_lang);
     Ok(())
 }
@@ -153,6 +158,9 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
         let input = get_input(&mode, multilines, &text);
+        if input.is_none() {
+            return Err("Could not get input text.".to_string());
+        }
 
         // 対話モード："quit"で終了
         if mode == ExecutionMode::TranslateInteractive {
@@ -245,7 +253,7 @@ fn main() -> Result<(), String> {
     }
 
     // APIキーの確認
-    if interface::get_api_key().unwrap_or_default().is_empty() {
+    if interface::get_api_key()?.is_none() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return Ok(());
     }

@@ -105,8 +105,8 @@ $ dptran -h
 
 ```bash
 $ dptran -u
-usage: 64785 / 500000
-remaining: 435215
+usage: 222 / 500000 (0%)
+remaining: 499778
 ```
 
 You can see the number of remaining characters that can be translated by DeepL API. 
@@ -115,11 +115,11 @@ The free DeepL API plan lets you translate up to 500,000 characters per month.
 ## Change default target language
 
 It is set to Japanese (JA) by default.  
-You can change it with ``set --default-lang``.  
+You can change it with ``set --target-lang``.  
 For example, to change it to English (EN), do the following:
 
 ```bash
-$ dptran set --default-lang EN
+$ dptran set --target-lang EN
 ```
 
 ## Reset settings

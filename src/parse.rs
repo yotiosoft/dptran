@@ -16,7 +16,6 @@ pub enum ExecutionMode {
 pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
     pub api_key: Option<String>,
-    pub display_settings: bool,
     pub default_target_lang: Option<String>,
     pub translate_from: Option<String>,
     pub multilines: bool,
@@ -102,7 +101,6 @@ pub fn parser() -> ArgStruct {
         default_target_lang: None,
         translate_from: None,
         translate_to: None,
-        display_settings: false,
         multilines: false,
         source_text: None,
     };
