@@ -3,6 +3,17 @@
 use std::str;
 use curl::easy::Easy;
 
+pub enum ConnectionError {
+    BadRequest.
+    Forbidden,
+    NotFound,
+    RequestEntityTooLarge,
+    TooManyRequests,
+    UnprocessableEntity,
+    ServiceUnavailable,
+    UnknownError,
+}
+
 /// curl::easyの準備
 fn make_session(url: String, post_data: String) -> Result<Easy, String> {
     let mut easy = Easy::new();
