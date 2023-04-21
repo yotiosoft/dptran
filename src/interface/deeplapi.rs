@@ -98,6 +98,9 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
         let lang_code = (value["language"].to_string(), value["name"].to_string());
         lang_codes.push(lang_code);
     }
-
-    Ok(lang_codes)
+    if lang_codes.len() == 0 {
+        Err("Could not get language codes".to_string())
+    } else {
+        Ok(lang_codes)
+    }
 }

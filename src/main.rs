@@ -78,7 +78,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// 標準入力より原文取得
-fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Vec<String> {
+fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -115,12 +115,12 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> V
                 print!("..");
                 stdout.flush().unwrap();
             }
-            input_vec
+            Some(input_vec)
         }
         ExecutionMode::TranslateNormal => {
             match text {
-                Some(text) => vec![text.to_string()],
-                None => vec![String::new()]
+                Some(text) => Some(vec![text.to_string()]),
+                None => None
             }
         }
         _ => {
@@ -156,20 +156,22 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
 
         // 対話モード："quit"で終了
         if mode == ExecutionMode::TranslateInteractive {
-            if input[0].trim_end() == "quit" {
-                break;
-            }
-            if input[0].trim_end().is_empty() {
-                continue;
+            if let Some(input) = &input {
+                if input[0].trim_end() == "quit" {
+                    break;
+                }
+                if input[0].clone().trim_end().is_empty() {
+                    continue;
+                }
             }
         }
         // 通常モード：空文字列なら終了
-        if mode == ExecutionMode::TranslateNormal && input[0].clone().trim_end().is_empty() {
+        if mode == ExecutionMode::TranslateNormal && input.is_none() {
             break;
         }
 
         // 翻訳
-        let translated_texts = interface::translate(input, &target_lang, &source_lang);
+        let translated_texts = interface::translate(input.unwrap(), &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -232,7 +234,7 @@ fn main() -> Result<(), String> {
             show_target_language_codes()?;
             return Ok(());
         }
-        _ => {}
+        _ => {}     // ExecutionMode::TranslateNormal, ExecutionMode::TranslateInteractive
     };
 
     let mut source_lang = arg_struct.translate_from;
