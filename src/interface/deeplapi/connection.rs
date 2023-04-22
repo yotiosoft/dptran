@@ -4,7 +4,7 @@ use std::str;
 use curl::easy::Easy;
 
 pub enum ConnectionError {
-    BadRequest.
+    BadRequest,
     Forbidden,
     NotFound,
     RequestEntityTooLarge,
