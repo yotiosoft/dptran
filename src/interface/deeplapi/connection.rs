@@ -21,13 +21,13 @@ pub enum ConnectionError {
 impl Display for ConnectionError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
-            ConnectionError::BadRequest => write!(f, "Bad Request"),
-            ConnectionError::Forbidden => write!(f, "Forbidden"),
-            ConnectionError::NotFound => write!(f, "Not Found"),
-            ConnectionError::RequestEntityTooLarge => write!(f, "Request Entity Too Large"),
-            ConnectionError::TooManyRequests => write!(f, "Too Many Requests"),
-            ConnectionError::UnprocessableEntity => write!(f, "Unprocessable Entity"),
-            ConnectionError::ServiceUnavailable => write!(f, "Service Unavailable"),
+            ConnectionError::BadRequest => write!(f, "400 Bad Request"),
+            ConnectionError::Forbidden => write!(f, "403 Forbidden"),
+            ConnectionError::NotFound => write!(f, "404 Not Found"),
+            ConnectionError::RequestEntityTooLarge => write!(f, "413 Request Entity Too Large"),
+            ConnectionError::TooManyRequests => write!(f, "429 Too Many Requests"),
+            ConnectionError::UnprocessableEntity => write!(f, "456 Unprocessable Entity"),
+            ConnectionError::ServiceUnavailable => write!(f, "503 Service Unavailable"),
             ConnectionError::UnknownError => write!(f, "Unknown Error"),
         }
     }
