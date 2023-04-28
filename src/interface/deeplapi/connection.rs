@@ -2,8 +2,6 @@
 
 use std::str;
 use std::fmt;
-use std::fmt::Display;
-use std::fmt::Formatter;
 use curl::easy::Easy;
 
 #[derive(Debug, PartialEq)]
@@ -18,9 +16,8 @@ pub enum ConnectionError {
     CurlError(String),
     UnknownError,
 }
-
-impl Display for ConnectionError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for ConnectionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ConnectionError::BadRequest => write!(f, "400 Bad Request"),
             ConnectionError::Forbidden => write!(f, "403 Forbidden"),

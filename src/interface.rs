@@ -8,7 +8,7 @@ use deeplapi::LangCode;
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
 pub fn set_api_key(api_key: String) -> Result<(), String> {
-    configure::set_api_key(api_key)?;
+    configure::set_api_key(api_key).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -17,7 +17,7 @@ pub fn set_api_key(api_key: String) -> Result<(), String> {
 pub fn set_default_target_language(arg_default_target_language: String) -> Result<(), String> {
     // 言語コードが正しいか確認
     if let Ok(validated_language_code) = correct_language_code(&arg_default_target_language.to_string()) {
-        configure::set_default_target_language(&validated_language_code)?;
+        configure::set_default_target_language(&validated_language_code).map_err(|e| e.to_string())?;
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
     } else {
@@ -33,7 +33,7 @@ pub fn clear_settings() -> Result<(), String> {
     io::stdin().read_line(&mut input).unwrap();
     // yが入力されたら設定を初期化する
     if input.trim().to_ascii_lowercase() == "y" {
-        configure::clear_settings()?;
+        configure::clear_settings().map_err(|e| e.to_string())?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
@@ -42,20 +42,20 @@ pub fn clear_settings() -> Result<(), String> {
 
 /// 設定済みの既定の翻訳先言語コードを取得
 pub fn get_default_target_language_code() -> Result<String, String> {
-    let default_target_lang = configure::get_default_target_language_code()?;
+    let default_target_lang = configure::get_default_target_language_code().map_err(|e| e.to_string())?;
     Ok(default_target_lang)
 }
 
 /// APIキーを取得
 pub fn get_api_key() -> Result<Option<String>, String> {
-    let api_key = configure::get_api_key()?;
+    let api_key = configure::get_api_key().map_err(|e| e.to_string())?;
     Ok(api_key)
 }
 
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, String> {
-    let api_key = get_api_key()?;
+    let api_key = get_api_key().map_err(|e| e.to_string())?;
     if let Some(api_key) = api_key {
         let lang_codes = deeplapi::get_language_codes(&api_key, type_name)?;
         Ok(lang_codes)
