@@ -9,7 +9,7 @@ const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
 
 /// 翻訳  
 /// 失敗したらエラーを返す
-fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, String> {
+fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
     let url = DEEPL_API_TRANSLATE.to_string();
     let mut query = if source_lang.is_none() {
         format!("auth_key={}&target_lang={}", auth_key, target_lang)
@@ -56,11 +56,11 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
         // DeepL APIが特有の意味を持つエラーコードであればここで検知
         // https://www.deepl.com/ja/docs-api/api-access/error-handling/
         Err(e) => {
-            if e.to_string().contains("456") {  // 456 Unprocessable Entity
+            if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
                 Err("The translation limit of your account has been reached. Consider upgrading your subscription.".to_string())
             }
             else {
-                Err(e)?
+                Err(e.to_string())
             }
         }
     }
@@ -72,7 +72,7 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 pub fn get_usage(api_key: &String) -> Result<(i64, i64), String> {
     let url = DEEPL_API_USAGE.to_string();
     let query = format!("auth_key={}", api_key);
-    let res = connection::send_and_get(url, query)?;
+    let res = connection::send_and_get(url, query).map_err(|e| e.to_string())?;
     let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
 
     v.get("character_count").ok_or("failed to get character_count".to_string())?;
@@ -89,7 +89,7 @@ pub type LangCode = (String, String);
 pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, String> {
     let url = DEEPL_API_LANGUAGES.to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);
-    let res = connection::send_and_get(url, query)?;
+    let res = connection::send_and_get(url, query).map_err(|e| e.to_string())?;
     let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
 
     let mut lang_codes: Vec<LangCode> = Vec::new();

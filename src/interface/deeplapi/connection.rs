@@ -6,7 +6,7 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use curl::easy::Easy;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ConnectionError {
     BadRequest,
     Forbidden,
@@ -15,6 +15,7 @@ pub enum ConnectionError {
     TooManyRequests,
     UnprocessableEntity,
     ServiceUnavailable,
+    CurlError(String),
     UnknownError,
 }
 
@@ -28,6 +29,7 @@ impl Display for ConnectionError {
             ConnectionError::TooManyRequests => write!(f, "429 Too Many Requests"),
             ConnectionError::UnprocessableEntity => write!(f, "456 Unprocessable Entity"),
             ConnectionError::ServiceUnavailable => write!(f, "503 Service Unavailable"),
+            ConnectionError::CurlError(ref e) => write!(f, "Curl Error: {}", e),
             ConnectionError::UnknownError => write!(f, "Unknown Error"),
         }
     }
@@ -72,15 +74,21 @@ fn handle_error(response_code: u32) -> ConnectionError {
 }
 
 /// DeepL APIとの通信を行う
-pub fn send_and_get(url: String, post_data: String) -> Result<String, String> {
-    let easy = make_session(url, post_data)?;
-    let (dst, response_code) = transfer(easy)?;
+pub fn send_and_get(url: String, post_data: String) -> Result<String, ConnectionError> {
+    let easy = match make_session(url, post_data) {
+        Ok(easy) => easy,
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+    let (dst, response_code) = match transfer(easy) {
+        Ok((dst, response_code)) => (dst, response_code),
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
 
     if dst.len() > 0 {
         let s = str::from_utf8(&dst).expect("Invalid UTF-8");
         Ok(s.to_string())
     } else {
         // HTTPエラー処理
-        Err(handle_error(response_code).to_string())
+        Err(handle_error(response_code))
     }
 }
