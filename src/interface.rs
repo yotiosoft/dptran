@@ -65,14 +65,14 @@ pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, String> {
 }
 
 /// 言語コードの有効性をチェック
-fn check_language_code(lang_code: &String, type_name: String) -> bool {
-    let lang_codes = get_language_codes(type_name.to_string()).expect("failed to get language codes");
+fn check_language_code(lang_code: &String, type_name: String) -> Result<bool, String> {
+    let lang_codes = get_language_codes(type_name.to_string())?;
     for lang in lang_codes {
         if lang.0.trim_matches('"') == lang_code.to_uppercase() {
-            return true;
+            return Ok(true);
         }
     }
-    false
+    Ok(false)
 }
 
 /// 正しい言語コードに変換
@@ -84,7 +84,7 @@ pub fn correct_language_code(language_code: &str) -> Result<String, String> {
         _ => language_code.to_ascii_uppercase(),
     };
 
-    match check_language_code(&language_code_uppercase, "target".to_string()) {
+    match check_language_code(&language_code_uppercase, "target".to_string())? {
         true => Ok(language_code_uppercase),
         false => Err("Invalid language code".to_string()),
     }
