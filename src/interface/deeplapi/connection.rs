@@ -1,8 +1,12 @@
 //! curlを用いたDeepL APIとの通信
 
 use std::str;
+use std::fmt;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use curl::easy::Easy;
 
+#[derive(Debug)]
 pub enum ConnectionError {
     BadRequest,
     Forbidden,
@@ -12,6 +16,21 @@ pub enum ConnectionError {
     UnprocessableEntity,
     ServiceUnavailable,
     UnknownError,
+}
+
+impl Display for ConnectionError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match *self {
+            ConnectionError::BadRequest => write!(f, "Bad Request"),
+            ConnectionError::Forbidden => write!(f, "Forbidden"),
+            ConnectionError::NotFound => write!(f, "Not Found"),
+            ConnectionError::RequestEntityTooLarge => write!(f, "Request Entity Too Large"),
+            ConnectionError::TooManyRequests => write!(f, "Too Many Requests"),
+            ConnectionError::UnprocessableEntity => write!(f, "Unprocessable Entity"),
+            ConnectionError::ServiceUnavailable => write!(f, "Service Unavailable"),
+            ConnectionError::UnknownError => write!(f, "Unknown Error"),
+        }
+    }
 }
 
 /// curl::easyの準備
@@ -62,6 +81,6 @@ pub fn send_and_get(url: String, post_data: String) -> Result<String, String> {
         Ok(s.to_string())
     } else {
         // HTTPエラー処理
-        Err(handle_error(response_code))
+        Err(handle_error(response_code).to_string())
     }
 }
