@@ -39,17 +39,16 @@ fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), String> {
 }
 
 /// エラー文生成
-fn handle_error(response_code: u32) -> String {
+fn handle_error(response_code: u32) -> ConnectionError {
     match response_code {
-        400 => "400 Bad Request".to_string(),
-        403 => "403 Forbidden".to_string(),
-        404 => "404 Not Found".to_string(),
-        413 => "413 Request Entity Too Large".to_string(),
-        429 => "429 Too Many Requests".to_string(),
-        456 => "456 Unprocessable Entity".to_string(),
-        503 => "503 Service Unavailable".to_string(),
-        529 => "529 Too Many Requests".to_string(),
-        _ => "Unknown Error: No response".to_string(),
+        400 => ConnectionError::BadRequest,
+        403 => ConnectionError::Forbidden,
+        404 => ConnectionError::NotFound,
+        413 => ConnectionError::RequestEntityTooLarge,
+        429 => ConnectionError::TooManyRequests,
+        456 => ConnectionError::UnprocessableEntity,
+        503 => ConnectionError::ServiceUnavailable,
+        _ => ConnectionError::UnknownError,
     }
 }
 
