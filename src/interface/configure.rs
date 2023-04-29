@@ -21,7 +21,6 @@ pub enum ConfigError {
     FailToGetSettings(String),
     FailToSetApiKey(String),
     FailToSetDefaultTargetLanguage(String),
-    FailToDisplaySettings(String),
     FailToClearSettings(String),
 }
 impl fmt::Display for ConfigError {
@@ -30,7 +29,6 @@ impl fmt::Display for ConfigError {
             ConfigError::FailToGetSettings(ref e) => write!(f, "Failed to get settings: {}", e),
             ConfigError::FailToSetApiKey(ref e) => write!(f, "Failed to set API key: {}", e),
             ConfigError::FailToSetDefaultTargetLanguage(ref e) => write!(f, "Failed to set default target language: {}", e),
-            ConfigError::FailToDisplaySettings(ref e) => write!(f, "Failed to display settings: {}", e),
             ConfigError::FailToClearSettings(ref e) => write!(f, "Failed to clear settings: {}", e),
         }
     }
