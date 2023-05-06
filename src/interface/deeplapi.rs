@@ -1,4 +1,5 @@
 use std::io;
+use std::fmt;
 use serde_json::Value;
 
 mod connection;
@@ -6,6 +7,26 @@ mod connection;
 const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
 const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
 const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
+
+#[derive(Debug, PartialEq)]
+pub enum DeeplAPIError {
+    ConnectionError(connection::ConnectionError),
+    JsonError(String),
+    IoError(String),
+    LimitError,
+    GetLanguageCodesError,
+}
+impl fmt::Display for DeeplAPIError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DeeplAPIError::ConnectionError(ref e) => write!(f, "Connection error: {}", e),
+            DeeplAPIError::JsonError(ref e) => write!(f, "JSON error: {}", e),
+            DeeplAPIError::IoError(ref e) => write!(f, "IO error: {}", e),
+            DeeplAPIError::LimitError => write!(f, "The translation limit of your account has been reached. Consider upgrading your subscription."),
+            DeeplAPIError::GetLanguageCodesError => write!(f, "Could not get language codes"),
+        }
+    }
+}
 
 /// 翻訳  
 /// 失敗したらエラーを返す
