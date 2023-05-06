@@ -46,9 +46,9 @@ fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String,
 }
 
 /// json形式で渡された翻訳結果をパースし、ベクタに翻訳文を格納して返す
-fn json_to_vec(json: &String) -> Result<Vec<String>, String> {
-    let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| e.to_string())?;
-    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response")).map_err(|e| e.to_string())?;
+fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
+    let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response")).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
     let translations = &json["translations"];
 
     let mut translated_texts = Vec::new();
@@ -64,7 +64,7 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, String> {
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, String> {
+pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
     let auth_key = api_key;
 
     // request_translate()で翻訳結果のjsonを取得
@@ -78,10 +78,10 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
         // https://www.deepl.com/ja/docs-api/api-access/error-handling/
         Err(e) => {
             if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
-                Err("The translation limit of your account has been reached. Consider upgrading your subscription.".to_string())
+                Err(DeeplAPIError::LimitError)
             }
             else {
-                Err(e.to_string())
+                Err(DeeplAPIError::ConnectionError(e))
             }
         }
     }
