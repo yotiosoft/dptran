@@ -90,14 +90,14 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 /// 翻訳可能な残り文字数の取得
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
-pub fn get_usage(api_key: &String) -> Result<(i64, i64), String> {
+pub fn get_usage(api_key: &String) -> Result<(i64, i64), DeeplAPIError> {
     let url = DEEPL_API_USAGE.to_string();
     let query = format!("auth_key={}", api_key);
-    let res = connection::send_and_get(url, query).map_err(|e| e.to_string())?;
-    let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
+    let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
-    v.get("character_count").ok_or("failed to get character_count".to_string())?;
-    v.get("character_limit").ok_or("failed to get character_limit".to_string())?;
+    v.get("character_count").ok_or("failed to get character_count".to_string());
+    v.get("character_limit").ok_or("failed to get character_limit".to_string());
 
     let character_count = v["character_count"].as_i64().expect("failed to get character_count");
     let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit");
@@ -107,20 +107,20 @@ pub fn get_usage(api_key: &String) -> Result<(i64, i64), String> {
 pub type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, String> {
+pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, DeeplAPIError> {
     let url = DEEPL_API_LANGUAGES.to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);
-    let res = connection::send_and_get(url, query).map_err(|e| e.to_string())?;
-    let v: Value = serde_json::from_str(&res).map_err(|e| e.to_string())?;
+    let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
     let mut lang_codes: Vec<LangCode> = Vec::new();
     for value in v.as_array().expect("Invalid response at get_language_codes") {
-        value.get("language").ok_or("Invalid response".to_string())?;
+        value.get("language").ok_or("Invalid response".to_string());
         let lang_code = (value["language"].to_string(), value["name"].to_string());
         lang_codes.push(lang_code);
     }
     if lang_codes.len() == 0 {
-        Err("Could not get language codes".to_string())
+        Err(DeeplAPIError::GetLanguageCodesError)
     } else {
         Ok(lang_codes)
     }

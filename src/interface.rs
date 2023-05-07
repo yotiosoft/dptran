@@ -57,7 +57,7 @@ pub fn get_api_key() -> Result<Option<String>, String> {
 pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, String> {
     let api_key = get_api_key().map_err(|e| e.to_string())?;
     if let Some(api_key) = api_key {
-        let lang_codes = deeplapi::get_language_codes(&api_key, type_name)?;
+        let lang_codes = deeplapi::get_language_codes(&api_key, type_name).map_err(|e| e.to_string())?;
         Ok(lang_codes)
     } else {
         Err("API key is not set.".to_string())
@@ -96,7 +96,7 @@ pub fn correct_language_code(language_code: &str) -> Result<String, String> {
 pub fn get_usage() -> Result<(i64, i64), String> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        deeplapi::get_usage(&api_key)
+        deeplapi::get_usage(&api_key).map_err(|e| e.to_string())
     } else {
         Err("API key is not set.".to_string())
     }
@@ -108,7 +108,7 @@ pub fn get_usage() -> Result<(i64, i64), String> {
 pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, String> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        deeplapi::translate(&api_key, text, target_lang, source_lang)
+        deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| e.to_string())
     } else {
         Err("API key is not set.".to_string())
     }
