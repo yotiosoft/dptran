@@ -5,6 +5,13 @@ mod deeplapi;
 
 use deeplapi::LangCode;
 
+pub enum DpTranError {
+    ConfigError(String),
+    DeeplApiError(String),
+    InvalidLanguageCode,
+    ApiKeyIsNotSet,
+}
+
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
 pub fn set_api_key(api_key: String) -> Result<(), String> {
