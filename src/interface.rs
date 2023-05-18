@@ -72,7 +72,7 @@ pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, DpTranErro
 }
 
 /// 言語コードの有効性をチェック
-fn check_language_code(lang_code: &String, type_name: String) -> Result<bool, String> {
+fn check_language_code(lang_code: &String, type_name: String) -> Result<bool, DpTranError> {
     let lang_codes = get_language_codes(type_name.to_string())?;
     for lang in lang_codes {
         if lang.0.trim_matches('"') == lang_code.to_uppercase() {
@@ -83,7 +83,7 @@ fn check_language_code(lang_code: &String, type_name: String) -> Result<bool, St
 }
 
 /// 正しい言語コードに変換
-pub fn correct_language_code(language_code: &str) -> Result<String, String> {
+pub fn correct_language_code(language_code: &str) -> Result<String, DpTranError> {
     // EN, PTは変換
     let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
         "EN" => "EN-US".to_string(),
@@ -93,30 +93,30 @@ pub fn correct_language_code(language_code: &str) -> Result<String, String> {
 
     match check_language_code(&language_code_uppercase, "target".to_string())? {
         true => Ok(language_code_uppercase),
-        false => Err("Invalid language code".to_string()),
+        false => Err(DpTranError::InvalidLanguageCode),
     }
 }
 
 /// 翻訳可能な残り文字数の取得
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
-pub fn get_usage() -> Result<(i64, i64), String> {
+pub fn get_usage() -> Result<(i64, i64), DpTranError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        deeplapi::get_usage(&api_key).map_err(|e| e.to_string())
+        deeplapi::get_usage(&api_key).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
     } else {
-        Err("API key is not set.".to_string())
+        Err(DpTranError::ApiKeyIsNotSet)
     }
 }
 
 /// 翻訳結果の表示  
 /// json形式の翻訳結果を受け取り、翻訳結果を表示する  
 /// jsonのパースに失敗したらエラーを返す
-pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, String> {
+pub fn translate(text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| e.to_string())
+        deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
     } else {
-        Err("API key is not set.".to_string())
+        Err(DpTranError::ApiKeyIsNotSet)
     }
 }
