@@ -3,10 +3,11 @@ use std::io::{Write, stdin, stdout};
 mod interface;
 mod parse;
 
+use interface::DpTranError;
 use parse::ExecutionMode;
 
 /// 残り文字数を表示
-fn show_usage() -> Result<(), String> {
+fn show_usage() -> Result<(), DpTranError> {
     let (character_count, character_limit) = interface::get_usage()?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
@@ -19,7 +20,7 @@ fn show_usage() -> Result<(), String> {
 }
 
 /// 設定内容の表示
-fn display_settings() -> Result<(), String> {
+fn display_settings() -> Result<(), DpTranError> {
     let api_key = interface::get_api_key()?;
     let default_target_lang = interface::get_default_target_language_code()?;
     if let Some(api_key) = api_key {
@@ -34,7 +35,7 @@ fn display_settings() -> Result<(), String> {
 
 /// 翻訳元言語コード一覧の表示  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-fn show_source_language_codes() -> Result<(),  String> {
+fn show_source_language_codes() -> Result<(),  DpTranError> {
     // 翻訳元言語コード一覧
     let source_lang_codes = interface::get_language_codes("source".to_string())?;
     
@@ -53,7 +54,7 @@ fn show_source_language_codes() -> Result<(),  String> {
     Ok(())
 }
 /// 翻訳先言語コード一覧の表示
-fn show_target_language_codes() -> Result<(), String> {
+fn show_target_language_codes() -> Result<(), DpTranError> {
     // 翻訳先言語コード一覧
     let mut target_lang_codes = interface::get_language_codes("target".to_string())?;
 
@@ -137,7 +138,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), String> {
+fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
@@ -159,7 +160,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
         // 通常モードでは引数から取得
         let input = get_input(&mode, multilines, &text);
         if input.is_none() {
-            return Err("Could not get input text.".to_string());
+            return Err(DpTranError::CouldNotGetInputText);
         }
 
         // 対話モード："quit"で終了
@@ -187,7 +188,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
                 }
             }
             Err(e) => {
-                Err(e)?
+                return Err(e);
             }
         }
         // 通常モードの場合、一回でループを抜ける
@@ -201,7 +202,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
 
 /// メイン関数
 /// 引数の取得と翻訳処理の呼び出し
-fn main() -> Result<(), String> {
+fn main() -> Result<(), DpTranError> {
     // 引数を解析
     let arg_struct = parse::parser();
     let mode = arg_struct.execution_mode;
@@ -215,7 +216,7 @@ fn main() -> Result<(), String> {
                 interface::set_api_key(s)?;
                 return Ok(());
             } else {
-                return Err("No API key specified.".to_string());
+                return Err(DpTranError::ApiKeyIsNotSet);
             }
         }
         ExecutionMode::SetDefaultTargetLang => {
@@ -223,7 +224,7 @@ fn main() -> Result<(), String> {
                 interface::set_default_target_language(s)?;
                 return Ok(());
             } else {
-                return Err("No target language specified.".to_string());
+                return Err(DpTranError::NoTargetLanguageSpecified);
             }
         }
         ExecutionMode::DisplaySettings => {

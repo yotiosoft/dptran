@@ -5,11 +5,14 @@ mod deeplapi;
 
 use deeplapi::LangCode;
 
+#[derive(Debug)]
 pub enum DpTranError {
     ConfigError(String),
     DeeplApiError(String),
     InvalidLanguageCode,
     ApiKeyIsNotSet,
+    NoTargetLanguageSpecified,
+    CouldNotGetInputText,
 }
 
 /// APIキーの設定  
