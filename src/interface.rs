@@ -14,33 +14,33 @@ pub enum DpTranError {
 
 /// APIキーの設定  
 /// 設定ファイルconfig.jsonにAPIキーを設定する。
-pub fn set_api_key(api_key: String) -> Result<(), String> {
-    configure::set_api_key(api_key).map_err(|e| e.to_string())?;
+pub fn set_api_key(api_key: String) -> Result<(), DpTranError> {
+    configure::set_api_key(api_key).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
     Ok(())
 }
 
 /// デフォルトの翻訳先言語の設定  
 /// 設定ファイルconfig.jsonにデフォルトの翻訳先言語を設定する。
-pub fn set_default_target_language(arg_default_target_language: String) -> Result<(), String> {
+pub fn set_default_target_language(arg_default_target_language: String) -> Result<(), DpTranError> {
     // 言語コードが正しいか確認
     if let Ok(validated_language_code) = correct_language_code(&arg_default_target_language.to_string()) {
-        configure::set_default_target_language(&validated_language_code).map_err(|e| e.to_string())?;
+        configure::set_default_target_language(&validated_language_code).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
     } else {
-        Err("Invalid language code".to_string())
+        Err(DpTranError::InvalidLanguageCode)
     }
 }
 
 /// 設定の初期化
-pub fn clear_settings() -> Result<(), String> {
+pub fn clear_settings() -> Result<(), DpTranError> {
     // 今一度確認
     println!("Are you sure you want to clear all settings? (y/N)");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     // yが入力されたら設定を初期化する
     if input.trim().to_ascii_lowercase() == "y" {
-        configure::clear_settings().map_err(|e| e.to_string())?;
+        configure::clear_settings().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
@@ -48,26 +48,26 @@ pub fn clear_settings() -> Result<(), String> {
 }
 
 /// 設定済みの既定の翻訳先言語コードを取得
-pub fn get_default_target_language_code() -> Result<String, String> {
-    let default_target_lang = configure::get_default_target_language_code().map_err(|e| e.to_string())?;
+pub fn get_default_target_language_code() -> Result<String, DpTranError> {
+    let default_target_lang = configure::get_default_target_language_code().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
     Ok(default_target_lang)
 }
 
 /// APIキーを取得
-pub fn get_api_key() -> Result<Option<String>, String> {
-    let api_key = configure::get_api_key().map_err(|e| e.to_string())?;
+pub fn get_api_key() -> Result<Option<String>, DpTranError> {
+    let api_key = configure::get_api_key().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
     Ok(api_key)
 }
 
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, String> {
-    let api_key = get_api_key().map_err(|e| e.to_string())?;
+pub fn get_language_codes(type_name: String) -> Result<Vec<LangCode>, DpTranError> {
+    let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        let lang_codes = deeplapi::get_language_codes(&api_key, type_name).map_err(|e| e.to_string())?;
+        let lang_codes = deeplapi::get_language_codes(&api_key, type_name).map_err(|e| DpTranError::DeeplApiError(e.to_string()))?;
         Ok(lang_codes)
     } else {
-        Err("API key is not set.".to_string())
+        Err(DpTranError::ApiKeyIsNotSet)
     }
 }
 
