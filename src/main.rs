@@ -115,7 +115,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
                     }
                 }
 
-                input_vec.push(input.clone());
+                input_vec.push(input.trim_end().to_string());
                 input.clear();
 
                 print!("..");
