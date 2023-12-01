@@ -110,7 +110,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
                 // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
                 else {
                     if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
-                        input_vec.push(input);
+                        input_vec.push(input.trim_end().to_string());
                         break;
                     }
                 }
