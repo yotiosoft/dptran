@@ -6,16 +6,12 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/ja/pro-api
 
 ## How to install?
 
-### for Windows
+### Use crates.io
 
-1. Download the latest version from Releases.
-1. Add the folder that contains dptran.exe to the PATH on Windows.
-
-### for macOS
-
+1. Install ``rustup`` or ``cargo`` to your computer.
+2. run this:
 ```bash
-$ brew tap YotioSoft/dptran
-$ brew install dptran
+$ cargo install dptran
 ```
 
 ## How to use?
@@ -135,15 +131,6 @@ $ dptran set --clear
 
 ## How to uninstall?
 
-### for Windows
-
-1. Remove dptran.exe
-1. Remove the filepath from the PATH on Windows
-
-### for macOS
-
 ```bash
-$ brew uninstall dptran
+$ cargo uninstall dptran
 ```
-
-After running the command above, restart the terminal to complete the uninstallation.
