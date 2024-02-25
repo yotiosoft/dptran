@@ -1,14 +1,13 @@
 use std::io::{Write, stdin, stdout};
 
-mod interface;
 mod parse;
 
-use interface::DpTranError;
+use dptran::DpTranError;
 use parse::ExecutionMode;
 
 /// 残り文字数を表示
 fn show_usage() -> Result<(), DpTranError> {
-    let (character_count, character_limit) = interface::get_usage()?;
+    let (character_count, character_limit) = dptran::get_usage()?;
     if character_limit == 0 {
         println!("usage: {} / unlimited", character_count);
     }
@@ -21,8 +20,8 @@ fn show_usage() -> Result<(), DpTranError> {
 
 /// 設定内容の表示
 fn display_settings() -> Result<(), DpTranError> {
-    let api_key = interface::get_api_key()?;
-    let default_target_lang = interface::get_default_target_language_code()?;
+    let api_key = dptran::get_api_key()?;
+    let default_target_lang = dptran::get_default_target_language_code()?;
     if let Some(api_key) = api_key {
         println!("API key: {}", api_key);
     }
@@ -37,7 +36,7 @@ fn display_settings() -> Result<(), DpTranError> {
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn show_source_language_codes() -> Result<(),  DpTranError> {
     // 翻訳元言語コード一覧
-    let source_lang_codes = interface::get_language_codes("source".to_string())?;
+    let source_lang_codes = dptran::get_language_codes("source".to_string())?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -56,7 +55,7 @@ fn show_source_language_codes() -> Result<(),  DpTranError> {
 /// 翻訳先言語コード一覧の表示
 fn show_target_language_codes() -> Result<(), DpTranError> {
     // 翻訳先言語コード一覧
-    let mut target_lang_codes = interface::get_language_codes("target".to_string())?;
+    let mut target_lang_codes = dptran::get_language_codes("target".to_string())?;
 
     // 特例コード変換
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
@@ -180,7 +179,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
         }
 
         // 翻訳
-        let translated_texts = interface::translate(input.unwrap(), &target_lang, &source_lang);
+        let translated_texts = dptran::translate(input.unwrap(), &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -213,7 +212,7 @@ fn main() -> Result<(), DpTranError> {
         }
         ExecutionMode::SetApiKey => {
             if let Some(s) = arg_struct.api_key {
-                interface::set_api_key(s)?;
+                dptran::set_api_key(s)?;
                 return Ok(());
             } else {
                 return Err(DpTranError::ApiKeyIsNotSet);
@@ -221,7 +220,7 @@ fn main() -> Result<(), DpTranError> {
         }
         ExecutionMode::SetDefaultTargetLang => {
             if let Some(s) = arg_struct.default_target_lang {
-                interface::set_default_target_language(s)?;
+                dptran::set_default_target_language(s)?;
                 return Ok(());
             } else {
                 return Err(DpTranError::NoTargetLanguageSpecified);
@@ -232,7 +231,7 @@ fn main() -> Result<(), DpTranError> {
             return Ok(());
         }
         ExecutionMode::ClearSettings => {
-            interface::clear_settings()?;
+            dptran::clear_settings()?;
             return Ok(());
         }
         ExecutionMode::ListSourceLangs => {
@@ -250,21 +249,21 @@ fn main() -> Result<(), DpTranError> {
     let mut target_lang = arg_struct.translate_to;
 
     if target_lang.is_none() {
-        target_lang = Some(interface::get_default_target_language_code()?);
+        target_lang = Some(dptran::get_default_target_language_code()?);
     }
 
     // APIキーの確認
-    if interface::get_api_key()?.is_none() {
+    if dptran::get_api_key()?.is_none() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return Ok(());
     }
 
     // 言語コードのチェック & 正しい言語コードに変換
     if let Some(sl) = source_lang {
-        source_lang = Some(interface::correct_language_code(&sl.to_string())?);
+        source_lang = Some(dptran::correct_language_code(&sl.to_string())?);
     }
     if let Some(tl) = target_lang {
-        target_lang = Some(interface::correct_language_code(&tl.to_string())?);
+        target_lang = Some(dptran::correct_language_code(&tl.to_string())?);
     }
 
     // (対話＆)翻訳
