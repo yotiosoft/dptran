@@ -39,7 +39,6 @@ fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String,
     for t in text {
         query = format!("{}&text={}", query, t);
     }
-    println!("{}", query);
     
     connection::send_and_get(url, query)
 }
@@ -68,7 +67,6 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 
     // request_translate()で翻訳結果のjsonを取得
     let res = request_translate(&auth_key, text, target_lang, source_lang);
-    println!("{:?}", res);
     match res {
         Ok(res) => {
             json_to_vec(&res)
