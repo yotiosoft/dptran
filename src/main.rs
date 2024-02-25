@@ -1,4 +1,5 @@
-use async_std::io::{Write, stdin, stdout};
+use async_std::io::stdin;
+use std::io::{Write, stdout};
 
 mod parse;
 
@@ -84,7 +85,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// 標準入力より原文取得
-fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
+async fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -95,7 +96,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 
             let mut input_vec = Vec::<String>::new();
             let mut input = String::new();
-            while stdin.read_line(&mut input).unwrap() > 0 {
+            while stdin.read_line(&mut input).await.ok()? > 0 {
                 if input.trim_end() == "quit" {
                     input_vec.push(input);
                     break;
@@ -142,7 +143,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
+async fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
@@ -162,7 +163,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
     loop {
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
-        let input = get_input(&mode, multilines, &text);
+        let input = get_input(&mode, multilines, &text).await;
         if input.is_none() {
             return Err(DpTranError::CouldNotGetInputText);
         }
@@ -272,7 +273,7 @@ fn main() -> Result<(), DpTranError> {
     }
 
     // (対話＆)翻訳
-    process(mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
+    task::block_on(process(mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text))?;
 
     Ok(())
 }

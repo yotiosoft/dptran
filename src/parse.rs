@@ -1,6 +1,7 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use async_std::io;
-use std::time::Duration;
+use async_std::io::{self, ReadExt};
+use async_std::prelude::*;
+use std::{io::Write, time::Duration};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -164,13 +165,12 @@ pub async fn parser() -> ArgStruct {
     }
     else {
         let mut line = String::new();
-        match io::timeout(Duration::from_secs(1), async {
-            let stdin = io::stdin();
-            let n = stdin.read_line(&mut line).await?;
-            println!("{} bytes read", n);
-            Ok(())
-        })
-        .await {
+        let stdin = io::stdin();
+        let timeout = async_std::task::block_on(async {
+            async_std::future::timeout(Duration::from_secs(5), stdin.read_line(&mut line)).await
+        });
+        
+        match timeout {
             Ok(_) => {
                 arg_struct.execution_mode = ExecutionMode::TranslateNormal;
                 arg_struct.source_text = Some(line);
