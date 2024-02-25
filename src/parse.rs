@@ -1,5 +1,5 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Read};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -163,7 +163,7 @@ pub fn parser() -> ArgStruct {
     }
     else {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-        arg_struct.source_text = Some(BufReader::new(io::stdin()).lines().next().unwrap().unwrap());
+        arg_struct.source_text = Some(io::read_to_string(io::stdin()).unwrap());
     }
     println!("{}", arg_struct.clone().source_text.unwrap());
     arg_struct
