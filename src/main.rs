@@ -1,27 +1,92 @@
-use std::io::{Write, stdin, stdout};
+use std::io::{self, Write, stdin, stdout};
 
 mod parse;
+mod configure;
 
-use dptran::DpTranError;
+use dptran::{DpTranError, DpTranUsage, LangCode};
 use parse::ExecutionMode;
+
+/// 翻訳可能な残り文字数の取得
+/// <https://api-free.deepl.com/v2/usage>より取得する  
+/// 取得に失敗したらエラーを返す
+fn get_usage() -> Result<DpTranUsage, DpTranError> {
+    let api_key = get_api_key()?;
+    if let Some(api_key) = api_key {
+        dptran::get_usage(&api_key).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
+    } else {
+        Err(DpTranError::ApiKeyIsNotSet)
+    }
+}
 
 /// 残り文字数を表示
 fn show_usage() -> Result<(), DpTranError> {
-    let (character_count, character_limit) = dptran::get_usage()?;
-    if character_limit == 0 {
-        println!("usage: {} / unlimited", character_count);
+    let usage = get_usage()?;
+    if usage.character_limit == 0 {
+        println!("usage: {} / unlimited", usage.character_count);
     }
     else {
-        println!("usage: {} / {} ({}%)", character_count, character_limit, (character_count as f64 / character_limit as f64 * 100.0).round());
-        println!("remaining: {}", character_limit - character_count);
+        println!("usage: {} / {} ({}%)", usage.character_count, usage.character_limit, (usage.character_count as f64 / usage.character_limit as f64 * 100.0).round());
+        println!("remaining: {}", usage.character_limit - usage.character_count);
     }
     Ok(())
 }
 
+/// APIキーの設定  
+/// 設定ファイルconfig.jsonにAPIキーを設定する。
+fn set_api_key(api_key: String) -> Result<(), DpTranError> {
+    configure::set_api_key(api_key).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+    Ok(())
+}
+
+/// デフォルトの翻訳先言語の設定  
+/// 設定ファイルconfig.jsonにデフォルトの翻訳先言語を設定する。
+fn set_default_target_language(arg_default_target_language: String) -> Result<(), DpTranError> {
+    let api_key = match get_api_key()? {
+        Some(api_key) => api_key,
+        None => return Err(DpTranError::ApiKeyIsNotSet),
+    };
+
+    // 言語コードが正しいか確認
+    if let Ok(validated_language_code) = dptran::correct_language_code(&api_key, &arg_default_target_language) {
+        configure::set_default_target_language(&validated_language_code).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+        println!("Default target language has been set to {}.", validated_language_code);
+        Ok(())
+    } else {
+        Err(DpTranError::InvalidLanguageCode)
+    }
+}
+
+/// 設定の初期化
+fn clear_settings() -> Result<(), DpTranError> {
+    // 今一度確認
+    println!("Are you sure you want to clear all settings? (y/N)");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    // yが入力されたら設定を初期化する
+    if input.trim().to_ascii_lowercase() == "y" {
+        configure::clear_settings().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+        println!("All settings have been cleared.");
+        println!("Note: You need to set the API key again to use dptran.");
+    }
+    Ok(())
+}
+
+/// 設定済みの既定の翻訳先言語コードを取得
+fn get_default_target_language_code() -> Result<String, DpTranError> {
+    let default_target_lang = configure::get_default_target_language_code().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+    Ok(default_target_lang)
+}
+
+/// APIキーを取得
+fn get_api_key() -> Result<Option<String>, DpTranError> {
+    let api_key = configure::get_api_key().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+    Ok(api_key)
+}
+
 /// 設定内容の表示
 fn display_settings() -> Result<(), DpTranError> {
-    let api_key = dptran::get_api_key()?;
-    let default_target_lang = dptran::get_default_target_language_code()?;
+    let api_key = get_api_key()?;
+    let default_target_lang = get_default_target_language_code()?;
     if let Some(api_key) = api_key {
         println!("API key: {}", api_key);
     }
@@ -35,8 +100,13 @@ fn display_settings() -> Result<(), DpTranError> {
 /// 翻訳元言語コード一覧の表示  
 /// <https://api-free.deepl.com/v2/languages>から取得する
 fn show_source_language_codes() -> Result<(),  DpTranError> {
+    let api_key = match get_api_key()? {
+        Some(api_key) => api_key,
+        None => return Err(DpTranError::ApiKeyIsNotSet),
+    };
+
     // 翻訳元言語コード一覧
-    let source_lang_codes = dptran::get_language_codes("source".to_string())?;
+    let source_lang_codes = dptran::get_language_codes(&api_key, "source".to_string())?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -54,8 +124,13 @@ fn show_source_language_codes() -> Result<(),  DpTranError> {
 }
 /// 翻訳先言語コード一覧の表示
 fn show_target_language_codes() -> Result<(), DpTranError> {
+    let api_key = match get_api_key()? {
+        Some(api_key) => api_key,
+        None => return Err(DpTranError::ApiKeyIsNotSet),
+    };
+
     // 翻訳先言語コード一覧
-    let mut target_lang_codes = dptran::get_language_codes("target".to_string())?;
+    let mut target_lang_codes = dptran::get_language_codes(&api_key, "target".to_string())?;
 
     // 特例コード変換
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
@@ -141,7 +216,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
+fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
@@ -183,7 +258,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
         }
 
         // 翻訳
-        let translated_texts = dptran::translate(input.unwrap(), &target_lang, &source_lang);
+        let translated_texts = dptran::translate(&api_key, input.unwrap(), &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
@@ -216,7 +291,7 @@ fn main() -> Result<(), DpTranError> {
         }
         ExecutionMode::SetApiKey => {
             if let Some(s) = arg_struct.api_key {
-                dptran::set_api_key(s)?;
+                set_api_key(s)?;
                 return Ok(());
             } else {
                 return Err(DpTranError::ApiKeyIsNotSet);
@@ -224,7 +299,7 @@ fn main() -> Result<(), DpTranError> {
         }
         ExecutionMode::SetDefaultTargetLang => {
             if let Some(s) = arg_struct.default_target_lang {
-                dptran::set_default_target_language(s)?;
+                set_default_target_language(s)?;
                 return Ok(());
             } else {
                 return Err(DpTranError::NoTargetLanguageSpecified);
@@ -235,7 +310,7 @@ fn main() -> Result<(), DpTranError> {
             return Ok(());
         }
         ExecutionMode::ClearSettings => {
-            dptran::clear_settings()?;
+            clear_settings()?;
             return Ok(());
         }
         ExecutionMode::ListSourceLangs => {
@@ -253,21 +328,22 @@ fn main() -> Result<(), DpTranError> {
     let mut target_lang = arg_struct.translate_to;
 
     if target_lang.is_none() {
-        target_lang = Some(dptran::get_default_target_language_code()?);
+        target_lang = Some(get_default_target_language_code()?);
     }
 
     // APIキーの確認
-    if dptran::get_api_key()?.is_none() {
+    let api_key = get_api_key()?;
+    if api_key.is_none() {
         println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
         return Ok(());
     }
 
     // 言語コードのチェック & 正しい言語コードに変換
     if let Some(sl) = source_lang {
-        source_lang = Some(dptran::correct_language_code(&sl.to_string())?);
+        source_lang = Some(dptran::correct_language_code(&api_key, &sl.to_string())?);
     }
     if let Some(tl) = target_lang {
-        target_lang = Some(dptran::correct_language_code(&tl.to_string())?);
+        target_lang = Some(dptran::correct_language_code(&api_key, &tl.to_string())?);
     }
 
     // (対話＆)翻訳

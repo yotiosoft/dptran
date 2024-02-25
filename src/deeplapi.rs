@@ -88,7 +88,7 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
 /// 翻訳可能な残り文字数の取得
 /// <https://api-free.deepl.com/v2/usage>より取得する  
 /// 取得に失敗したらエラーを返す
-pub fn get_usage(api_key: &String) -> Result<(i64, i64), DeeplAPIError> {
+pub fn get_usage(api_key: &String) -> Result<(u64, u64), DeeplAPIError> {
     let url = DEEPL_API_USAGE.to_string();
     let query = format!("auth_key={}", api_key);
     let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
@@ -97,8 +97,8 @@ pub fn get_usage(api_key: &String) -> Result<(i64, i64), DeeplAPIError> {
     v.get("character_count").ok_or("failed to get character_count".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
     v.get("character_limit").ok_or("failed to get character_limit".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
-    let character_count = v["character_count"].as_i64().expect("failed to get character_count");
-    let character_limit = v["character_limit"].as_i64().expect("failed to get character_limit");
+    let character_count = v["character_count"].as_u64().expect("failed to get character_count");
+    let character_limit = v["character_limit"].as_u64().expect("failed to get character_limit");
     Ok((character_count, character_limit))
 }
 
