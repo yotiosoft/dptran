@@ -8,6 +8,9 @@ const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
 const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
 const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
 
+/// Language code and language name
+pub type LangCodeName = (String, String);
+
 #[derive(Debug, PartialEq)]
 pub enum DeeplAPIError {
     ConnectionError(connection::ConnectionError),
@@ -102,16 +105,15 @@ pub fn get_usage(api_key: &String) -> Result<(u64, u64), DeeplAPIError> {
     Ok((character_count, character_limit))
 }
 
-pub type LangCode = (String, String);
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCode>, DeeplAPIError> {
+pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
     let url = DEEPL_API_LANGUAGES.to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);
     let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
-    let mut lang_codes: Vec<LangCode> = Vec::new();
+    let mut lang_codes: Vec<LangCodeName> = Vec::new();
     for value in v.as_array().expect("Invalid response at get_language_codes") {
         value.get("language").ok_or("Invalid response".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
         let lang_code = (value["language"].to_string(), value["name"].to_string());

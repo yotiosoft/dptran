@@ -2,7 +2,10 @@ use std::io;
 
 mod deeplapi;
 
-pub use deeplapi::LangCode;
+pub use deeplapi::LangCodeName;
+
+/// string as language code
+pub type LangCode = String;
 
 /// Errors that can occur in this library
 #[derive(Debug)]
@@ -48,7 +51,7 @@ pub struct DpTranUsage {
 
 /// 言語コード一覧の取得  
 /// <https://api-free.deepl.com/v2/languages>から取得する
-pub fn get_language_codes(api_key: &String, lang_type: LangType) -> Result<Vec<LangCode>, DpTranError> {
+pub fn get_language_codes(api_key: &String, lang_type: LangType) -> Result<Vec<LangCodeName>, DpTranError> {
     let type_name = match lang_type {
         LangType::Target => "target".to_string(),
         LangType::Source => "source".to_string(),
@@ -69,7 +72,7 @@ pub fn check_language_code(api_key: &String, lang_code: &String, lang_type: Lang
 }
 
 /// 正しい言語コードに変換
-pub fn correct_language_code(api_key: &String, language_code: &str) -> Result<String, DpTranError> {
+pub fn correct_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
     // EN, PTは変換
     let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
         "EN" => "EN-US".to_string(),
