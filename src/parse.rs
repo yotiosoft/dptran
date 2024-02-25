@@ -1,6 +1,7 @@
 use clap::{ArgGroup, Parser, Subcommand};
+use std::io::{self, BufRead, BufReader};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
     TranslateNormal,
     TranslateInteractive,
@@ -13,6 +14,7 @@ pub enum ExecutionMode {
     PrintUsage,
 }
 
+#[derive(Clone, Debug)]
 pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
     pub api_key: Option<String>,
@@ -159,5 +161,10 @@ pub fn parser() -> ArgStruct {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
         arg_struct.source_text = Some(source_text.join(" "));
     }
+    else {
+        arg_struct.execution_mode = ExecutionMode::TranslateNormal;
+        arg_struct.source_text = Some(BufReader::new(io::stdin()).lines().next().unwrap().unwrap());
+    }
+    println!("{}", arg_struct.clone().source_text.unwrap());
     arg_struct
 }
