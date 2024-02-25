@@ -9,6 +9,7 @@ use deeplapi::LangCode;
 pub enum DpTranError {
     ConfigError(String),
     DeeplApiError(String),
+    StdIoError(io::Error),
     InvalidLanguageCode,
     ApiKeyIsNotSet,
     NoTargetLanguageSpecified,

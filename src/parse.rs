@@ -1,7 +1,6 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use async_std::io::{self, ReadExt};
-use async_std::prelude::*;
-use std::{io::Write, time::Duration};
+use std::io::{self, Read};
+use atty::Stream;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -97,7 +96,16 @@ enum SubCommands {
     },
 }
 
-pub async fn parser() -> ArgStruct {
+fn load_stdin() -> io::Result<Option<String>> {
+    if atty::is(Stream::Stdin) {
+        return Ok(None);
+    }
+    let mut buffer = String::new();
+    io::stdin().read_to_string(&mut buffer)?;
+    Ok(Some(buffer))
+}
+
+pub fn parser() -> io::Result<ArgStruct> {
     let args = Args::parse();
     let mut arg_struct = ArgStruct {
         execution_mode: ExecutionMode::TranslateInteractive,
@@ -117,7 +125,7 @@ pub async fn parser() -> ArgStruct {
     // Usage
     if args.usage == true {
         arg_struct.execution_mode = ExecutionMode::PrintUsage;
-        return arg_struct;
+        return Ok(arg_struct);
     }
 
     // Subcommands
@@ -138,7 +146,7 @@ pub async fn parser() -> ArgStruct {
                 if clear == true {
                     arg_struct.execution_mode = ExecutionMode::ClearSettings;
                 }
-                return arg_struct;
+                return Ok(arg_struct);
             }
             SubCommands::List { source_langs, target_langs } => {
                 if source_langs == true {
@@ -147,7 +155,7 @@ pub async fn parser() -> ArgStruct {
                 if target_langs == true {
                     arg_struct.execution_mode = ExecutionMode::ListTargetLangs;
                 }
-                return arg_struct;
+                return Ok(arg_struct);
             }
         }
     }
@@ -164,23 +172,18 @@ pub async fn parser() -> ArgStruct {
         arg_struct.source_text = Some(source_text.join(" "));
     }
     else {
-        let mut line = String::new();
-        let stdin = io::stdin();
-        let timeout = async_std::task::block_on(async {
-            async_std::future::timeout(Duration::from_secs(5), stdin.read_line(&mut line)).await
-        });
+        let line = load_stdin()?;
         
-        match timeout {
-            Ok(_) => {
+        match line {
+            Some(s) => {
                 arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-                arg_struct.source_text = Some(line);
+                arg_struct.source_text = Some(s);
             },
-            Err(_) => {
-                println!("Interactive mode");
+            None => {
                 arg_struct.execution_mode = ExecutionMode::TranslateInteractive;
                 arg_struct.source_text = None;
             },
         };
     }
-    arg_struct
+    Ok(arg_struct)
 }

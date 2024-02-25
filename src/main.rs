@@ -1,11 +1,9 @@
-use async_std::io::stdin;
-use std::io::{Write, stdout};
+use std::io::{Write, stdin, stdout};
 
 mod parse;
 
 use dptran::DpTranError;
 use parse::ExecutionMode;
-use async_std::task;
 
 /// 残り文字数を表示
 fn show_usage() -> Result<(), DpTranError> {
@@ -85,7 +83,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// 標準入力より原文取得
-async fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
+fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -96,7 +94,7 @@ async fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>
 
             let mut input_vec = Vec::<String>::new();
             let mut input = String::new();
-            while stdin.read_line(&mut input).await.ok()? > 0 {
+            while stdin.read_line(&mut input).unwrap() > 0 {
                 if input.trim_end() == "quit" {
                     input_vec.push(input);
                     break;
@@ -143,7 +141,7 @@ async fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>
 /// 対話と翻訳  
 /// 対話モードであれば繰り返し入力を行う  
 /// 通常モードであれば一回で終了する
-async fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
+fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
     // 翻訳
     // 対話モードならループする; 通常モードでは1回で抜ける
 
@@ -163,7 +161,7 @@ async fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: 
     loop {
         // 対話モードなら標準入力から取得
         // 通常モードでは引数から取得
-        let input = get_input(&mode, multilines, &text).await;
+        let input = get_input(&mode, multilines, &text);
         if input.is_none() {
             return Err(DpTranError::CouldNotGetInputText);
         }
@@ -209,7 +207,7 @@ async fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: 
 /// 引数の取得と翻訳処理の呼び出し
 fn main() -> Result<(), DpTranError> {
     // 引数を解析
-    let arg_struct = task::block_on(parse::parser());
+    let arg_struct = parse::parser().map_err(|e| DpTranError::StdIoError(e))?;
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {
@@ -273,7 +271,7 @@ fn main() -> Result<(), DpTranError> {
     }
 
     // (対話＆)翻訳
-    task::block_on(process(mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text))?;
+    process(mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
 
     Ok(())
 }
