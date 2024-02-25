@@ -8,6 +8,7 @@ pub use deeplapi::LangCode;
 pub enum DpTranError {
     ConfigError(String),
     DeeplApiError(String),
+    StdIoError(io::Error),
     InvalidLanguageCode,
     ApiKeyIsNotSet,
     NoTargetLanguageSpecified,
@@ -18,6 +19,7 @@ impl ToString for DpTranError {
         match self {
             DpTranError::ConfigError(e) => format!("Config error: {}", e),
             DpTranError::DeeplApiError(e) => format!("Deepl API error: {}", e),
+            DpTranError::StdIoError(e) => format!("Standard I/O error: {}", e),
             DpTranError::InvalidLanguageCode => "Invalid language code".to_string(),
             DpTranError::ApiKeyIsNotSet => "API key is not set".to_string(),
             DpTranError::NoTargetLanguageSpecified => "No target language specified".to_string(),

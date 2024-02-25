@@ -3,7 +3,7 @@ use std::io::{self, Write, stdin, stdout};
 mod parse;
 mod configure;
 
-use dptran::{DpTranError, DpTranUsage, LangCode};
+use dptran::{DpTranError, DpTranUsage};
 use parse::ExecutionMode;
 
 /// 翻訳可能な残り文字数の取得
@@ -332,11 +332,13 @@ fn main() -> Result<(), DpTranError> {
     }
 
     // APIキーの確認
-    let api_key = get_api_key()?;
-    if api_key.is_none() {
-        println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
-        return Ok(());
-    }
+    let api_key = match get_api_key()? {
+        Some(api_key) => api_key,
+        None => {
+            println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
+            return Ok(());
+        },
+    };
 
     // 言語コードのチェック & 正しい言語コードに変換
     if let Some(sl) = source_lang {
@@ -347,7 +349,7 @@ fn main() -> Result<(), DpTranError> {
     }
 
     // (対話＆)翻訳
-    process(mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
+    process(&api_key, mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
 
     Ok(())
 }
