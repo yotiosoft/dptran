@@ -1,5 +1,9 @@
 use clap::{ArgGroup, Parser, Subcommand};
 use std::io;
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::TryRecvError;
+use std::{thread, time};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -95,6 +99,16 @@ enum SubCommands {
     },
 }
 
+fn spawn_stdin_channel() -> Receiver<String> {
+    let (tx, rx) = mpsc::channel::<String>();
+    thread::spawn(move || loop {
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).unwrap();
+        tx.send(buffer).unwrap();
+    });
+    rx
+}
+
 pub fn parser() -> ArgStruct {
     let args = Args::parse();
     let mut arg_struct = ArgStruct {
@@ -162,8 +176,22 @@ pub fn parser() -> ArgStruct {
         arg_struct.source_text = Some(source_text.join(" "));
     }
     else {
-        arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-        arg_struct.source_text = Some(io::read_to_string(io::stdin()).unwrap());
+        let stdin_channel = spawn_stdin_channel();
+        let stdin_str = match stdin_channel.try_recv() {
+            Ok(s) => Some(s),
+            _ => None,
+        };
+        match stdin_str {
+            Some(s) => {
+                arg_struct.execution_mode = ExecutionMode::TranslateNormal;
+                arg_struct.source_text = Some(s);
+            },
+            _ => {
+                drop(stdin_channel);
+                println!("drop");
+                arg_struct.execution_mode = ExecutionMode::TranslateInteractive;
+            },
+        };
     }
     arg_struct
 }
