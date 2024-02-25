@@ -1,9 +1,10 @@
-use std::io::{Write, stdin, stdout};
+use async_std::io::{Write, stdin, stdout};
 
 mod parse;
 
 use dptran::DpTranError;
 use parse::ExecutionMode;
+use async_std::task;
 
 /// 残り文字数を表示
 fn show_usage() -> Result<(), DpTranError> {
@@ -207,7 +208,7 @@ fn process(mode: ExecutionMode, source_lang: Option<String>, target_lang: String
 /// 引数の取得と翻訳処理の呼び出し
 fn main() -> Result<(), DpTranError> {
     // 引数を解析
-    let arg_struct = parse::parser();
+    let arg_struct = task::block_on(parse::parser());
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {

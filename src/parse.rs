@@ -1,9 +1,6 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use std::io;
-use std::sync::mpsc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::TryRecvError;
-use std::{thread, time};
+use async_std::io;
+use std::time::Duration;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -99,17 +96,7 @@ enum SubCommands {
     },
 }
 
-fn spawn_stdin_channel() -> Receiver<String> {
-    let (tx, rx) = mpsc::channel::<String>();
-    thread::spawn(move || loop {
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).unwrap();
-        tx.send(buffer).unwrap();
-    });
-    rx
-}
-
-pub fn parser() -> ArgStruct {
+pub async fn parser() -> ArgStruct {
     let args = Args::parse();
     let mut arg_struct = ArgStruct {
         execution_mode: ExecutionMode::TranslateInteractive,
@@ -176,20 +163,22 @@ pub fn parser() -> ArgStruct {
         arg_struct.source_text = Some(source_text.join(" "));
     }
     else {
-        let stdin_channel = spawn_stdin_channel();
-        let stdin_str = match stdin_channel.try_recv() {
-            Ok(s) => Some(s),
-            _ => None,
-        };
-        match stdin_str {
-            Some(s) => {
+        let mut line = String::new();
+        match io::timeout(Duration::from_secs(1), async {
+            let stdin = io::stdin();
+            let n = stdin.read_line(&mut line).await?;
+            println!("{} bytes read", n);
+            Ok(())
+        })
+        .await {
+            Ok(_) => {
                 arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-                arg_struct.source_text = Some(s);
+                arg_struct.source_text = Some(line);
             },
-            _ => {
-                drop(stdin_channel);
-                println!("drop");
+            Err(_) => {
+                println!("Interactive mode");
                 arg_struct.execution_mode = ExecutionMode::TranslateInteractive;
+                arg_struct.source_text = None;
             },
         };
     }
