@@ -3,7 +3,7 @@ use std::io::{self, Write, stdin, stdout};
 mod parse;
 mod configure;
 
-use dptran::{DpTranError, DpTranUsage};
+use dptran::{DpTranError, DpTranUsage, LangType};
 use parse::ExecutionMode;
 
 /// 翻訳可能な残り文字数の取得
@@ -21,7 +21,7 @@ fn get_usage() -> Result<DpTranUsage, DpTranError> {
 /// 残り文字数を表示
 fn show_usage() -> Result<(), DpTranError> {
     let usage = get_usage()?;
-    if usage.character_limit == 0 {
+    if usage.unlimited {
         println!("usage: {} / unlimited", usage.character_count);
     }
     else {
@@ -106,7 +106,7 @@ fn show_source_language_codes() -> Result<(),  DpTranError> {
     };
 
     // 翻訳元言語コード一覧
-    let source_lang_codes = dptran::get_language_codes(&api_key, "source".to_string())?;
+    let source_lang_codes = dptran::get_language_codes(&api_key, LangType::Source)?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -130,7 +130,7 @@ fn show_target_language_codes() -> Result<(), DpTranError> {
     };
 
     // 翻訳先言語コード一覧
-    let mut target_lang_codes = dptran::get_language_codes(&api_key, "target".to_string())?;
+    let mut target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target)?;
 
     // 特例コード変換
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
