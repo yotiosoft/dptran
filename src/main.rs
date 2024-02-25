@@ -124,7 +124,15 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
         }
         ExecutionMode::TranslateNormal => {
             match text {
-                Some(text) => Some(vec![text.to_string()]),
+                Some(text) => {
+                    // 改行コードを含む文字列を分割
+                    let mut input_vec = Vec::<String>::new();
+                    for line in text.split("\r\n") {
+                        input_vec.push(line.trim_end().to_string());
+                        println!("{}", line.trim_end());
+                    }
+                    Some(input_vec)
+                },
                 None => None
             }
         }

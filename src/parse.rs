@@ -165,6 +165,5 @@ pub fn parser() -> ArgStruct {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
         arg_struct.source_text = Some(io::read_to_string(io::stdin()).unwrap());
     }
-    println!("{}", arg_struct.clone().source_text.unwrap());
     arg_struct
 }
