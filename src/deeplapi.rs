@@ -29,8 +29,8 @@ impl fmt::Display for DeeplAPIError {
     }
 }
 
-/// 翻訳  
-/// 失敗したらエラーを返す
+/// Translation
+/// Returns an error if it fails
 fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
     let url = DEEPL_API_TRANSLATE.to_string();
     let mut query = if source_lang.is_none() {
@@ -46,7 +46,8 @@ fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String,
     connection::send_and_get(url, query)
 }
 
-/// json形式で渡された翻訳結果をパースし、ベクタに翻訳文を格納して返す
+/// Parses the translation results passed in json format,
+///   stores the translation in a vector, and returns it.
 fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
     let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
     json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response")).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
@@ -62,20 +63,20 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
     Ok(translated_texts)
 }
 
-/// 翻訳結果の表示  
-/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
-/// jsonのパースに失敗したらエラーを返す
+/// Return translation results.
+/// Receive translation results in json format and display translation results.
+/// Return error if json parsing fails.
 pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
     let auth_key = api_key;
 
-    // request_translate()で翻訳結果のjsonを取得
+    // Get json of translation result with request_translate().
     let res = request_translate(&auth_key, text, target_lang, source_lang);
     match res {
         Ok(res) => {
             json_to_vec(&res)
         },
-        // 翻訳結果が失敗ならエラー表示
-        // DeepL APIが特有の意味を持つエラーコードであればここで検知
+        // Error message if translation result is not successful
+        // DeepL If the API is an error code with a specific meaning, detect it here
         // https://www.deepl.com/ja/docs-api/api-access/error-handling/
         Err(e) => {
             if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
@@ -88,9 +89,9 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
     }
 }
 
-/// 翻訳可能な残り文字数の取得
-/// <https://api-free.deepl.com/v2/usage>より取得する  
-/// 取得に失敗したらエラーを返す
+/// Get the number of characters remaining to be translated.
+/// Retrieved from <https://api-free.deepl.com/v2/usage>.
+/// Returns an error if acquisition fails.
 pub fn get_usage(api_key: &String) -> Result<(u64, u64), DeeplAPIError> {
     let url = DEEPL_API_USAGE.to_string();
     let query = format!("auth_key={}", api_key);
@@ -105,8 +106,8 @@ pub fn get_usage(api_key: &String) -> Result<(u64, u64), DeeplAPIError> {
     Ok((character_count, character_limit))
 }
 
-/// 言語コード一覧の取得  
-/// <https://api-free.deepl.com/v2/languages>から取得する
+/// Get language code list
+/// Retrieved from <https://api-free.deepl.com/v2/languages>.
 pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
     let url = DEEPL_API_LANGUAGES.to_string();
     let query = format!("type={}&auth_key={}", type_name, api_key);

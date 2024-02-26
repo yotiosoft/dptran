@@ -7,7 +7,14 @@ pub use deeplapi::LangCodeName;
 /// string as language code
 pub type LangCode = String;
 
-/// Errors that can occur in this library
+/// Errors that can occur in this library.
+/// ConfigError: Configuration error
+/// DeeplApiError: DeepL API error
+/// StdIoError: Standard I/O error
+/// InvalidLanguageCode: Invalid language code
+/// ApiKeyIsNotSet: API key is not set
+/// NoTargetLanguageSpecified: No target language specified
+/// CouldNotGetInputText: Could not get input text
 #[derive(Debug)]
 pub enum DpTranError {
     ConfigError(String),
@@ -49,8 +56,10 @@ pub struct DpTranUsage {
     pub unlimited: bool,
 }
 
-/// 言語コード一覧の取得  
-/// <https://api-free.deepl.com/v2/languages>から取得する
+/// Get language code list. Using DeepL API.
+/// Retrieved from <https://api-free.deepl.com/v2/languages>.
+/// api_key: DeepL API key
+/// lang_type: Target or Source
 pub fn get_language_codes(api_key: &String, lang_type: LangType) -> Result<Vec<LangCodeName>, DpTranError> {
     let type_name = match lang_type {
         LangType::Target => "target".to_string(),
@@ -60,7 +69,10 @@ pub fn get_language_codes(api_key: &String, lang_type: LangType) -> Result<Vec<L
     Ok(lang_codes)
 }
 
-/// 言語コードの有効性をチェック
+/// Check the validity of language codes. Using DeepL API.
+/// api_key: DeepL API key
+/// lang_code: Language code to check
+/// lang_type: Target or Source
 pub fn check_language_code(api_key: &String, lang_code: &String, lang_type: LangType) -> Result<bool, DpTranError> {
     let lang_codes = get_language_codes(api_key, lang_type)?;
     for lang in lang_codes {
@@ -71,7 +83,9 @@ pub fn check_language_code(api_key: &String, lang_code: &String, lang_type: Lang
     Ok(false)
 }
 
-/// 正しい言語コードに変換
+/// Convert to correct language code from input language code string. Using DeepL API.
+/// api_key: DeepL API key
+/// language_code: Language code to convert
 pub fn correct_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
     // EN, PTは変換
     let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
@@ -86,9 +100,10 @@ pub fn correct_language_code(api_key: &String, language_code: &str) -> Result<La
     }
 }
 
-/// 翻訳可能な残り文字数の取得
-/// <https://api-free.deepl.com/v2/usage>より取得する  
-/// 取得に失敗したらエラーを返す
+/// Get the number of characters remaining to be translated. Using DeepL API.
+/// Retrieved from <https://api-free.deepl.com/v2/usage>.
+/// Returns an error if acquisition fails.
+/// api_key: DeepL API key
 pub fn get_usage(api_key: &String) -> Result<DpTranUsage, DpTranError> {
     let (count, limit) = deeplapi::get_usage(&api_key).map_err(|e| DpTranError::DeeplApiError(e.to_string()))?;
     Ok(DpTranUsage {
@@ -98,9 +113,13 @@ pub fn get_usage(api_key: &String) -> Result<DpTranUsage, DpTranError> {
     })
 }
 
-/// 翻訳結果の表示  
-/// json形式の翻訳結果を受け取り、翻訳結果を表示する  
-/// jsonのパースに失敗したらエラーを返す
+/// Display translation results. Using DeepL API.
+/// Receive translation results in json format and display translation results.
+/// Return error if json parsing fails.
+/// api_key: DeepL API key
+/// text: Text to translate
+/// target_lang: Target language
+/// source_lang: Source language (optional)
 pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
     deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
 }

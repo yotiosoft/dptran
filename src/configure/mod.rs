@@ -2,6 +2,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 use confy;
 
+/// Configure properties
 #[derive(Serialize, Deserialize, Debug)]
 struct Configure {
     pub api_key: String,
@@ -16,6 +17,7 @@ impl Default for Configure {
     }
 }
 
+/// Configuration error
 #[derive(Debug, PartialEq)]
 pub enum ConfigError {
     FailToGetSettings(String),
@@ -34,15 +36,15 @@ impl fmt::Display for ConfigError {
     }
 }
 
-/// 設定ファイルの読み込みと値の抽出  
-/// 設定ファイルからAPIキーとデフォルトの翻訳先言語を取得する。  
-/// 存在しない場合、既定値を指定して新規作成する。
+/// Reading configuration files and extracting values
+/// Get the API key and default target language for translation from the configuration file.
+/// If none exists, create a new one with a default value.
 fn get_settings() -> Result<Configure, ConfigError> {
     confy::load::<Configure>("dptran", "configure").map_err(|e| ConfigError::FailToGetSettings(e.to_string()))
 }
 
-/// APIキーの設定  
-/// 設定ファイルにAPIキーを設定する。
+/// Set API key
+/// Set the API key in the configuration file.
 pub fn set_api_key(api_key: String) -> Result<(), ConfigError> {
     let mut settings = get_settings()?;
     settings.api_key = api_key;
@@ -50,8 +52,8 @@ pub fn set_api_key(api_key: String) -> Result<(), ConfigError> {
     Ok(())
 }
 
-/// デフォルトの翻訳先言語の設定  
-/// 設定ファイルにデフォルトの翻訳先言語を設定する。
+/// Set default destination language
+/// Set the default target language for translation in the configuration file.
 pub fn set_default_target_language(default_target_language: &String) -> Result<(), ConfigError> {
     let mut settings = get_settings()?;
     settings.default_target_language = default_target_language.to_string();
@@ -59,20 +61,20 @@ pub fn set_default_target_language(default_target_language: &String) -> Result<(
     Ok(())
 }
 
-/// 設定の初期化
+/// Initialize settings
 pub fn clear_settings() -> Result<(), ConfigError> {
     let settings = Configure::default();
     confy::store("dptran", "configure", settings).map_err(|e| ConfigError::FailToClearSettings(e.to_string()))?;
     Ok(())
 }
 
-/// 設定済みの既定の翻訳先言語コードを取得
+/// Get the configured default target language code for translation
 pub fn get_default_target_language_code() -> Result<String, ConfigError> {
     let settings = get_settings()?;
     Ok(settings.default_target_language)
 }
 
-/// APIキーを取得
+/// Get API key
 pub fn get_api_key() -> Result<Option<String>, ConfigError> {
     let settings = get_settings()?;
     if settings.api_key.is_empty() {

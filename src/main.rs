@@ -6,9 +6,9 @@ mod configure;
 use dptran::{DpTranError, DpTranUsage, LangType};
 use parse::ExecutionMode;
 
-/// 翻訳可能な残り文字数の取得
-/// <https://api-free.deepl.com/v2/usage>より取得する  
-/// 取得に失敗したらエラーを返す
+/// Get the number of characters remaining to be translated
+/// Retrieved from <https://api-free.deepl.com/v2/usage>
+/// Returns an error if acquisition fails
 fn get_usage() -> Result<DpTranUsage, DpTranError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
@@ -18,7 +18,7 @@ fn get_usage() -> Result<DpTranUsage, DpTranError> {
     }
 }
 
-/// 残り文字数を表示
+/// Display the number of characters remaining.
 fn show_usage() -> Result<(), DpTranError> {
     let usage = get_usage()?;
     if usage.unlimited {
@@ -31,22 +31,22 @@ fn show_usage() -> Result<(), DpTranError> {
     Ok(())
 }
 
-/// APIキーの設定  
-/// 設定ファイルconfig.jsonにAPIキーを設定する。
+/// Set API key (using confy crate).
+/// Set the API key in the configuration file config.json.
 fn set_api_key(api_key: String) -> Result<(), DpTranError> {
     configure::set_api_key(api_key).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
     Ok(())
 }
 
-/// デフォルトの翻訳先言語の設定  
-/// 設定ファイルconfig.jsonにデフォルトの翻訳先言語を設定する。
+/// Set default destination language.
+/// Set the default target language for translation in the configuration file config.json.
 fn set_default_target_language(arg_default_target_language: String) -> Result<(), DpTranError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
         None => return Err(DpTranError::ApiKeyIsNotSet),
     };
 
-    // 言語コードが正しいか確認
+    // Check if the language code is correct
     if let Ok(validated_language_code) = dptran::correct_language_code(&api_key, &arg_default_target_language) {
         configure::set_default_target_language(&validated_language_code).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
         println!("Default target language has been set to {}.", validated_language_code);
@@ -56,13 +56,12 @@ fn set_default_target_language(arg_default_target_language: String) -> Result<()
     }
 }
 
-/// 設定の初期化
+/// Initialization of settings.
 fn clear_settings() -> Result<(), DpTranError> {
-    // 今一度確認
     println!("Are you sure you want to clear all settings? (y/N)");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
-    // yが入力されたら設定を初期化する
+    // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
         configure::clear_settings().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
         println!("All settings have been cleared.");
@@ -71,19 +70,19 @@ fn clear_settings() -> Result<(), DpTranError> {
     Ok(())
 }
 
-/// 設定済みの既定の翻訳先言語コードを取得
+/// Get the configured default destination language code.
 fn get_default_target_language_code() -> Result<String, DpTranError> {
     let default_target_lang = configure::get_default_target_language_code().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
     Ok(default_target_lang)
 }
 
-/// APIキーを取得
+/// Load the API key from the configuration file.
 fn get_api_key() -> Result<Option<String>, DpTranError> {
     let api_key = configure::get_api_key().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
     Ok(api_key)
 }
 
-/// 設定内容の表示
+/// Display of settings.
 fn display_settings() -> Result<(), DpTranError> {
     let api_key = get_api_key()?;
     let default_target_lang = get_default_target_language_code()?;
@@ -97,15 +96,15 @@ fn display_settings() -> Result<(), DpTranError> {
     Ok(())
 }
 
-/// 翻訳元言語コード一覧の表示  
-/// <https://api-free.deepl.com/v2/languages>から取得する
+/// Display list of source language codes.
+/// Retrieved from <https://api-free.deepl.com/v2/languages>
 fn show_source_language_codes() -> Result<(),  DpTranError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
         None => return Err(DpTranError::ApiKeyIsNotSet),
     };
 
-    // 翻訳元言語コード一覧
+    // List of source language codes.
     let source_lang_codes = dptran::get_language_codes(&api_key, LangType::Source)?;
     
     let mut i = 0;
@@ -122,17 +121,17 @@ fn show_source_language_codes() -> Result<(),  DpTranError> {
 
     Ok(())
 }
-/// 翻訳先言語コード一覧の表示
+/// Display of list of language codes to be translated.
 fn show_target_language_codes() -> Result<(), DpTranError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
         None => return Err(DpTranError::ApiKeyIsNotSet),
     };
 
-    // 翻訳先言語コード一覧
+    // List of Language Codes.
     let mut target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target)?;
 
-    // 特例コード変換
+    // special case code conversion
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
     target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
 
@@ -157,7 +156,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
     (len, max_code_len, max_str_len)
 }
 
-/// 標準入力より原文取得
+/// Get source text from the stdin.
 fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
@@ -175,13 +174,13 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
                     break;
                 }
 
-                // multilineモードなら改行を含む入力を受け付ける
+                // If in multiline mode, it accepts input including newlines.
                 if multilines {
                     if input == "\r\n" || input == "\n" {
                         break;
                     }
                 }
-                // multilineモードでない場合、\\ + 改行で改行を含む入力を受け付ける
+                // If not in multiline mode, accepts input containing line feeds with [\\ + newline].
                 else {
                     if input.ends_with("\n") && !input.ends_with("\\\r\n") && !input.ends_with("\\\n") {
                         input_vec.push(input.trim_end().to_string());
@@ -200,7 +199,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
         ExecutionMode::TranslateNormal => {
             match text {
                 Some(text) => {
-                    // 改行コードを含む文字列を分割
+                    // Split strings containing newline codes.
                     let lines = text.lines();
                     Some(lines.map(|x| x.to_string()).collect())
                 },
@@ -213,14 +212,14 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
     }
 }
 
-/// 対話と翻訳  
-/// 対話モードであれば繰り返し入力を行う  
-/// 通常モードであれば一回で終了する
+/// Dialogue and Translation.
+/// Repeat input if in interactive mode
+/// In normal mode, it will be finished once
 fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
-    // 翻訳
-    // 対話モードならループする; 通常モードでは1回で抜ける
+    // Translation
+    // loop if in interactive mode; exit once in normal mode
 
-    // 対話モードなら終了方法を表示
+    // If it is interactive mode, it shows how to exit.
     if mode == ExecutionMode::TranslateInteractive {
         if source_lang.is_none() {
             println!("Now translating from detected language to {}.", target_lang);
@@ -234,14 +233,14 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
     }
 
     loop {
-        // 対話モードなら標準入力から取得
-        // 通常モードでは引数から取得
+        // If in interactive mode, get from standard input
+        // In normal mode, get from argument
         let input = get_input(&mode, multilines, &text);
         if input.is_none() {
             return Err(DpTranError::CouldNotGetInputText);
         }
 
-        // 対話モード："quit"で終了
+        // Interactive mode: "quit" to exit
         if mode == ExecutionMode::TranslateInteractive {
             if let Some(input) = &input {
                 if input[0].trim_end() == "quit" {
@@ -252,12 +251,12 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
                 }
             }
         }
-        // 通常モード：空文字列なら終了
+        // Normal mode: Exit if empty string
         if mode == ExecutionMode::TranslateNormal && input.is_none() {
             break;
         }
 
-        // 翻訳
+        // translate
         let translated_texts = dptran::translate(&api_key, input.unwrap(), &target_lang, &source_lang);
         match translated_texts {
             Ok(s) => {
@@ -269,7 +268,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
                 return Err(e);
             }
         }
-        // 通常モードの場合、一回でループを抜ける
+        // In normal mode, exit the loop once.
         if mode == ExecutionMode::TranslateNormal {
             break;
         }
@@ -278,10 +277,9 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
     Ok(())
 }
 
-/// メイン関数
-/// 引数の取得と翻訳処理の呼び出し
+/// Obtaining arguments and calling the translation process
 fn main() -> Result<(), DpTranError> {
-    // 引数を解析
+    // Parsing arguments.
     let arg_struct = parse::parser().map_err(|e| DpTranError::StdIoError(e))?;
     let mode = arg_struct.execution_mode;
     match mode {
@@ -331,7 +329,7 @@ fn main() -> Result<(), DpTranError> {
         target_lang = Some(get_default_target_language_code()?);
     }
 
-    // APIキーの確認
+    // API Key confirmation
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
         None => {
@@ -340,7 +338,7 @@ fn main() -> Result<(), DpTranError> {
         },
     };
 
-    // 言語コードのチェック & 正しい言語コードに変換
+    // Language code check and correction
     if let Some(sl) = source_lang {
         source_lang = Some(dptran::correct_language_code(&api_key, &sl.to_string())?);
     }
@@ -348,7 +346,7 @@ fn main() -> Result<(), DpTranError> {
         target_lang = Some(dptran::correct_language_code(&api_key, &tl.to_string())?);
     }
 
-    // (対話＆)翻訳
+    // (Dialogue &) Translation
     process(&api_key, mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
 
     Ok(())

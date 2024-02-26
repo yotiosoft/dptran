@@ -4,6 +4,7 @@ use std::str;
 use std::fmt;
 use curl::easy::Easy;
 
+/// ConnectionError
 #[derive(Debug, PartialEq)]
 pub enum ConnectionError {
     BadRequest,
@@ -32,7 +33,7 @@ impl fmt::Display for ConnectionError {
     }
 }
 
-/// curl::easyの準備
+/// Preparing curl::easy
 fn make_session(url: String, post_data: String) -> Result<Easy, String> {
     let mut easy = Easy::new();
     easy.url(url.as_str()).map_err(|e| e.to_string())?;
@@ -41,7 +42,7 @@ fn make_session(url: String, post_data: String) -> Result<Easy, String> {
     Ok(easy)
 }
 
-/// 送受信
+/// Sending and Receiving
 fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), String> {
     let mut dst = Vec::new();
     {
@@ -56,7 +57,7 @@ fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), String> {
     Ok((dst, response_code))
 }
 
-/// エラー文生成
+/// Error statement generation
 fn handle_error(response_code: u32) -> ConnectionError {
     match response_code {
         400 => ConnectionError::BadRequest,
@@ -70,7 +71,7 @@ fn handle_error(response_code: u32) -> ConnectionError {
     }
 }
 
-/// DeepL APIとの通信を行う
+/// Communicate with the DeepL API.
 pub fn send_and_get(url: String, post_data: String) -> Result<String, ConnectionError> {
     let easy = match make_session(url, post_data) {
         Ok(easy) => easy,
@@ -85,7 +86,7 @@ pub fn send_and_get(url: String, post_data: String) -> Result<String, Connection
         let s = str::from_utf8(&dst).expect("Invalid UTF-8");
         Ok(s.to_string())
     } else {
-        // HTTPエラー処理
+        // HTTP Error Handling
         Err(handle_error(response_code))
     }
 }
