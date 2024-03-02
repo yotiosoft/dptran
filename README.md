@@ -51,14 +51,14 @@ $ dptran list -t    # for the list of target languages
 
 ```bash
 $ dptran
-> Hello
+> こんにちは
 こんにちは
 > Ich stehe jeden Tag um 7 Uhr auf.
 毎日7時に起きています。
-> Seriously, Hiro, you need to improve your English.
-マジでヒロさん、英語力アップしてください。
+> La reunión comienza a las 10 a.m.
+The meeting begins at 10 a.m.
 > 今天玩儿得真开心！
-今日は素晴らしい時間を過ごせました
+Had a great time today!
 > quit
 ```
 
