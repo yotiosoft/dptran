@@ -4,19 +4,20 @@ A tool to run DeepL translations on your command line.
 It's written in Rust, and uses curl to connect to the DeepL API.  
 To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/).
 
-## How to install?
+## the binary crate
+### How to install?
 
-### Use crates.io
+#### Use crates.io
 
 1. Install ``rustup`` or ``cargo`` to your computer.
 2. run this:
 ```bash
-$ cargo install dptran
+$ cargo install dptran --example dptran
 ```
 
-## How to use?
+### How to use?
 
-### Setting API key
+#### Setting API key
 
 Please be sure to get your DeepL API key (it's free!) and set it up on dptran before using the service.
 
@@ -24,7 +25,7 @@ Please be sure to get your DeepL API key (it's free!) and set it up on dptran be
 $ dptran set --api-key [API key]
 ```
 
-### Translate in normal mode
+#### Translate in normal mode
 
 ```bash
 $ dptran Hello
@@ -43,7 +44,7 @@ $ dptran list -s    # for the list of source languages
 $ dptran list -t    # for the list of target languages
 ```
 
-### Translate in interactive mode
+#### Translate in interactive mode
 
 ```bash
 $ dptran
@@ -63,7 +64,7 @@ Exit with ``quit``.
 
 If you want to translate the source texts into a specific language, use the ``-t`` option. 
 
-#### Translate multiple lines
+##### Translate multiple lines
 
 To enter multiple lines, use the -m option.  
 Then enter a blank line to send the input.
@@ -79,7 +80,7 @@ $ dptran -m -t JA
 使用するには、https://www.deepl.com/en/pro-api/ から DeepL API キーを取得する必要があります。
 ```
 
-### Translate from the pipeline
+#### Translate from the pipeline
 
 You can translate the output of other commands with dptran.
 
@@ -89,7 +90,7 @@ ex: Translate the content of the man page into Japanese.
 $ man ls | cat | dptran -t JA
 ```
 
-### Show help
+#### Show help
 
 For more information about commands, see help:  
 
@@ -97,7 +98,7 @@ For more information about commands, see help:
 $ dptran -h
 ```
 
-### Displays the number of characters remaining to be translated
+#### Displays the number of characters remaining to be translated
 
 ```bash
 $ dptran -u
@@ -108,7 +109,7 @@ remaining: 499778
 You can see the number of remaining characters that can be translated by DeepL API. 
 The free DeepL API plan lets you translate up to 500,000 characters per month.
 
-## Change default target language
+### Change default target language
 
 It is set to English (EN-US) by default.  
 You can change it with ``set --target-lang``.  
@@ -118,7 +119,7 @@ For example, to change it to Japanese (JA), do the following:
 $ dptran set --target-lang JA
 ```
 
-## Reset settings
+### Reset settings
 
 You can reset all settings.  
 Note: The API key will be reset as well. If you wish to use dptran again, please set the API key again.  
@@ -127,10 +128,11 @@ Note: The API key will be reset as well. If you wish to use dptran again, please
 $ dptran set --clear
 ```
 
-
-
-## How to uninstall?
+### How to uninstall?
 
 ```bash
 $ cargo uninstall dptran
 ```
+
+## the library crate (v2.0.0~)
+See the documentation for the library crate [here](https://docs.rs/dptran/).
