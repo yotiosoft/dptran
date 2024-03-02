@@ -31,8 +31,8 @@ $ dptran set --api-key [API key]
 #### Translate in normal mode
 
 ```bash
-$ dptran Hello
-こんにちは
+$ dptran Bonjour
+Hello
 $ dptran -t FR Hello
 Bonjour
 ```
