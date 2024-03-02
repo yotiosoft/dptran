@@ -12,7 +12,7 @@ impl Default for Configure {
     fn default() -> Self {
         Self {
             api_key: String::new(),
-            default_target_language: "JA".to_string()
+            default_target_language: "EN-US".to_string()
         }
     }
 }

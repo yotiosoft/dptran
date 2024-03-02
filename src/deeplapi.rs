@@ -77,7 +77,7 @@ pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, sour
         },
         // Error message if translation result is not successful
         // DeepL If the API is an error code with a specific meaning, detect it here
-        // https://www.deepl.com/ja/docs-api/api-access/error-handling/
+        // https://www.deepl.com/en/docs-api/api-access/error-handling/
         Err(e) => {
             if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
                 Err(DeeplAPIError::LimitError)

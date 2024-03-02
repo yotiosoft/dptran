@@ -333,7 +333,7 @@ fn main() -> Result<(), DpTranError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
         None => {
-            println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/ja/pro-api?cta=header-pro-api/");
+            println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/en/pro-api?cta=header-pro-api/");
             return Ok(());
         },
     };

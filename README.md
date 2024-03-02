@@ -2,7 +2,7 @@
 
 A tool to run DeepL translations on your command line.   
 It's written in Rust, and uses curl to connect to the DeepL API.  
-To use, you need to get the DeepL API key from [https://www.deepl.com/ja/pro-api/](https://www.deepl.com/ja/pro-api/).
+To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/).
 
 ## How to install?
 
@@ -34,7 +34,7 @@ Bonjour
 ```
 
 It is possible to specify the source language with the ``-f`` option and the destination language with the ``-t`` option.
-If you omit the destination language option, the translation will be done in Japanese.  
+If you omit the destination language option, the translation will be done in English (EN-US).  
 
 For more information about language codes, see the language list:  
 
@@ -72,21 +72,21 @@ Then enter a blank line to send the input.
 $ dptran -m -t JA
 > A tool to run DeepL translations on your command line.
 ..It's written in Rust, and uses curl to connect to the DeepL API.
-..To use, you need to get the DeepL API key from https://www.deepl.com/ja/pro-api/.
+..To use, you need to get the DeepL API key from https://www.deepl.com/en/pro-api/.
 ..
 コマンドラインでDeepL翻訳を実行するためのツールです。
 これはRustで書かれており、DeepL APIへの接続にはcurlを使用します。
-使用するには、https://www.deepl.com/ja/pro-api/ から DeepL API キーを取得する必要があります。
+使用するには、https://www.deepl.com/en/pro-api/ から DeepL API キーを取得する必要があります。
 ```
 
 ### Translate from the pipeline
 
 You can translate the output of other commands with dptran.
 
-ex: Translate the content of the man page into Japanese  
+ex: Translate the content of the man page into Japanese.  
 
 ```bash
-$ man ls | col -b | dptran
+$ man ls | cat | dptran -t JA
 ```
 
 ### Show help
@@ -110,12 +110,12 @@ The free DeepL API plan lets you translate up to 500,000 characters per month.
 
 ## Change default target language
 
-It is set to Japanese (JA) by default.  
+It is set to English (EN-US) by default.  
 You can change it with ``set --target-lang``.  
-For example, to change it to English (EN), do the following:
+For example, to change it to Japanese (JA), do the following:
 
 ```bash
-$ dptran set --target-lang EN
+$ dptran set --target-lang JA
 ```
 
 ## Reset settings
