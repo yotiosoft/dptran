@@ -51,8 +51,8 @@ $ dptran list -t    # for the list of target languages
 
 ```bash
 $ dptran
-> こんにちは
-こんにちは
+> ありがとうございます。
+Thank you very much.
 > Ich stehe jeden Tag um 7 Uhr auf.
 毎日7時に起きています。
 > La reunión comienza a las 10 a.m.
