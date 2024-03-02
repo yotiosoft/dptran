@@ -1,11 +1,14 @@
 # dptran
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen.svg)
+
 A tool to run DeepL translations on your command line.   
 It's written in Rust, and uses curl to connect to the DeepL API.  
 To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/).
 
-## the binary crate
-### How to install?
+## Binary crate
+### Install
 
 #### Use crates.io
 
@@ -15,7 +18,7 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api
 $ cargo install dptran --example dptran
 ```
 
-### How to use?
+### Usage
 
 #### Setting API key
 
@@ -134,5 +137,15 @@ $ dptran set --clear
 $ cargo uninstall dptran
 ```
 
-## the library crate (v2.0.0~)
+## Library crate (v2.0.0~)
 See the documentation for the library crate [here](https://docs.rs/dptran/).
+
+### Usage
+```bash
+$ cargo add dptran
+```
+Or, add this to your Cargo.toml:
+```toml
+[dependencies]
+dptran = "2.0.0"
+```
