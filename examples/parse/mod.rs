@@ -59,7 +59,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "target_lang", "display", "clear"]),
+            .args(["api_key", "target_lang", "show", "clear"]),
     ))]
     Set {
         /// Set api-key
@@ -70,9 +70,9 @@ enum SubCommands {
         #[arg(short, long)]
         target_lang: Option<String>,
 
-        /// Display settings
+        /// Show settings
         #[arg(short, long)]
-        display: bool,
+        show: bool,
     
         /// Clear settings
         #[arg(short, long)]
@@ -131,7 +131,7 @@ pub fn parser() -> io::Result<ArgStruct> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, target_lang: default_lang, display, clear } => {
+            SubCommands::Set { api_key, target_lang: default_lang, show, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -140,7 +140,7 @@ pub fn parser() -> io::Result<ArgStruct> {
                     arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
                     arg_struct.default_target_lang = Some(default_lang);
                 }
-                if display == true {
+                if show == true {
                     arg_struct.execution_mode = ExecutionMode::DisplaySettings;
                 }
                 if clear == true {
