@@ -5,6 +5,7 @@ authors = ["yotio <yotio@yotiosoft.com>"]
 description = "A tool to run DeepL translations on command line written by Rust."
 license = "MIT"
 edition = "2021"
+default-run = "dptran"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,13 +14,16 @@ curl = "0.4.44"
 serde = { version = "^1.0.144", features = ["derive"] }
 serde_json = "1.0.85"
 
-[dev-dependencies]
-confy = "0.5.1"
-clap = { version = "4.1.4", features = ["derive"] }
-atty = "0.2.14"
+confy = { version = "0.5.1", optional = true }
+clap = { version = "4.1.4", features = ["derive"], optional = true }
+atty = { version = "0.2.14", optional = true }
+
+[features]
+app = ["confy", "clap", "atty"]
 
 [lib]
 name = "dptran"
 
-[[example]]
+[[bin]]
 name = "dptran"
+required-features = ["app"]
