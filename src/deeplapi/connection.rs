@@ -4,7 +4,17 @@ use std::str;
 use std::fmt;
 use curl::easy::Easy;
 
-/// ConnectionError
+/// ConnectionError  
+/// It is an error that occurs when communicating with the DeepL API.  
+/// ``BadRequest``: 400 Bad Request  
+/// ``Forbidden``: 403 Forbidden  
+/// ``NotFound``: 404 Not Found  
+/// ``RequestEntityTooLarge``: 413 Request Entity Too Large  
+/// ``TooManyRequests``: 429 Too Many Requests  
+/// ``UnprocessableEntity``: 456 Unprocessable Entity  
+/// ``ServiceUnavailable``: 503 Service Unavailable  
+/// ``CurlError``: Curl Error  
+/// ``UnknownError``: Unknown Error  
 #[derive(Debug, PartialEq)]
 pub enum ConnectionError {
     BadRequest,

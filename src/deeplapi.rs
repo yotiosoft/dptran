@@ -3,6 +3,7 @@ use std::fmt;
 use serde_json::Value;
 
 mod connection;
+pub use connection::ConnectionError;
 
 const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
 const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
@@ -11,9 +12,14 @@ const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
 /// Language code and language name
 pub type LangCodeName = (String, String);
 
+/// DeepL API error.  
+/// ``ConnectionError``: Connection error occurred in the process of sending and receiving data.  
+/// ``JsonError``: Error occurred while parsing json.  
+/// ``LimitError``: The translation limit of your account has been reached. Consider upgrading your subscription.  
+/// ``GetLanguageCodesError``: Could not get language codes.  
 #[derive(Debug, PartialEq)]
 pub enum DeeplAPIError {
-    ConnectionError(connection::ConnectionError),
+    ConnectionError(ConnectionError),
     JsonError(String),
     LimitError,
     GetLanguageCodesError,
