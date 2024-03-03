@@ -1,5 +1,3 @@
-use std::io;
-
 mod deeplapi;
 
 pub use deeplapi::LangCodeName;
@@ -17,11 +15,9 @@ pub type LangCode = String;
 /// ``ApiKeyIsNotSet``: API key is not set  
 /// ``NoTargetLanguageSpecified``: No target language specified  
 /// ``CouldNotGetInputText``: Could not get input text  
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DpTranError {
-    ConfigError(String),
-    DeeplApiError(String),
-    StdIoError(io::Error),
+    DeeplApiError(DeeplAPIError),
     InvalidLanguageCode,
     ApiKeyIsNotSet,
     NoTargetLanguageSpecified,
@@ -30,9 +26,7 @@ pub enum DpTranError {
 impl ToString for DpTranError {
     fn to_string(&self) -> String {
         match self {
-            DpTranError::ConfigError(e) => format!("Config error: {}", e),
-            DpTranError::DeeplApiError(e) => format!("Deepl API error: {}", e),
-            DpTranError::StdIoError(e) => format!("Standard I/O error: {}", e),
+            DpTranError::DeeplApiError(e) => format!("Deepl API error: {}", e.to_string()),
             DpTranError::InvalidLanguageCode => "Invalid language code".to_string(),
             DpTranError::ApiKeyIsNotSet => "API key is not set".to_string(),
             DpTranError::NoTargetLanguageSpecified => "No target language specified".to_string(),
@@ -67,7 +61,7 @@ pub fn get_language_codes(api_key: &String, lang_type: LangType) -> Result<Vec<L
         LangType::Target => "target".to_string(),
         LangType::Source => "source".to_string(),
     };
-    let lang_codes = deeplapi::get_language_codes(&api_key, type_name).map_err(|e| DpTranError::DeeplApiError(e.to_string()))?;
+    let lang_codes = deeplapi::get_language_codes(&api_key, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
     Ok(lang_codes)
 }
 
@@ -107,7 +101,7 @@ pub fn correct_language_code(api_key: &String, language_code: &str) -> Result<La
 /// Returns an error if acquisition fails.  
 /// api_key: DeepL API key  
 pub fn get_usage(api_key: &String) -> Result<DpTranUsage, DpTranError> {
-    let (count, limit) = deeplapi::get_usage(&api_key).map_err(|e| DpTranError::DeeplApiError(e.to_string()))?;
+    let (count, limit) = deeplapi::get_usage(&api_key).map_err(|e| DpTranError::DeeplApiError(e))?;
     Ok(DpTranUsage {
         character_count: count,
         character_limit: limit,
@@ -123,7 +117,7 @@ pub fn get_usage(api_key: &String) -> Result<DpTranUsage, DpTranError> {
 /// target_lang: Target language  
 /// source_lang: Source language (optional)  
 pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
-    deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
+    deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
 }
 
 #[test]

@@ -1,25 +1,63 @@
 use std::io::{self, Write, stdin, stdout};
+use std::fmt::Debug;
 
 mod parse;
 mod configure;
 
 use dptran::{DpTranError, DpTranUsage, LangType};
+use configure::ConfigError;
 use parse::ExecutionMode;
+
+enum RuntimeError {
+    DeeplApiError(dptran::DpTranError),
+    ConfigError(ConfigError),
+    StdIoError(String),
+}
+impl ToString for RuntimeError {
+    fn to_string(&self) -> String {
+        match self {
+            RuntimeError::DeeplApiError(e) => {
+                match e {
+                    dptran::DpTranError::DeeplApiError(e) => {
+                        match e {
+                            dptran::DeeplAPIError::ConnectionError(e) => {
+                                match e {
+                                    dptran::ConnectionError::Forbidden => "403 Forbidden Error. Maybe the API key is invalid.".to_string(),
+                                    dptran::ConnectionError::NotFound => "404 Not Found Error. Make sure the internet connection is working.".to_string(),
+                                    e => format!("Connection error: {}", e),
+                                }
+                            },
+                            e => format!("Deepl API error: {}", e.to_string()),
+                        }
+                    },
+                    e => format!("Deepl API error: {}", e.to_string()),
+                }
+            }
+            RuntimeError::ConfigError(e) => format!("Config error: {}", e),
+            RuntimeError::StdIoError(e) => format!("Standard I/O error: {}", e),
+        }
+    }
+}
+impl Debug for RuntimeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
 
 /// Get the number of characters remaining to be translated
 /// Retrieved from <https://api-free.deepl.com/v2/usage>
 /// Returns an error if acquisition fails
-fn get_usage() -> Result<DpTranUsage, DpTranError> {
+fn get_usage() -> Result<DpTranUsage, RuntimeError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        dptran::get_usage(&api_key).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
+        dptran::get_usage(&api_key).map_err(|e| RuntimeError::DeeplApiError(e))
     } else {
-        Err(DpTranError::ApiKeyIsNotSet)
+        Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
     }
 }
 
 /// Display the number of characters remaining.
-fn show_usage() -> Result<(), DpTranError> {
+fn show_usage() -> Result<(), RuntimeError> {
     let usage = get_usage()?;
     if usage.unlimited {
         println!("usage: {} / unlimited", usage.character_count);
@@ -33,37 +71,37 @@ fn show_usage() -> Result<(), DpTranError> {
 
 /// Set API key (using confy crate).
 /// Set the API key in the configuration file config.json.
-fn set_api_key(api_key: String) -> Result<(), DpTranError> {
-    configure::set_api_key(api_key).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+fn set_api_key(api_key: String) -> Result<(), RuntimeError> {
+    configure::set_api_key(api_key).map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(())
 }
 
 /// Set default destination language.
 /// Set the default target language for translation in the configuration file config.json.
-fn set_default_target_language(arg_default_target_language: String) -> Result<(), DpTranError> {
+fn set_default_target_language(arg_default_target_language: String) -> Result<(), RuntimeError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
-        None => return Err(DpTranError::ApiKeyIsNotSet),
+        None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
 
     // Check if the language code is correct
     if let Ok(validated_language_code) = dptran::correct_language_code(&api_key, &arg_default_target_language) {
-        configure::set_default_target_language(&validated_language_code).map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+        configure::set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
     } else {
-        Err(DpTranError::InvalidLanguageCode)
+        Err(RuntimeError::DeeplApiError(DpTranError::InvalidLanguageCode))
     }
 }
 
 /// Initialization of settings.
-fn clear_settings() -> Result<(), DpTranError> {
+fn clear_settings() -> Result<(), RuntimeError> {
     println!("Are you sure you want to clear all settings? (y/N)");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
-        configure::clear_settings().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+        configure::clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
@@ -71,19 +109,19 @@ fn clear_settings() -> Result<(), DpTranError> {
 }
 
 /// Get the configured default destination language code.
-fn get_default_target_language_code() -> Result<String, DpTranError> {
-    let default_target_lang = configure::get_default_target_language_code().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+fn get_default_target_language_code() -> Result<String, RuntimeError> {
+    let default_target_lang = configure::get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(default_target_lang)
 }
 
 /// Load the API key from the configuration file.
-fn get_api_key() -> Result<Option<String>, DpTranError> {
-    let api_key = configure::get_api_key().map_err(|e| DpTranError::ConfigError(e.to_string()))?;
+fn get_api_key() -> Result<Option<String>, RuntimeError> {
+    let api_key = configure::get_api_key().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(api_key)
 }
 
 /// Display of settings.
-fn display_settings() -> Result<(), DpTranError> {
+fn display_settings() -> Result<(), RuntimeError> {
     let api_key = get_api_key()?;
     let default_target_lang = get_default_target_language_code()?;
     if let Some(api_key) = api_key {
@@ -98,14 +136,14 @@ fn display_settings() -> Result<(), DpTranError> {
 
 /// Display list of source language codes.
 /// Retrieved from <https://api-free.deepl.com/v2/languages>
-fn show_source_language_codes() -> Result<(),  DpTranError> {
+fn show_source_language_codes() -> Result<(), RuntimeError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
-        None => return Err(DpTranError::ApiKeyIsNotSet),
+        None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
 
     // List of source language codes.
-    let source_lang_codes = dptran::get_language_codes(&api_key, LangType::Source)?;
+    let source_lang_codes = dptran::get_language_codes(&api_key, LangType::Source).map_err(|e| RuntimeError::DeeplApiError(e))?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -122,14 +160,14 @@ fn show_source_language_codes() -> Result<(),  DpTranError> {
     Ok(())
 }
 /// Display of list of language codes to be translated.
-fn show_target_language_codes() -> Result<(), DpTranError> {
+fn show_target_language_codes() -> Result<(), RuntimeError> {
     let api_key = match get_api_key()? {
         Some(api_key) => api_key,
-        None => return Err(DpTranError::ApiKeyIsNotSet),
+        None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
 
     // List of Language Codes.
-    let mut target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target)?;
+    let mut target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
 
     // special case code conversion
     target_lang_codes.push(("EN".to_string(), "English".to_string()));
@@ -215,7 +253,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
-fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), DpTranError> {
+fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -237,7 +275,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         // In normal mode, get from argument
         let input = get_input(&mode, multilines, &text);
         if input.is_none() {
-            return Err(DpTranError::CouldNotGetInputText);
+            return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
         }
 
         // Interactive mode: "quit" to exit
@@ -265,7 +303,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
                 }
             }
             Err(e) => {
-                return Err(e);
+                return Err(RuntimeError::DeeplApiError(e));
             }
         }
         // In normal mode, exit the loop once.
@@ -278,9 +316,9 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
 }
 
 /// Obtaining arguments and calling the translation process
-fn main() -> Result<(), DpTranError> {
+fn main() -> Result<(), RuntimeError> {
     // Parsing arguments.
-    let arg_struct = parse::parser().map_err(|e| DpTranError::StdIoError(e))?;
+    let arg_struct = parse::parser().map_err(|e| RuntimeError::StdIoError(e.to_string()))?;
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {
@@ -292,7 +330,7 @@ fn main() -> Result<(), DpTranError> {
                 set_api_key(s)?;
                 return Ok(());
             } else {
-                return Err(DpTranError::ApiKeyIsNotSet);
+                return Err(RuntimeError::StdIoError("API key is not specified.".to_string()));
             }
         }
         ExecutionMode::SetDefaultTargetLang => {
@@ -300,7 +338,7 @@ fn main() -> Result<(), DpTranError> {
                 set_default_target_language(s)?;
                 return Ok(());
             } else {
-                return Err(DpTranError::NoTargetLanguageSpecified);
+                return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
             }
         }
         ExecutionMode::DisplaySettings => {
@@ -340,10 +378,10 @@ fn main() -> Result<(), DpTranError> {
 
     // Language code check and correction
     if let Some(sl) = source_lang {
-        source_lang = Some(dptran::correct_language_code(&api_key, &sl.to_string())?);
+        source_lang = Some(dptran::correct_language_code(&api_key, &sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
     if let Some(tl) = target_lang {
-        target_lang = Some(dptran::correct_language_code(&api_key, &tl.to_string())?);
+        target_lang = Some(dptran::correct_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
 
     // (Dialogue &) Translation
