@@ -87,7 +87,7 @@ $ dptran -m -t JA
 
 You can translate the output of other commands with dptran.
 
-ex: Translate the content of the man page into Japanese.  
+e.g. Translate the content of the man page into Japanese.  
 
 ```bash
 $ man ls | cat | dptran -t JA
