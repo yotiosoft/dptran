@@ -8,9 +8,7 @@ pub use deeplapi::ConnectionError;
 pub type LangCode = String;
 
 /// Errors that can occur in this library.  
-/// ``ConfigError``: Configuration error  
 /// ``DeeplApiError``: DeepL API error  
-/// ``StdIoError``: Standard I/O error  
 /// ``InvalidLanguageCode``: Invalid language code  
 /// ``ApiKeyIsNotSet``: API key is not set  
 /// ``NoTargetLanguageSpecified``: No target language specified  
