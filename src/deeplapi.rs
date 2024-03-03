@@ -126,3 +126,101 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
         Ok(lang_codes)
     }
 }
+
+#[test]
+/// run with `cargo test lib_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
+/// arg[2] : api_key
+/// arg[3] : DeepL API free = 0, DeepL API pro = 1
+fn lib_tests() {
+    if std::env::args().len() < 3 {
+        panic!("Usage: cargo test lib_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>");
+    }
+
+    let mut args = Vec::new();
+    for arg in std::env::args().skip(2) {
+        println!("arg: {}", arg);
+        args.push(arg);
+    }
+
+    // translate test
+    let api_key = &args[0];
+    let text = vec!["Hello, World!".to_string()];
+    let target_lang = "JA".to_string();
+    let source_lang = None;
+    let res = translate(api_key, text, &target_lang, &source_lang);
+    match res {
+        Ok(res) => {
+            //assert_eq!(res[0], "ハロー、ワールド！");
+            println!("res: {}", res[0]);
+        },
+        Err(e) => {
+            panic!("Error: {}", e);
+        }
+    }
+
+    // usage test
+    let res = get_usage(api_key);
+    match res {
+        Ok(res) => {
+            if res.1 != 50000 {
+                // If you have a pro account, it is not an error.
+                if args[1] == "0" && res.1 != 500000 {
+                    panic!("Error: usage limit is not 50000");
+                }
+                if args[1] == "1" && res.1 != 0 {
+                    panic!("Error: usage limit is not 0");
+                }
+            }
+        },
+        Err(e) => {
+            panic!("Error: {}", e);
+        }
+    }
+
+    // get_language_codes test
+    let res = get_language_codes(api_key, "source".to_string());
+    match res {
+        Ok(res) => {
+            if res.len() == 0 {
+                panic!("Error: language codes is empty");
+            }
+        },
+        Err(e) => {
+            panic!("Error: {}", e);
+        }
+    }
+}
+
+#[test]
+fn json_to_vec_test() {
+    let json = r#"{"translations":[{"detected_source_language":"EN","text":"ハロー、ワールド！"}]}"#.to_string();
+    let res = json_to_vec(&json);
+    match res {
+        Ok(res) => {
+            assert_eq!(res[0], "ハロー、ワールド！");
+        },
+        Err(e) => {
+            panic!("Error: {}", e);
+        }
+    }
+}
+
+#[test]
+fn error_test() {
+    // no api_key
+    let text = vec!["Hello, World!".to_string()];
+    let target_lang = "JA".to_string();
+    let source_lang = None;
+    let res = translate(&"".to_string(), text, &target_lang, &source_lang);
+    match res {
+        Ok(res) => {
+            panic!("Error: translation success");
+        },
+        Err(e) => {
+            if e != DeeplAPIError::ConnectionError(connection::ConnectionError::Forbidden) {
+                panic!("Error: wrong error");
+            }
+        }
+    }
+}
+
