@@ -15,7 +15,7 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api
 1. Install ``rustup`` or ``cargo`` to your computer.
 2. run this:
 ```bash
-$ cargo install dptran --example dptran
+$ cargo install dptran --features=app
 ```
 
 ### Usage
