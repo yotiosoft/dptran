@@ -123,3 +123,96 @@ pub fn get_usage(api_key: &String) -> Result<DpTranUsage, DpTranError> {
 pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
     deeplapi::translate(&api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e.to_string()))
 }
+
+#[test]
+/// run with `cargo test api_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
+/// arg[2] : api_key
+/// arg[3] : DeepL API free = 0, DeepL API pro = 1
+fn lib_tests() {
+    if std::env::args().len() < 3 {
+        panic!("Usage: cargo test lib_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>");
+    }
+
+    let mut args = Vec::new();
+    for arg in std::env::args().skip(2) {
+        println!("arg: {}", arg);
+        args.push(arg);
+    }
+
+    // translate test
+    let api_key = &args[0];
+    let text = vec!["Hello, World!".to_string()];
+    let target_lang = "JA".to_string();
+    let source_lang = None;
+    let res = translate(api_key, text, &target_lang, &source_lang);
+    match res {
+        Ok(res) => {
+            //assert_eq!(res[0], "ハロー、ワールド！");
+            println!("res: {}", res[0]);
+        },
+        Err(e) => {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+
+    // usage test
+    let res = get_usage(api_key);
+    match res {
+        Ok(res) => {
+            // If you have a pro account, it is not an error.
+            if args[1] == "0" && res.character_limit != 500000 {
+                panic!("Error: usage limit is not 50000");
+            }
+            if args[1] == "1" && res.character_limit != 0 {
+                panic!("Error: usage limit is not 0");
+            }
+        },
+        Err(e) => {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+
+    // get_language_codes test
+    let res = get_language_codes(api_key, LangType::Source);
+    match res {
+        Ok(res) => {
+            if res.len() == 0 {
+                panic!("Error: language codes is empty");
+            }
+        },
+        Err(e) => {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+
+    // check_language_code test
+    let res = check_language_code(api_key, &"EN-US".to_string(), LangType::Target);
+    match res {
+        Ok(res) => {
+            assert_eq!(res, true);
+        },
+        Err(e) => {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+    let res = check_language_code(api_key, &"XX".to_string(), LangType::Source);
+    match res {
+        Ok(res) => {
+            assert_eq!(res, false);
+        },
+        Err(e) => {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+
+    // correct_language_code test
+    let res = correct_language_code(api_key, "EN");
+    match res {
+        Ok(res) => {
+            assert_eq!(res, "EN-US");
+        },
+        Err(e) => {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+}

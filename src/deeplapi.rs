@@ -128,12 +128,12 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
 }
 
 #[test]
-/// run with `cargo test lib_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
+/// run with `cargo test api_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
 /// arg[2] : api_key
 /// arg[3] : DeepL API free = 0, DeepL API pro = 1
-fn lib_tests() {
+fn api_tests() {
     if std::env::args().len() < 3 {
-        panic!("Usage: cargo test lib_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>");
+        panic!("Usage: cargo test api_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>");
     }
 
     let mut args = Vec::new();
@@ -162,14 +162,12 @@ fn lib_tests() {
     let res = get_usage(api_key);
     match res {
         Ok(res) => {
-            if res.1 != 50000 {
-                // If you have a pro account, it is not an error.
-                if args[1] == "0" && res.1 != 500000 {
-                    panic!("Error: usage limit is not 50000");
-                }
-                if args[1] == "1" && res.1 != 0 {
-                    panic!("Error: usage limit is not 0");
-                }
+            // If you have a pro account, it is not an error.
+            if args[1] == "0" && res.1 != 500000 {
+                panic!("Error: usage limit is not 50000");
+            }
+            if args[1] == "1" && res.1 != 0 {
+                panic!("Error: usage limit is not 0");
             }
         },
         Err(e) => {
@@ -213,7 +211,7 @@ fn error_test() {
     let source_lang = None;
     let res = translate(&"".to_string(), text, &target_lang, &source_lang);
     match res {
-        Ok(res) => {
+        Ok(_) => {
             panic!("Error: translation success");
         },
         Err(e) => {
