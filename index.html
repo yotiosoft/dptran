@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Albus Box</title>
+
+        <script src="./js/jquery-3.5.1.min.js"></script>
+        <script src="./js/common.js"></script>
+        <script src="./js/select.js"></script>
+        <script src="./js/scroll.js"></script>
+
+        <link rel="stylesheet" href="./css/style.css">
+        <link rel="stylesheet" href="./css/header.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+
+        <link rel="icon" type="image/png" href="./img/logo/icon.png">
+    </head>
+
+    <body>
+        <header>
+            <div id="header"></div>
+        </header>
+
+        <div class="header_blank"></div>
+
+        <div class="content">
+            <div class="catch">
+                <img src="./img/catches/top.svg" width="100%">
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="column">
+                <div class="title">
+                    Player for Everyone
+                </div>
+                <div class="text">
+                    Windows、macOS、Linuxに対応。<br>
+                    あらゆるPCに対応したプレイヤーです。
+                </div>
+
+                <div class="content-select">
+                    <a href="javascript:switch_to_windows()">
+                        <div class="os_select select-button" id="select_windows">Windows</div>
+                    </a>
+                    <a href="javascript:switch_to_macos()">
+                        <div class="os_select select-button" id="select_macos">macOS</div>
+                    </a>
+                    <a href="javascript:switch_to_linux()">
+                        <div class="os_select select-button" id="select_linux">Linux</div>
+                    </a>
+                </div>
+                
+                <div class="os_document switch_view reverse" id="switch_view_windows">
+                    <div class="left">
+                        角丸ウィンドウが特徴のシンプルなプレイヤー。<br>
+                        ニューモーフィズムUIを採用しており、直感的な操作が可能です。<br>
+                        最前面にピンどめしておくことも可能です。<br>
+                        お好きなスタイルでご利用ください。<br>
+                        <br>
+                        インストールは不要。無料でお使いいただけます。<br>
+                        Windows10およびWindows11でご利用可能です。<br>
+                        <br>
+                        <div class="download_button_wrapper">
+                            <div class="download_button">
+                                <p>Windows版をダウンロード</p>
+                                <a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.2.0(Beta4)/Albus-Box_ver.0.2.0_win64.zip"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/windows.webp" class="with_shadow" />
+                            <img src="img/screenshot/windows.png" class="with_shadow" />
+                        </picture>
+                    </div>
+                </div>
+
+                <div class="os_document switch_view reverse" id="switch_view_macos">
+                    <div class="left">
+                        macOSと親和性の高いニューモーフィズムデザイン。<br>
+                        シンプルなデザインに多彩な機能を搭載。<br>
+                        コンパクトなウィンドウで、作業の邪魔はいたしません。<br>
+                        <br>
+                        インストールは不要。無料でお使いいただけます。<br>
+                        Intel MacでもApple Silicon Macでもご利用可能です※。<br>
+                        <br>
+                        <p class="small">※Apple Silicon MacではRosetta2の導入が必須です。</p>
+                        <br>
+                        <div class="download_button_wrapper">
+                            <div class="download_button">
+                                <p>macOS版をダウンロード</p>
+                                <a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.2.0(Beta4)/Albus-Box_ver.0.2.0_mac.zip"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/mac.webp" class="to_larger" />
+                            <img src="img/screenshot/mac.png" class="to_larger" />
+                        </picture>
+                    </div>
+                </div>
+
+                <div class="os_document switch_view reverse" id="switch_view_linux">
+                    <div class="left">
+                        多種多彩な各種Linuxディストリビューション上で動作する<br>
+                        多種多彩な機能を持つプレイヤーアプリ。<br>
+                        オープンソースのLinuxカーネル上で動作する<br>
+                        オープンソースのAlbus Boxが、<br>
+                        ご利用のPCに、ワークステーションに<br>
+                        新たな一風をもたらします。<br>
+                        <br>
+                        <p class="small">※Intel CPU上でのみ動作します。</p>
+                        <p class="small">※Linux版のご利用にはソースファイルからのビルドが必要です。<br>&emsp;ビルド方法については<a href="for_linux.html">こちら</a>をご覧ください。</p>
+                        <br>
+                        <div class="download_button_wrapper">
+                            <div class="download_button">
+                                <p>Linux版ソースファイルをダウンロード</p>
+                                <a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.2.0(Beta4)/Albus-Box_ver.0.2.0_linux.zip"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/linux.webp" class="with_shadow no_radius" />
+                            <img src="img/screenshot/linux.png"  class="with_shadow no_radius" />
+                        </picture>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="features" class="inpage_link"></div>
+            <div class="column">
+                <div class="title">
+                    Features
+                </div>
+
+                <div class="switch_view is_active">
+                    <div class="left desctiption">
+                        <div class="title">プレイリスト機能</div>
+                        プレイリストに曲を追加し、
+                        お好みの順番でお楽しみいただけます。<br>
+                        プレイリストは設定画面から編集可能。<br>
+                        設定ファイルはどこでも好きな場所に保存できます。
+                    </div>
+                    <div class="right os_img img_windows">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/windows/playlist.webp" class="with_shadow" />
+                            <img src="img/screenshot/windows/playlist.png" class="with_shadow" />
+                        </picture>
+                    </div>
+                    <div class="right os_img img_macos">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/mac/playlist.webp" class="to_larger no_move" />
+                            <img src="img/screenshot/mac/playlist.png" class="to_larger no_move" />
+                        </picture>
+                    </div>
+                    <div class="right os_img img_linux">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/linux/playlist.webp" class="with_shadow no_radius" />
+                            <img src="img/screenshot/linux/playlist.png" class="with_shadow no_radius" />
+                        </picture>
+                    </div>
+                </div>
+
+                <div class="switch_view reverse is_active">
+                    <div class="left os_img img_windows">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/windows/title.webp" class="with_shadow" />
+                            <img src="img/screenshot/windows/title.png" class="with_shadow" />
+                        </picture>
+                    </div>
+                    <div class="left os_img img_macos">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/mac/title.webp" class="to_larger no_move" />
+                            <img src="img/screenshot/mac/title.png" class="to_larger no_move" />
+                        </picture>
+                    </div>
+                    <div class="left os_img img_linux">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/linux/title.webp" class="with_shadow no_radius" />
+                            <img src="img/screenshot/linux/title.png" class="with_shadow no_radius" />
+                        </picture>
+                    </div>
+                    <div class="right desctiption">
+                        <div class="title">タイトル編集</div>
+                        曲のタイトルを編集できます。<br>
+                        タイトルを変更すると、プレイリストにも反映されます。<br>
+                        タイトル情報はMD5ハッシュ値とともに保存しているため、<br>
+                        音楽ファイルを別の場所に移してもタイトル設定は保持されます。
+                    </div>
+                </div>
+                
+                <div class="switch_view is_active">
+                    <div class="left desctiption">
+                        <div class="title">サムネイル画像の設定</div>
+                        楽曲ごとに別々のサムネイル画像を設定できます。<br>
+                        サムネイル画像はサムネイル部分をクリックすることで設定可能。<br>
+                        タイトル情報と同様、MD5ハッシュ値とともに保存しているため、<br>
+                        音楽ファイルを別の場所に移してもサムネイル設定は保持されます。
+                    </div>
+                    <div class="right os_img img_windows">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/windows/thumbnail.webp" class="with_shadow" />
+                            <img src="img/screenshot/windows/thumbnail.png" class="with_shadow" />
+                        </picture>
+                    </div>
+                    <div class="right os_img img_macos">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/mac/thumbnail.webp" class="to_larger no_move" />
+                            <img src="img/screenshot/mac/thumbnail.png" class="to_larger no_move" />
+                        </picture>
+                    </div>
+                    <div class="right os_img img_linux">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/linux/thumbnail.webp" class="with_shadow no_radius" />
+                            <img src="img/screenshot/linux/thumbnail.png" class="with_shadow no_radius" />
+                        </picture>
+                    </div>
+                </div>
+
+                <div class="switch_view reverse is_active">
+                    <div class="left os_img img_windows">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/windows/lyrics.webp" class="with_shadow" />
+                            <img src="img/screenshot/windows/lyrics.png" class="with_shadow" />
+                        </picture>
+                    </div>
+                    <div class="left os_img img_macos">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/mac/lyrics.webp" class="to_larger no_move" />
+                            <img src="img/screenshot/mac/lyrics.png" class="to_larger no_move" />
+                        </picture>
+                    </div>
+                    <div class="left os_img img_linux">
+                        <picture>
+                            <source type="image/webp" srcset="img/screenshot/linux/lyrics.webp" class="with_shadow no_radius" />
+                            <img src="img/screenshot/linux/lyrics.png" class="with_shadow no_radius" />
+                        </picture>
+                    </div>
+                    <div class="right desctiption">
+                        <div class="title">歌詞表示機能</div>
+                        楽曲の歌詞を表示できます。<br>
+                        歌詞の編集画面が備わっており、<br>
+                        どなたでも簡単に歌詞を編集できます。<br>
+                        歌詞編集画面では、実際に曲を聞きながら、<br>
+                        曲のタイミングに合わせた柔軟な編集が可能です。
+                    </div>
+                </div>
+            </div>
+
+            <div id="specification" class="inpage_link"></div>
+            <div class="column">
+                <div class="title">
+                    Specification
+                </div>
+                <div class="text">
+                    <table>
+                        <tr>
+                            <td>対応音声ファイル形式</td>
+                            <td>mp3, wav, ogg, m4a</td>
+                        </tr>
+                        <tr>
+                            <td>対応画像ファイル形式（サムネイル画像用）</td>
+                            <td>png, jpeg, bmp, gif, tga, ppm, pgm, pbm, pnm, webp</td>
+                        </tr>
+                        <tr>
+                            <td>開発言語</td>
+                            <td>C++</td>
+                        </tr>
+                        <tr>
+                            <td>使用ライブラリ</td>
+                            <td>OpenSiv3D v0.6.4</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div id="environment" class="inpage_link"></div>
+            <div class="column">
+                <div class="title">
+                    Environment
+                </div>
+                <div class="text">
+                    <table>
+                        <tr>
+                            <th>OS</th>
+                            <th>推奨環境</th>
+                            <th>CPU</th>
+                            <th>メモリ</th>
+                        </tr>
+                        <tr>
+                            <td>Windows</td>
+                            <td>Windows 10, Windows 11 (64bit)</td>
+                            <td>Intel or AMD 2.0GHz以上</td>
+                            <td>8GB以上</td>
+                        </tr>
+                        <tr>
+                            <td>macOS</td>
+                            <td>macOS 10.15 以降</td>
+                            <td>Intel 2.0GHz以上 or Apple Ailicon</td>
+                            <td>8GB以上</td>
+                        </tr>
+                        <tr>
+                            <td>Linux</td>
+                            <td>Ubuntu 20.04 以降ほか</td>
+                            <td>Intel 2.0GHz</td>
+                            <td>8GB以上</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div id="license" class="inpage_link"></div>
+            <div class="column">
+                <div class="title">
+                    License
+                </div>
+                <div class="text">
+                    このソフトウェアはMITライセンスで提供しています。<br>
+                    OpenSiv3Dをはじめとする各種ライブラリのライセンスについては、<br>
+                    同梱のLicenses.htmlをご覧ください。<br>
+                    <br>
+                    <table class="license_table">
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/pc.png" style="height: 16px;">
+                                    個人利用
+                                </div>
+                            </td>
+                            <td colspan="2">
+                                <div class="icontxt">
+                                    <img src="./img/icons/check.png" style="height: 16px;">
+                                    可能
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/spana.png" style="height: 16px;">
+                                    プログラムの改変
+                                </div>
+                            </td>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/check.png" style="height: 16px;">
+                                    可能
+                                </div>
+                            </td>
+                            <td rowspan="3" scope="rowgroup" class="nowrap">
+                                著作権とライセンス全文の表示を行うこと。<br>
+                                できれば事前にご連絡いただけると嬉しいです。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/upload.png" style="height: 16px;">
+                                    再配布
+                                </div>
+                            </td>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/check.png" style="height: 16px;">
+                                    可能
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/yen.png" style="height: 16px;">
+                                    商用利用
+                                </div>
+                            </td>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/check.png" style="height: 16px;">
+                                    可能
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/article.png" style="height: 16px;">
+                                    ライセンスの改変
+                                </div>
+                            </td>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/x.png" style="height: 16px;">
+                                    不可能
+                                </div>
+                            </td>
+                            <td>
+                                ライセンスの改変を行うことはできません。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/checksheet.png" style="height: 16px;">
+                                    保証について
+                                </div>
+                            </td>
+                            <td colspan="2" scope="colgroup" class="nowrap">
+                                <div class="icontxt">
+                                    動作保証や権利上の保証はいたしません。
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="icontxt">
+                                    <img src="./img/icons/recipt.png" style="height: 16px;">
+                                    免責事項
+                                </div>
+                            </td>
+                            <td colspan="2" scope="colgroup" class="nowrap">
+                                <div class="icontxt">
+                                    作者はソフトウェアに対していかなる責任も負いません。
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div id="download" class="inpage_link"></div>
+            <div class="column">
+                <div class="title">
+                    Download
+                </div>
+                <div class="text">
+                    <table class="license_table">
+                        <tr class="th">
+                            <th>バージョン</th>
+                            <th>リリース日</th>
+                            <th colspan="3" scope="colgroup" class="nowrap">ダウンロード</th>
+                        </tr>
+                        <tr>
+                            <td>ver.0.2.0 (Beta4)</td>
+                            <td>2022年10月14日</td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.2.0(Beta4)/Albus-Box_ver.0.2.0_win64.zip">Windows (64bit)</a></td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.2.0(Beta4)/Albus-Box_ver.0.2.0_mac.zip">macOS</a></td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.2.0(Beta4)/Albus-Box_ver.0.2.0_linux.zip">Linux</a></td>
+                        </tr>
+                        <tr>
+                            <td>ver.0.1.2 (Beta3)</td>
+                            <td>2022年2月14日</td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.1.2(Beta3)/Albus-Box_ver.0.1.2_win64.zip">Windows (64bit)</a></td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.1.2(Beta3)/Albus-Box_ver.0.1.2_mac.zip">macOS</a></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>ver.0.1.1 (Beta2)</td>
+                            <td>2021年12月30日</td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.1.1(Beta2)/Albus-Box_ver.0.1.1_win64.zip">Windows (64bit)</a></td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.1.1(Beta2)/Albus-Box_ver.0.1.1_mac.zip">macOS</a></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>ver.0.1 (Beta1)</td>
+                            <td>2021年12月30日</td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.1(Beta1)/Albus-Box_ver.0.1_win64.zip">Windows (64bit)</a></td>
+                            <td><a href="https://github.com/YotioSoft/Albus-Box/releases/download/ver.0.1(Beta1)/Albus-Box_ver.0.1_mac.zip">macOS</a></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div id="footer_wrapper">
+                <div id="footer"></div>
+            </div>
+        </footer>
+    </body>
+</html>

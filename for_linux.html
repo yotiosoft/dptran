@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Albus Box</title>
+
+        <script src="./js/jquery-3.5.1.min.js"></script>
+        <script src="./js/common.js"></script>
+        <script src="./js/select.js"></script>
+        <script src="./js/scroll.js"></script>
+
+        <link rel="stylesheet" href="./css/for_linux.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+
+        <link rel="icon" type="image/png" href="./img/logo/icon.png">
+    </head>
+
+    <body>
+        <header>
+            <div id="header_logo">
+                <a href="./index.html">
+                    <img src="/img/logo/logo.svg" alt="logo" style="width: 500px; max-width: 80%;">
+                </a>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="column">
+                <div class="title-big">Linuxでのご利用方法</div>
+                <div class="text">
+                    Linuxでご利用の際は、実行環境でのAlbus Boxのビルドが必要です。<br>
+                    Albus Boxは、OpenSiv3Dを用いて開発しています。<br>
+                    よってAlbus Boxのビルドのためには、OpenSiv3Dの開発環境が必要です。<br>
+                    以下に示す手順に従ってAlbus Boxのビルドをお願いいたします。<br>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="title">OpenSiv3D開発環境の準備</div>
+
+                ※ OpenSiv3D のバージョンにより導入方法が変わる可能性があります。<br>
+                必ず<a href="https://siv3d.github.io/ja-jp/download/ubuntu/" target="_blank">OpenSiv3Dの公式サイト</a>をご参照ください。<br>
+
+                <div class="text">
+                    <div class="inner-column">
+                        <div class="title-small">1. OpenSiv3Dソースコードの入手</div>
+                        <div class="explain">
+                            <a href="https://github.com/Siv3D/OpenSiv3D" target="_blank" rel="noopener noreferrer">OpenSiv3D 公式リポジトリ</a>より、<br>
+                            最新版のソースコードをダウンロードまたは git clone します。<br>
+                            
+                            <div class="code">
+                                git clone https://github.com/Siv3D/OpenSiv3D.git
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="inner-column">
+                        <div class="title-small">2. 依存環境の導入</div>
+                        <div class="explain">
+                            <a href="https://github.com/Siv3D/OpenSiv3D/blob/main/.github/workflows/ci.yml#L26-L49" target="_blank" rel="noopener noreferrer">こちら</a>を参考に、OpenSiv3Dのビルドに必要なパッケージをインストールします。<br>
+                            例: Ubuntu 22.04, OpenSiv3D v0.6.5の場合<br>
+
+                            <div class="code">
+                                sudo add-apt-repository ppa:ubuntu-toolchain-r/test<br>
+                                sudo apt update<br>
+                                sudo apt install ninja-build<br>
+                                sudo apt install libasound2-dev<br>
+                                sudo apt install libavcodec-dev<br>
+                                sudo apt install libavformat-dev<br>
+                                sudo apt install libavutil-dev<br>
+                                sudo apt install libboost-dev<br>
+                                sudo apt install libcurl4-openssl-dev<br>
+                                sudo apt install libgtk-3-dev<br>
+                                sudo apt install libgif-dev<br>
+                                sudo apt install libglu1-mesa-dev<br>
+                                sudo apt install libharfbuzz-dev<br>
+                                sudo apt install libmpg123-dev<br>
+                                sudo apt install libopencv-dev<br>
+                                sudo apt install libopus-dev<br>
+                                sudo apt install libopusfile-dev<br>
+                                sudo apt install libsoundtouch-dev<br>
+                                sudo apt install libswresample-dev<br>
+                                sudo apt install libtiff-dev<br>
+                                sudo apt install libturbojpeg0-dev<br>
+                                sudo apt install libvorbis-dev<br>
+                                sudo apt install libwebp-dev<br>
+                                sudo apt install libxft-dev<br>
+                                sudo apt install uuid-dev<br>
+                                sudo apt install xorg-dev<br>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="inner-column">
+                        <div class="title-small">3. OpenSiv3Dのcmakeファイルの作成</div>
+                        <div class="explain">
+                            <a href="https://github.com/Siv3D/OpenSiv3D/blob/main/.github/workflows/ci.yml#L51-L60" target="_blank" rel="noopener noreferrer">こちら</a>を参考に、OpenSiv3Dのビルドに必要なcmakeファイルを作成します。<br>
+                            例: OpenSiv3D v0.6.5の場合<br>
+
+                            <div class="code">
+                                cd OpenSiv3D/Linux/
+                                mkdir build && cd build<br>
+                                cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..<br>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="inner-column">
+                        <div class="title-small">4. OpenSiv3Dライブラリのビルド</div>
+                        <div class="explain">
+                            <a href="https://github.com/Siv3D/OpenSiv3D/blob/main/.github/workflows/ci.yml#L51-L60" target="_blank" rel="noopener noreferrer">こちら</a>を参考に、OpenSiv3Dライブラリ（libSiv3d.a）をビルドします。<br>
+                            例: OpenSiv3D v0.6.5の場合<br>
+
+                            <div class="code">
+                                cd ..<br>
+                                cmake --build build<br>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="inner-column">
+                        <div class="title-small">5. OpenSiv3Dのインストール</div>
+                        <div class="explain">
+                            <a href="https://github.com/Siv3D/OpenSiv3D/blob/main/.github/workflows/ci.yml#L65" target="_blank" rel="noopener noreferrer">こちら</a>を参考に、ビルドしたOpenSiv3Dライブラリをインストールします。<br>
+                            例: OpenSiv3D v0.6.5の場合<br>
+
+                            <div class="code">
+                                sudo cmake --install build
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="title">Albus Boxのビルド</div>
+
+                <div class="text">
+                    <div class="inner-column">
+                        <div class="title-small">1. Albus Boxのクローン</div>
+                        <div class="explain">
+                            GitHubよりAlbus Boxのリポジトリを任意の場所にクローンします。<br>
+
+                            <div class="code">
+                                git clone https://github.com/YotioSoft/Albus-Box.git
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="inner-column">
+                        <div class="title-small">2. cmake用configの作成</div>
+                        <div class="explain">
+                            Albus Boxのビルド用のconfigファイルを作成します。<br>
+
+                            <div class="code">
+                                cd Albus-Box/Linux/<br>
+                                mkdir build && cd build<br>
+                                cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="inner-column">
+                        <div class="title-small">3. ビルド</div>
+                        <div class="explain">
+                            Albus Boxをビルドします。<br>
+
+                            <div class="code">
+                                cd ..<br>
+                                cmake --build build
+                            </div>
+                            
+                            <br>
+                            ビルドが完了したらご利用可能になります。
+                            <div class="code">
+                                ./AlbusBox
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div id="footer_wrapper">
+                <div id="footer"></div>
+            </div>
+        </footer>
+    </body>
+</html>
