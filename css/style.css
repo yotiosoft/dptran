@@ -17,9 +17,21 @@ body {
 
     margin-left: auto;
     margin-right: auto;
+
+    font-family: 'Jost', sans-serif;
+
+    position: relative;
 }
 .catch img {
     border-radius: 10px;
+}
+.catch .catch_contents {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    font-weight: bold;
+    color: white;
+
 }
 
 .content .column {
