@@ -1,4 +1,5 @@
-use std::io::{self, Write, stdin, stdout};
+use std::io::{self, Write, stdin, stdout, BufWriter};
+use std::fs::OpenOptions;
 use std::fmt::Debug;
 
 mod parse;
@@ -256,7 +257,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
 fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-                                                                        multilines: bool, text: Option<String>) -> Result<(), RuntimeError> {
+            multilines: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -302,7 +303,16 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         match translated_texts {
             Ok(s) => {
                 for translated_text in s {
-                    println!("{}", translated_text);
+                    if let Some(ofile) = &mut ofile {
+                        // append to the file
+                        let mut buf_writer = BufWriter::new(ofile);
+                        writeln!(buf_writer, "{}", translated_text).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+                        if mode == ExecutionMode::TranslateInteractive {
+                            println!("{}", translated_text);
+                        }
+                    } else {
+                        println!("{}", translated_text);
+                    }
                 }
             }
             Err(e) => {
@@ -387,8 +397,17 @@ fn main() -> Result<(), RuntimeError> {
         target_lang = Some(dptran::correct_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
 
+    // Output filepath
+    // If output file is specified, it will be created or overwritten.
+    let ofile = if let Some(output_file) = arg_struct.ofile_path {
+        Some(OpenOptions::new().create(true).write(true).truncate(true).open(&output_file).map_err(|e| RuntimeError::FileIoError(e.to_string()))?)
+    }
+    else {
+        None
+    };
+
     // (Dialogue &) Translation
-    process(&api_key, mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text)?;
+    process(&api_key, mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text, ofile)?;
 
     Ok(())
 }
