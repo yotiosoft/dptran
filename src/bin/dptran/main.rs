@@ -321,7 +321,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
     // Parsing arguments.
-    let arg_struct = parse::parser().map_err(|e| RuntimeError::StdIoError(e.to_string()))?;
+    let arg_struct = parse::parser()?;
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {

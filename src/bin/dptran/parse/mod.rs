@@ -1,6 +1,7 @@
 use clap::{ArgGroup, Parser, Subcommand};
 use std::io::{self, Read};
 use atty::Stream;
+use super::RuntimeError;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -114,7 +115,7 @@ fn load_stdin() -> io::Result<Option<String>> {
     Ok(Some(buffer))
 }
 
-pub fn parser() -> io::Result<ArgStruct> {
+pub fn parser() -> Result<ArgStruct, RuntimeError> {
     let args = Args::parse();
     let mut arg_struct = ArgStruct {
         execution_mode: ExecutionMode::TranslateInteractive,
@@ -185,7 +186,7 @@ pub fn parser() -> io::Result<ArgStruct> {
     // If input file is specified, read from the file
     if let Some(filepath) = args.input_file {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-        arg_struct.source_text = Some(std::fs::read_to_string(&filepath)?);
+        arg_struct.source_text = Some(std::fs::read_to_string(&filepath).map_err(|e| RuntimeError::FileIoError(e.to_string()))?);
     }
     // If source_text is specified, get source_text
     else if let Some(source_text) = args.source_text {
@@ -194,7 +195,7 @@ pub fn parser() -> io::Result<ArgStruct> {
     }
     // If input file is not specified and args.source_text is None, try to read from stdin
     else {
-        let line = load_stdin()?;
+        let line = load_stdin().map_err(|e| RuntimeError::StdIoError(e.to_string()))?;
         match line {
             Some(s) => {
                 arg_struct.execution_mode = ExecutionMode::TranslateNormal;
