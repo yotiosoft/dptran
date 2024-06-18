@@ -400,6 +400,26 @@ fn main() -> Result<(), RuntimeError> {
     // Output filepath
     // If output file is specified, it will be created or overwritten.
     let ofile = if let Some(output_file) = arg_struct.ofile_path {
+        // is the file exists?
+        if std::path::Path::new(&output_file).exists() {
+            print!("The file {} already exists. Overwrite? (y/N) ", output_file);
+            std::io::stdout().flush().unwrap();
+            let mut input = String::new();
+            io::stdin().read_line(&mut input).unwrap();
+            loop {
+                if input.trim().to_ascii_lowercase() == "y" {
+                    break;
+                }
+                if input.trim().to_ascii_lowercase() != "n" {
+                    print!("Please enter y or n: ");
+                    std::io::stdout().flush().unwrap();
+                    input.clear();
+                    io::stdin().read_line(&mut input).unwrap();
+                    continue;
+                }
+                return Ok(());  // Do not overwrite
+            }
+        }
         Some(OpenOptions::new().create(true).write(true).truncate(true).open(&output_file).map_err(|e| RuntimeError::FileIoError(e.to_string()))?)
     }
     else {
