@@ -406,17 +406,7 @@ fn main() -> Result<(), RuntimeError> {
             std::io::stdout().flush().unwrap();
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
-            loop {
-                if input.trim().to_ascii_lowercase() == "y" {
-                    break;
-                }
-                if input.trim().to_ascii_lowercase() != "n" {
-                    print!("Please enter y or n: ");
-                    std::io::stdout().flush().unwrap();
-                    input.clear();
-                    io::stdin().read_line(&mut input).unwrap();
-                    continue;
-                }
+            if input.trim().to_ascii_lowercase() != "y" {
                 return Ok(());  // Do not overwrite
             }
         }
