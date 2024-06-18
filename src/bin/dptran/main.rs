@@ -12,6 +12,7 @@ enum RuntimeError {
     DeeplApiError(dptran::DpTranError),
     ConfigError(ConfigError),
     StdIoError(String),
+    FileIoError(String),
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -35,6 +36,7 @@ impl ToString for RuntimeError {
             }
             RuntimeError::ConfigError(e) => format!("Config error: {}", e),
             RuntimeError::StdIoError(e) => format!("Standard I/O error: {}", e),
+            RuntimeError::FileIoError(e) => format!("File I/O error: {}", e),
         }
     }
 }
@@ -253,7 +255,8 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
-fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, multilines: bool, text: Option<String>) -> Result<(), RuntimeError> {
+fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+                                                                        multilines: bool, text: Option<String>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -357,7 +360,7 @@ fn main() -> Result<(), RuntimeError> {
             show_target_language_codes()?;
             return Ok(());
         }
-        _ => {}     // ExecutionMode::TranslateNormal, ExecutionMode::TranslateInteractive
+        _ => {}     // ExecutionMode::TranslateNormal, ExecutionMode::TranslateInteractive, ExecutionMode::FileInput
     };
 
     let mut source_lang = arg_struct.translate_from;

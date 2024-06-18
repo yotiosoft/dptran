@@ -24,6 +24,7 @@ pub struct ArgStruct {
     pub multilines: bool,
     pub translate_to: Option<String>,
     pub source_text: Option<String>,
+    pub ofile_path: Option<String>,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -47,6 +48,14 @@ struct Args {
     /// Print usage of DeepL API
     #[arg(short, long)]
     usage: bool,
+
+    /// Input file
+    #[arg(short, long)]
+    input_file: Option<String>,
+
+    /// Output file
+    #[arg(short, long)]
+    output_file: Option<String>,
 
     /// subcommands
     #[clap(subcommand)]
@@ -115,6 +124,7 @@ pub fn parser() -> io::Result<ArgStruct> {
         translate_to: None,
         multilines: false,
         source_text: None,
+        ofile_path: None,
     };
 
     // Multilines
@@ -126,6 +136,11 @@ pub fn parser() -> io::Result<ArgStruct> {
     if args.usage == true {
         arg_struct.execution_mode = ExecutionMode::PrintUsage;
         return Ok(arg_struct);
+    }
+
+    // Output file
+    if let Some(ofile_path) = args.output_file {
+        arg_struct.ofile_path = Some(ofile_path);
     }
 
     // Subcommands
@@ -167,13 +182,19 @@ pub fn parser() -> io::Result<ArgStruct> {
     if let Some(to) = args.to {
         arg_struct.translate_to = Some(to);
     }
-    if let Some(source_text) = args.source_text {
+    // If input file is specified, read from the file
+    if let Some(filepath) = args.input_file {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
-        arg_struct.source_text = Some(source_text.join(" "));
+        arg_struct.source_text = Some(std::fs::read_to_string(&filepath)?);
     }
+    // If source_text is specified, get source_text
+    else if let Some(source_text) = args.source_text {
+        arg_struct.source_text = Some(source_text.join(" "));
+        arg_struct.execution_mode = ExecutionMode::TranslateNormal;
+    }
+    // If input file is not specified and args.source_text is None, try to read from stdin
     else {
         let line = load_stdin()?;
-        
         match line {
             Some(s) => {
                 arg_struct.execution_mode = ExecutionMode::TranslateNormal;
