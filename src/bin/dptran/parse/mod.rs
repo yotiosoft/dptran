@@ -146,7 +146,12 @@ fn read_from_editor() -> Result<String, RuntimeError> {
         let config_filepath = configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
         let tmp_filepath = config_filepath.parent().unwrap().join("tmp.txt");
         // Open by the editor
-        let mut child = Command::new(editor).arg(editor_args).arg(tmp_filepath.to_str().unwrap()).spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
+        let mut child = if editor_args.len() > 0 {
+            Command::new(editor).arg(editor_args).arg(tmp_filepath.to_str().unwrap()).spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?
+        }
+        else {
+            Command::new(editor).arg(tmp_filepath.to_str().unwrap()).spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?   
+        };
         let status = child.wait().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
         if !status.success() {
             return Err(RuntimeError::EditorError("Editor failed".to_string()));
