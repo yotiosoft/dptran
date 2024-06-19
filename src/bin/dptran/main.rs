@@ -163,6 +163,9 @@ fn display_settings() -> Result<(), RuntimeError> {
         println!("Editor command: not set");
     }
 
+    let config_filepath = configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
+    println!("Configuration file path: {}", config_filepath.to_str().unwrap());
+
     Ok(())
 }
 
@@ -338,7 +341,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             let result = dptran::translate(&api_key, input.clone().unwrap(), &target_lang, &source_lang)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
             // store in cache
-            cache::into_cache_element(&result.clone().join("\n"), &target_lang).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            cache::into_cache_element(&input.clone().unwrap().join("\n"), &result.clone().join("\n"), &target_lang).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
             result
         };
         for translated_text in translated_texts {
