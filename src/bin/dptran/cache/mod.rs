@@ -44,11 +44,11 @@ fn save_cache_data(cache_data: Cache) -> Result<(), CacheError> {
     confy::store("dptran", "cache", cache_data).map_err(|e| CacheError::FailToReadCache(e.to_string()))
 }
 
-pub fn into_cache_element(source_text: &String, value: &String, target_lang: &String) -> Result<(), CacheError> {
+pub fn into_cache_element(source_text: &String, value: &String, target_lang: &String, max_entries: usize) -> Result<(), CacheError> {
     // read cache data file
     let mut cache_data = get_cache_data()?;
-    // if caches are more than 100, remove the oldest one
-    if cache_data.elements.len() > 100 {
+    // if caches are more than max_entries, remove the oldest one
+    if cache_data.elements.len() > max_entries {
         cache_data.elements.remove(0);
     }
     // clone source_text and value

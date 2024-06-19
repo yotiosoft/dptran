@@ -13,6 +13,7 @@ pub enum ExecutionMode {
     ListTargetLangs,
     SetApiKey,
     SetDefaultTargetLang,
+    SetCacheMaxEntries,
     SetEditor,
     DisplaySettings,
     ClearSettings,
@@ -24,6 +25,7 @@ pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
     pub api_key: Option<String>,
     pub default_target_lang: Option<String>,
+    pub cache_max_entries: Option<usize>,
     pub editor_command: Option<String>,
     pub translate_from: Option<String>,
     pub multilines: bool,
@@ -77,7 +79,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "target_lang", "editor_command", "show", "clear"]),
+            .args(["api_key", "target_lang", "cache_max_entries", "editor_command", "show", "clear"]),
     ))]
     Set {
         /// Set api-key
@@ -88,7 +90,11 @@ enum SubCommands {
         #[arg(short, long)]
         target_lang: Option<String>,
 
-        /// Set editor
+        /// Set cache max entries (default: 100)
+        #[arg(long)]
+        cache_max_entries: Option<usize>,
+
+        /// Set editor command (e.g. `vi`, `vim` or `emacs -nw`)
         #[arg(short, long)]
         editor_command: Option<String>,
 
@@ -159,6 +165,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         execution_mode: ExecutionMode::TranslateInteractive,
         api_key: None,
         default_target_lang: None,
+        cache_max_entries: None,
         editor_command: None,
         translate_from: None,
         translate_to: None,
@@ -186,7 +193,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, target_lang: default_lang, editor_command, show, clear } => {
+            SubCommands::Set { api_key, target_lang: default_lang, cache_max_entries, editor_command, show, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -194,6 +201,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
                     arg_struct.default_target_lang = Some(default_lang);
+                }
+                if let Some(cache_max_entries) = cache_max_entries {
+                    arg_struct.execution_mode = ExecutionMode::SetCacheMaxEntries;
+                    arg_struct.cache_max_entries = Some(cache_max_entries);
                 }
                 if let Some(editor_command) = editor_command {
                     arg_struct.execution_mode = ExecutionMode::SetEditor;

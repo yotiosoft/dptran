@@ -135,6 +135,12 @@ fn get_api_key() -> Result<Option<String>, RuntimeError> {
     Ok(api_key)
 }
 
+/// Get the maximum number of cache entries.
+fn get_cache_max_entries() -> Result<usize, RuntimeError> {
+    let cache_max_entries = configure::get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
+    Ok(cache_max_entries)
+}
+
 /// Load the editor command from the configuration file.
 fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
     let editor_command = configure::get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -145,6 +151,7 @@ fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
 fn display_settings() -> Result<(), RuntimeError> {
     let api_key = get_api_key()?;
     let default_target_lang = get_default_target_language_code()?;
+    let cache_max_entries = get_cache_max_entries()?;
     let editor_command = get_editor_command_str()?;
 
     if let Some(api_key) = api_key {
@@ -155,6 +162,8 @@ fn display_settings() -> Result<(), RuntimeError> {
     }
 
     println!("Default target language: {}", default_target_lang);
+
+    println!("Cache max entries: {}", cache_max_entries);
 
     if let Some(editor_command) = editor_command {
         println!("Editor command: {}", editor_command);
@@ -341,7 +350,8 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             let result = dptran::translate(&api_key, input.clone().unwrap(), &target_lang, &source_lang)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
             // store in cache
-            cache::into_cache_element(&input.clone().unwrap().join("\n"), &result.clone().join("\n"), &target_lang).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            let max_entries = get_cache_max_entries()?;
+            cache::into_cache_element(&input.clone().unwrap().join("\n"), &result.clone().join("\n"), &target_lang, max_entries).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
             result
         };
         for translated_text in translated_texts {
@@ -389,6 +399,14 @@ fn main() -> Result<(), RuntimeError> {
                 return Ok(());
             } else {
                 return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
+            }
+        }
+        ExecutionMode::SetCacheMaxEntries => {
+            if let Some(s) = arg_struct.cache_max_entries {
+                configure::set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                return Err(RuntimeError::StdIoError("Cache max entries is not specified.".to_string()));
             }
         }
         ExecutionMode::SetEditor => {
