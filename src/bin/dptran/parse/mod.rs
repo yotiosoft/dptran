@@ -154,7 +154,10 @@ fn read_from_editor() -> Result<String, RuntimeError> {
     }
     else {
         println!("Editor is not set. Please set the editor command by `dptran set -e`.");
-        println!(" $ dptran set -e <editor_command>");
+        println!("\t$ dptran set -e <editor_command>");
+        println!("e.g.,\t\t$ dptran set -e vi");
+        println!("\t..or\t$ dptran set -e vim");
+        println!("\t..or\t$ dptran set -e \"emacs -nw\"");
         Err(RuntimeError::EditorError("Editor is not set.".to_string()))
     }
 }
