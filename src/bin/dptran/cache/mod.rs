@@ -1,7 +1,6 @@
 use std::fmt;
 use serde::{Deserialize, Serialize};
 use confy;
-use std::path::PathBuf;
 use md5;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -46,18 +45,27 @@ fn save_cache_data(cache_data: Cache) -> Result<(), CacheError> {
 }
 
 pub fn into_cache_element(source_text: &String, value: &String, target_lang: &String) -> Result<(), CacheError> {
+    // read cache data file
     let mut cache_data = get_cache_data()?;
+    // if caches are more than 100, remove the oldest one
+    if cache_data.elements.len() > 100 {
+        cache_data.elements.remove(0);
+    }
+    // clone source_text and value
     let s = source_text.clone();
     let v = value.clone();
+    // create key by md5
     let hash = md5::compute(s.as_bytes());
     let key = format!("{:x}", hash);
-    println!("key: {:?}", key);
+    // create cache element
     let element = CacheElement {
         key: key,
         target_langcode: target_lang.clone(),
         value: v,
     };
+    // push element to cache_data
     cache_data.elements.push(element);
+    // save cache data
     save_cache_data(cache_data)?;
     Ok(())
 }
