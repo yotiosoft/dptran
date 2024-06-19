@@ -328,7 +328,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         }
 
         // Check the cache
-        let cache_result = cache::search_cache(input.clone().unwrap().join("\n")).map_err(|e| RuntimeError::CacheError(e))?;
+        let cache_result = cache::search_cache(&input.clone().unwrap().join("\n"), &target_lang).map_err(|e| RuntimeError::CacheError(e))?;
         let translated_texts = if let Some(cached_text) = cache_result {
             println!("Translated from cache.");
             vec![cached_text]
@@ -338,7 +338,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             let result = dptran::translate(&api_key, input.clone().unwrap(), &target_lang, &source_lang)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
             // store in cache
-            cache::into_cache_element(result.clone().join("\n")).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            cache::into_cache_element(&result.clone().join("\n"), &target_lang).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
             result
         };
         for translated_text in translated_texts {

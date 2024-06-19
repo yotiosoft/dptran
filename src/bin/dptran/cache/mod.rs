@@ -7,6 +7,7 @@ use md5;
 #[derive(Serialize, Deserialize, Debug)]
 struct CacheElement {
     pub key: String,
+    pub target_langcode: String,
     pub value: String,
 }
 
@@ -44,26 +45,29 @@ fn save_cache_data(cache_data: Cache) -> Result<(), CacheError> {
     confy::store("dptran", "cache", cache_data).map_err(|e| CacheError::FailToReadCache(e.to_string()))
 }
 
-pub fn into_cache_element(value: String) -> Result<(), CacheError> {
+pub fn into_cache_element(value: &String, target_lang: &String) -> Result<(), CacheError> {
     let mut cache_data = get_cache_data()?;
-    let hash = md5::compute(value.as_bytes());
+    let v = value.clone();
+    let hash = md5::compute(v.as_bytes());
     let key = format!("{:x}", hash);
     let element = CacheElement {
         key: key,
-        value: value,
+        target_langcode: target_lang.clone(),
+        value: v,
     };
     cache_data.elements.push(element);
     save_cache_data(cache_data)?;
     Ok(())
 }
 
-pub fn search_cache(value: String) -> Result<Option<String>, CacheError> {
+pub fn search_cache(value: &String, target_lang: &String) -> Result<Option<String>, CacheError> {
     let cache_data = get_cache_data()?;
     let hash = md5::compute(value.as_bytes());
     let key = format!("{:x}", hash);
 
     for element in cache_data.elements {
-        if element.key == key {
+        if element.key == key && element.target_langcode == *target_lang {
+            println!("read from cache.");
             return Ok(Some(element.value.clone()));
         }
     }
