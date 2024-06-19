@@ -77,7 +77,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "target_lang", "show", "clear"]),
+            .args(["api_key", "target_lang", "editor_command", "show", "clear"]),
     ))]
     Set {
         /// Set api-key
@@ -147,8 +147,8 @@ fn read_from_editor() -> Result<String, RuntimeError> {
         Ok(text)
     }
     else {
-        println!("Editor is not set. Please set the editor command by `dptran set editor`.");
-        println!(" $ dptran set editor <editor_command>");
+        println!("Editor is not set. Please set the editor command by `dptran set -e`.");
+        println!(" $ dptran set -e <editor_command>");
         Err(RuntimeError::EditorError("Editor is not set.".to_string()))
     }
 }
