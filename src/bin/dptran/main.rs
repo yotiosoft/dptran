@@ -4,9 +4,11 @@ use std::fmt::Debug;
 
 mod parse;
 mod configure;
+mod cache;
 
 use dptran::{DpTranError, DpTranUsage, LangType};
 use configure::ConfigError;
+use cache::CacheError;
 use parse::ExecutionMode;
 
 enum RuntimeError {
@@ -15,6 +17,7 @@ enum RuntimeError {
     StdIoError(String),
     FileIoError(String),
     EditorError(String),
+    CacheError(CacheError),
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -40,6 +43,7 @@ impl ToString for RuntimeError {
             RuntimeError::StdIoError(e) => format!("Standard I/O error: {}", e),
             RuntimeError::FileIoError(e) => format!("File I/O error: {}", e),
             RuntimeError::EditorError(e) => format!("Editor error: {}", e),
+            RuntimeError::CacheError(e) => format!("Cache error: {}", e),
         }
     }
 }
@@ -323,25 +327,30 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             break;
         }
 
-        // translate
-        let translated_texts = dptran::translate(&api_key, input.unwrap(), &target_lang, &source_lang);
-        match translated_texts {
-            Ok(s) => {
-                for translated_text in s {
-                    if let Some(ofile) = &mut ofile {
-                        // append to the file
-                        let mut buf_writer = BufWriter::new(ofile);
-                        writeln!(buf_writer, "{}", translated_text).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
-                        if mode == ExecutionMode::TranslateInteractive {
-                            println!("{}", translated_text);
-                        }
-                    } else {
-                        println!("{}", translated_text);
-                    }
+        // Check the cache
+        let cache_result = cache::search_cache(input.clone().unwrap().join("\n")).map_err(|e| RuntimeError::CacheError(e))?;
+        let translated_texts = if let Some(cached_text) = cache_result {
+            println!("Translated from cache.");
+            vec![cached_text]
+        // If not in cache, translate and store in cache
+        } else {
+            // translate
+            let result = dptran::translate(&api_key, input.clone().unwrap(), &target_lang, &source_lang)
+                .map_err(|e| RuntimeError::DeeplApiError(e))?;
+            // store in cache
+            cache::into_cache_element(result.clone().join("\n")).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            result
+        };
+        for translated_text in translated_texts {
+            if let Some(ofile) = &mut ofile {
+                // append to the file
+                let mut buf_writer = BufWriter::new(ofile);
+                writeln!(buf_writer, "{}", translated_text).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+                if mode == ExecutionMode::TranslateInteractive {
+                    println!("{}", translated_text);
                 }
-            }
-            Err(e) => {
-                return Err(RuntimeError::DeeplApiError(e));
+            } else {
+                println!("{}", translated_text);
             }
         }
         // In normal mode, exit the loop once.
