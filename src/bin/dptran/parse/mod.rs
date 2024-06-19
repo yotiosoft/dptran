@@ -2,6 +2,7 @@ use clap::{ArgGroup, Parser, Subcommand};
 use std::io::{self, Read};
 use atty::Stream;
 use super::RuntimeError;
+use std::process::Command;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -58,6 +59,10 @@ struct Args {
     #[arg(short, long)]
     output_file: Option<String>,
 
+    /// Editor mode
+    #[arg(short, long)]
+    editor: bool,
+
     /// subcommands
     #[clap(subcommand)]
     subcommands: Option<SubCommands>,
@@ -113,6 +118,17 @@ fn load_stdin() -> io::Result<Option<String>> {
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer)?;
     Ok(Some(buffer))
+}
+
+fn read_from_editor() -> Result<String, RuntimeError> {
+    let editor = std::env::var("EDITOR").unwrap_or("vim".to_string());
+    let mut child = Command::new(editor).arg("tmp.txt").spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
+    let status = child.wait().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
+    if !status.success() {
+        return Err(RuntimeError::EditorError("Editor failed".to_string()));
+    }
+    let text = std::fs::read_to_string("tmp.txt").map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+    Ok(text)
 }
 
 pub fn parser() -> Result<ArgStruct, RuntimeError> {
@@ -187,6 +203,11 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     if let Some(filepath) = args.input_file {
         arg_struct.execution_mode = ExecutionMode::TranslateNormal;
         arg_struct.source_text = Some(std::fs::read_to_string(&filepath).map_err(|e| RuntimeError::FileIoError(e.to_string()))?);
+    }
+    // If editor mode is specified, read from stdin
+    else if args.editor == true {
+        arg_struct.execution_mode = ExecutionMode::TranslateNormal;
+        arg_struct.source_text = Some(read_from_editor()?);
     }
     // If source_text is specified, get source_text
     else if let Some(source_text) = args.source_text {

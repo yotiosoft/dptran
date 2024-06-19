@@ -14,6 +14,7 @@ enum RuntimeError {
     ConfigError(ConfigError),
     StdIoError(String),
     FileIoError(String),
+    EditorError(String),
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -38,6 +39,7 @@ impl ToString for RuntimeError {
             RuntimeError::ConfigError(e) => format!("Config error: {}", e),
             RuntimeError::StdIoError(e) => format!("Standard I/O error: {}", e),
             RuntimeError::FileIoError(e) => format!("File I/O error: {}", e),
+            RuntimeError::EditorError(e) => format!("Editor error: {}", e),
         }
     }
 }
