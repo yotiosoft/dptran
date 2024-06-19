@@ -99,6 +99,12 @@ fn set_default_target_language(arg_default_target_language: String) -> Result<()
     }
 }
 
+/// Set the editor command.
+fn set_editor_command(editor_command: String) -> Result<(), RuntimeError> {
+    configure::set_editor_command(editor_command).map_err(|e| RuntimeError::ConfigError(e))?;
+    Ok(())
+}
+
 /// Initialization of settings.
 fn clear_settings() -> Result<(), RuntimeError> {
     println!("Are you sure you want to clear all settings? (y/N)");
@@ -125,17 +131,34 @@ fn get_api_key() -> Result<Option<String>, RuntimeError> {
     Ok(api_key)
 }
 
+/// Load the editor command from the configuration file.
+fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
+    let editor_command = configure::get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
+    Ok(editor_command)
+}
+
 /// Display of settings.
 fn display_settings() -> Result<(), RuntimeError> {
     let api_key = get_api_key()?;
     let default_target_lang = get_default_target_language_code()?;
+    let editor_command = get_editor_command_str()?;
+
     if let Some(api_key) = api_key {
         println!("API key: {}", api_key);
     }
     else {
         println!("API key: not set");
     }
+
     println!("Default target language: {}", default_target_lang);
+
+    if let Some(editor_command) = editor_command {
+        println!("Editor command: {}", editor_command);
+    }
+    else {
+        println!("Editor command: not set");
+    }
+
     Ok(())
 }
 
@@ -354,6 +377,14 @@ fn main() -> Result<(), RuntimeError> {
                 return Ok(());
             } else {
                 return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
+            }
+        }
+        ExecutionMode::SetEditor => {
+            if let Some(s) = arg_struct.editor_command {
+                set_editor_command(s)?;
+                return Ok(());
+            } else {
+                return Err(RuntimeError::StdIoError("Editor command is not specified.".to_string()));
             }
         }
         ExecutionMode::DisplaySettings => {

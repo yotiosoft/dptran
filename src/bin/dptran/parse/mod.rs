@@ -3,6 +3,7 @@ use std::io::{self, Read};
 use atty::Stream;
 use super::RuntimeError;
 use std::process::Command;
+use super::configure;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ExecutionMode {
@@ -12,6 +13,7 @@ pub enum ExecutionMode {
     ListTargetLangs,
     SetApiKey,
     SetDefaultTargetLang,
+    SetEditor,
     DisplaySettings,
     ClearSettings,
     PrintUsage,
@@ -22,6 +24,7 @@ pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
     pub api_key: Option<String>,
     pub default_target_lang: Option<String>,
+    pub editor_command: Option<String>,
     pub translate_from: Option<String>,
     pub multilines: bool,
     pub translate_to: Option<String>,
@@ -85,6 +88,10 @@ enum SubCommands {
         #[arg(short, long)]
         target_lang: Option<String>,
 
+        /// Set editor
+        #[arg(short, long)]
+        editor_command: Option<String>,
+
         /// Show settings
         #[arg(short, long)]
         show: bool,
@@ -121,14 +128,29 @@ fn load_stdin() -> io::Result<Option<String>> {
 }
 
 fn read_from_editor() -> Result<String, RuntimeError> {
-    let editor = std::env::var("EDITOR").unwrap_or("vim".to_string());
-    let mut child = Command::new(editor).arg("tmp.txt").spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
-    let status = child.wait().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
-    if !status.success() {
-        return Err(RuntimeError::EditorError("Editor failed".to_string()));
+    // Get editor command
+    let editor = configure::get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
+    if let Some(editor) = editor {
+        // Get tmp file path
+        let config_filepath = configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
+        let tmp_filepath = config_filepath.parent().unwrap().join("tmp.txt");
+        // Open by the editor
+        let mut child = Command::new(editor).arg(&tmp_filepath).spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
+        let status = child.wait().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
+        if !status.success() {
+            return Err(RuntimeError::EditorError("Editor failed".to_string()));
+        }
+        // Read from the tmp file
+        let text = std::fs::read_to_string(&tmp_filepath).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+        // Remove the tmp file
+        std::fs::remove_file(&tmp_filepath).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+        Ok(text)
     }
-    let text = std::fs::read_to_string("tmp.txt").map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
-    Ok(text)
+    else {
+        println!("Editor is not set. Please set the editor command by `dptran set editor`.");
+        println!(" $ dptran set editor <editor_command>");
+        Err(RuntimeError::EditorError("Editor is not set.".to_string()))
+    }
 }
 
 pub fn parser() -> Result<ArgStruct, RuntimeError> {
@@ -137,6 +159,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         execution_mode: ExecutionMode::TranslateInteractive,
         api_key: None,
         default_target_lang: None,
+        editor_command: None,
         translate_from: None,
         translate_to: None,
         multilines: false,
@@ -163,7 +186,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, target_lang: default_lang, show, clear } => {
+            SubCommands::Set { api_key, target_lang: default_lang, editor_command, show, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -171,6 +194,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
                     arg_struct.default_target_lang = Some(default_lang);
+                }
+                if let Some(editor_command) = editor_command {
+                    arg_struct.execution_mode = ExecutionMode::SetEditor;
+                    arg_struct.editor_command = Some(editor_command);
                 }
                 if show == true {
                     arg_struct.execution_mode = ExecutionMode::DisplaySettings;

@@ -1,18 +1,21 @@
 use std::fmt;
 use serde::{Deserialize, Serialize};
 use confy;
+use std::path::PathBuf;
 
 /// Configure properties
 #[derive(Serialize, Deserialize, Debug)]
 struct Configure {
     pub api_key: String,
-    pub default_target_language: String
+    pub default_target_language: String,
+    pub editor_command: Option<String>,
 }
 impl Default for Configure {
     fn default() -> Self {
         Self {
             api_key: String::new(),
-            default_target_language: "EN-US".to_string()
+            default_target_language: "EN-US".to_string(),
+            editor_command: None,
         }
     }
 }
@@ -24,6 +27,7 @@ pub enum ConfigError {
     FailToSetApiKey(String),
     FailToSetDefaultTargetLanguage(String),
     FailToClearSettings(String),
+    FailToSetEditor(String),
 }
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -32,6 +36,7 @@ impl fmt::Display for ConfigError {
             ConfigError::FailToSetApiKey(ref e) => write!(f, "Failed to set API key: {}", e),
             ConfigError::FailToSetDefaultTargetLanguage(ref e) => write!(f, "Failed to set default target language: {}", e),
             ConfigError::FailToClearSettings(ref e) => write!(f, "Failed to clear settings: {}", e),
+            ConfigError::FailToSetEditor(ref e) => write!(f, "Failed to set editor: {}", e),
         }
     }
 }
@@ -81,4 +86,23 @@ pub fn get_api_key() -> Result<Option<String>, ConfigError> {
         return Ok(None);
     }
     Ok(Some(settings.api_key))
+}
+
+/// Set default editor
+pub fn set_editor_command(editor_command: String) -> Result<(), ConfigError> {
+    let mut settings = Configure::default();
+    settings.editor_command = Some(editor_command);
+    confy::store("dptran", "configure", settings).map_err(|e| ConfigError::FailToSetEditor(e.to_string()))?;
+    Ok(())
+}
+
+/// Get default editor
+pub fn get_editor_command() -> Result<Option<String>, ConfigError> {
+    let settings = get_settings()?;
+    Ok(settings.editor_command)
+}
+
+/// Get configuration file path
+pub fn get_config_file_path() -> Result<PathBuf, ConfigError> {
+    confy::get_configuration_file_path("dptran", "configure").map_err(|e| ConfigError::FailToGetSettings(e.to_string()))
 }
