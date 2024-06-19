@@ -137,11 +137,19 @@ fn read_from_editor() -> Result<String, RuntimeError> {
     // Get editor command
     let editor = configure::get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
     if let Some(editor) = editor {
+        // Parse the editor command and the arguments
+        // e.g., "emacs -nw" -> "emacs", "-nw"
+        let mut editor_args = editor.split_whitespace();
+        let editor = editor_args.next().unwrap();
+        let editor_args = editor_args.collect::<Vec<&str>>().join(" ").replace("-", "");
         // Get tmp file path
         let config_filepath = configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
         let tmp_filepath = config_filepath.parent().unwrap().join("tmp.txt");
+        // Make the args for the editor
+        let args = format!("{} {}", editor_args, tmp_filepath.to_str().unwrap());
+        println!("args: {}", args);
         // Open by the editor
-        let mut child = Command::new(editor).arg(&tmp_filepath).spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
+        let mut child = Command::new(editor).arg(args).spawn().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
         let status = child.wait().map_err(|e| RuntimeError::EditorError(e.to_string()))?;
         if !status.success() {
             return Err(RuntimeError::EditorError("Editor failed".to_string()));
