@@ -342,7 +342,6 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         // Check the cache
         let cache_result = cache::search_cache(&input.clone().unwrap().join("\n"), &target_lang).map_err(|e| RuntimeError::CacheError(e))?;
         let translated_texts = if let Some(cached_text) = cache_result {
-            println!("Translated from cache.");
             vec![cached_text]
         // If not in cache, translate and store in cache
         } else {
