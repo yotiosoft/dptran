@@ -1,7 +1,7 @@
 # dptran
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen.svg)
+![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen.svg)
 
 A tool to run DeepL translations on your command line.   
 It's written in Rust, and uses curl to connect to the DeepL API.  
@@ -17,6 +17,19 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api
 ```bash
 $ cargo install dptran --features=app
 ```
+
+### Features
+
+- Translate text from the command line arguments.
+- Translate text interactively.
+- Translate multiple lines.
+- Translate text from the pipeline.
+- Translate text from a file. (v.2.1.0-)
+- Translate text from an editor. (v.2.1.0-)
+- Output to a text file. (v.2.1.0-)
+- Check the number of characters remaining to be translated.
+- Check valid language codes.
+- Cache the translation results. (v.2.1.0-)
 
 ### Usage
 
@@ -93,6 +106,50 @@ e.g. Translate the content of the man page into Japanese.
 $ man ls | cat | dptran -t JA
 ```
 
+#### Translate from a file
+
+You can translate the contents of a text file with dptran.
+
+```bash
+$ dptran -i file.txt
+```
+
+#### Translate from an editor
+
+You can translate the contents from an editor (e.g. vi, vim, nano, emacs, etc.) with dptran.
+
+##### Example: vi
+```bash
+$ dptran set -e vi
+$ dptran -e
+```
+
+##### Example: vim
+```bash
+$ dptran set -e vim
+$ dptran -e
+```
+
+##### Example: nano
+```bash
+$ dptran set -e nano
+$ dptran -e
+```
+
+##### Example: emacs
+```bash
+$ dptran set -e "emacs -nw"
+$ dptran -e
+```
+
+#### Output to a text file
+
+You can output the translation result to a text file.
+
+```bash
+$ dptran -t JA Hello -o output.txt
+```
+
 #### Show help
 
 For more information about commands, see help:  
@@ -137,7 +194,7 @@ $ dptran set --clear
 $ cargo uninstall dptran
 ```
 
-## Library crate (v2.0.0~)
+## Library crate (v2.0.0-)
 See the documentation for the library crate [here](https://docs.rs/dptran/).
 
 ### Usage
@@ -147,5 +204,5 @@ $ cargo add dptran
 Or, add this to your Cargo.toml:
 ```toml
 [dependencies]
-dptran = "2.0.0"
+dptran = "2.1.0"
 ```
