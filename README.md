@@ -26,10 +26,20 @@ $ cargo install dptran --features=app
 - Translate text from the pipeline.
 - Translate text from a file. (v.2.1.0-)
 - Translate text from an editor. (v.2.1.0-)
+- Remove line breaks from the source text. (v.2.1.0-)
 - Output to a text file. (v.2.1.0-)
 - Check the number of characters remaining to be translated.
 - Check valid language codes.
 - Cache the translation results. (v.2.1.0-)
+
+### Language codes
+If you omit the destination language option, the translation will be done in English (EN) by default.
+For more information about language codes, see the language list getting from DeepL API:  
+
+```bash
+$ dptran list -s    # for the list of source languages
+$ dptran list -t    # for the list of target languages
+```
 
 ### Usage
 
@@ -41,7 +51,7 @@ Please be sure to get your DeepL API key (it's free!) and set it up on dptran be
 $ dptran set --api-key [API key]
 ```
 
-#### Translate in normal mode
+#### Translate from the command line arguments
 
 ```bash
 $ dptran Bonjour
@@ -51,14 +61,6 @@ Bonjour
 ```
 
 It is possible to specify the source language with the ``-f`` option and the destination language with the ``-t`` option.
-If you omit the destination language option, the translation will be done in English (EN-US).  
-
-For more information about language codes, see the language list:  
-
-```bash
-$ dptran list -s    # for the list of source languages
-$ dptran list -t    # for the list of target languages
-```
 
 #### Translate in interactive mode
 
@@ -80,7 +82,7 @@ Exit with ``quit``.
 
 If you want to translate the source texts into a specific language, use the ``-t`` option. 
 
-##### Translate multiple lines
+#### Translate multiple lines
 
 To enter multiple lines, use the -m option.  
 Then enter a blank line to send the input.
@@ -114,9 +116,9 @@ You can translate the contents of a text file with dptran by using the ``-i`` op
 $ dptran -i file.txt
 ```
 
-#### Translate from an editor
+#### Translate from an editor application (e.g. vi, vim, nano, emacs, etc.)
 
-You can translate the contents from an editor (e.g. vi, vim, nano, emacs, etc.) with dptran by using the ``-e`` option.
+You can translate the contents from an editor with dptran by using the ``-e`` option.
 
 ##### Example: vi
 ```bash
