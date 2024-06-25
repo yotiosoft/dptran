@@ -108,7 +108,7 @@ $ man ls | cat | dptran -t JA
 
 #### Translate from a file
 
-You can translate the contents of a text file with dptran.
+You can translate the contents of a text file with dptran by using the ``-i`` option.
 
 ```bash
 $ dptran -i file.txt
@@ -116,7 +116,7 @@ $ dptran -i file.txt
 
 #### Translate from an editor
 
-You can translate the contents from an editor (e.g. vi, vim, nano, emacs, etc.) with dptran.
+You can translate the contents from an editor (e.g. vi, vim, nano, emacs, etc.) with dptran by using the ``-e`` option.
 
 ##### Example: vi
 ```bash
@@ -142,9 +142,26 @@ $ dptran set -e "emacs -nw"
 $ dptran -e
 ```
 
+#### Remove line breaks
+
+You can remove line breaks from the source text with the ``-r`` option.
+
+```bash
+$ dptran -t FR -e -r
+```
+For example, the following input (in the editor):
+```bash
+Hello!
+How are you?
+```
+will be translated as one line like this:
+```bash
+Bonjour, comment allez-vous ?
+```
+
 #### Output to a text file
 
-You can output the translation result to a text file.
+You can output the translation result to a text file with the ``-o`` option.
 
 ```bash
 $ dptran -t JA Hello -o output.txt
@@ -166,7 +183,7 @@ usage: 222 / 500000 (0%)
 remaining: 499778
 ```
 
-You can see the number of remaining characters that can be translated by DeepL API. 
+You can see the number of remaining characters that can be translated by DeepL API in the current month.
 The free DeepL API plan lets you translate up to 500,000 characters per month.
 
 ### Change default target language
