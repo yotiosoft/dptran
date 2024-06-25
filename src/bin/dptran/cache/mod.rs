@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::fmt;
 use serde::{Deserialize, Serialize};
 use confy;
 use md5;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct CacheElement {
     pub key: String,
     pub target_langcode: String,
@@ -13,12 +14,12 @@ struct CacheElement {
 // Cache struct
 #[derive(Serialize, Deserialize, Debug)]
 struct Cache {
-    pub elements: Vec<CacheElement>,
+    pub elements: HashMap<String, CacheElement>,
 }
 impl Default for Cache {
     fn default() -> Self {
         Self {
-            elements: Vec::new(),
+            elements: HashMap::new(),
         }
     }
 }
@@ -48,8 +49,11 @@ pub fn into_cache_element(source_text: &String, value: &String, target_lang: &St
     // read cache data file
     let mut cache_data = get_cache_data()?;
     // if caches are more than max_entries, remove the oldest one
-    if cache_data.elements.len() > max_entries {
-        cache_data.elements.remove(0);
+    if cache_data.elements.len() >= max_entries {
+        // Find the oldest key
+        if let Some(oldest_key) = cache_data.elements.keys().next().cloned() {
+            cache_data.elements.remove(&oldest_key);
+        }
     }
     // clone source_text and value
     let s = source_text.clone();
@@ -59,12 +63,12 @@ pub fn into_cache_element(source_text: &String, value: &String, target_lang: &St
     let key = format!("{:x}", hash);
     // create cache element
     let element = CacheElement {
-        key: key,
+        key: key.clone(),
         target_langcode: target_lang.clone(),
         value: v,
     };
-    // push element to cache_data
-    cache_data.elements.push(element);
+    // insert element into cache_data
+    cache_data.elements.insert(key, element);
     // save cache data
     save_cache_data(cache_data)?;
     Ok(())
@@ -76,8 +80,8 @@ pub fn search_cache(value: &String, target_lang: &String) -> Result<Option<Strin
     let hash = md5::compute(v.as_bytes());
     let key = format!("{:x}", hash);
 
-    for element in cache_data.elements {
-        if element.key == key && element.target_langcode == *target_lang {
+    if let Some(element) = cache_data.elements.get(&key) {
+        if element.target_langcode == *target_lang {
             return Ok(Some(element.value.clone()));
         }
     }

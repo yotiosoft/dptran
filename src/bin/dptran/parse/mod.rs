@@ -87,7 +87,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "target_lang", "cache_max_entries", "editor_command", "show", "clear"]),
+            .args(["api_key", "target_lang", "editor_command", "show", "clear"]),
     ))]
     Set {
         /// Set api-key.
@@ -98,10 +98,6 @@ enum SubCommands {
         #[arg(short, long)]
         target_lang: Option<String>,
 
-        /// Set cache max entries (default: 100).
-        #[arg(long)]
-        cache_max_entries: Option<usize>,
-
         /// Set editor command (e.g. `vi`, `vim` or `emacs -nw`).
         #[arg(short, long)]
         editor_command: Option<String>,
@@ -109,6 +105,14 @@ enum SubCommands {
         /// Show settings.
         #[arg(short, long)]
         show: bool,
+
+        /// Set cache max entries (default: 100).
+        #[arg(long)]
+        cache_max_entries: Option<usize>,
+
+        /// Clear chache.
+        #[arg(long)]
+        cache_clear: bool,
     
         /// Clear settings.
         #[arg(short, long)]
@@ -129,6 +133,22 @@ enum SubCommands {
         /// List target languages
         #[arg(short, long)]
         target_langs: bool,
+    },
+
+    /// Cache settings
+    #[command(group(
+        ArgGroup::new("cache_vers")
+            .required(true)
+            .args(["max_entries", "clear"]),
+    ))]
+    Cache {
+        /// Set cache max entries (default: 100).
+        #[arg(short, long)]
+        max_entries: Option<usize>,
+    
+        /// Clear chache.
+        #[arg(short, long)]
+        clear: bool,
     },
 }
 
