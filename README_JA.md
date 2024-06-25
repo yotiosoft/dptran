@@ -5,8 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen.svg)
 
-コマンドラインでDeepL翻訳を実行するツールです。
-Rustで記述されており、DeepL APIへの接続にはcurlを使用しています。
+コマンドラインでDeepL翻訳を実行するツールです。  
+Rustで記述されており、DeepL APIへの接続にはcurlを使用しています。  
 ご利用の前に、[https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/) からのDeepL APIキーの取得が必要です。
 
 ## Binary crate
@@ -35,7 +35,7 @@ $ cargo install dptran --features=app
 - 翻訳結果のキャッシュ (v.2.1.0-)
 
 ### Language codes
-翻訳先の言語オプションを省略すると、デフォルトでは英語（EN）で翻訳されます。
+翻訳先の言語オプションを省略すると、デフォルトでは英語（EN）で翻訳されます。  
 言語コードの一覧を取得するには、以下のコマンドをご利用ください。
 
 ```bash
@@ -79,14 +79,14 @@ Had a great time today!
 > quit
 ```
 
-複数の原文をインタラクティブに翻訳できます。 
+複数の原文をインタラクティブに翻訳できます。  
 ``quit`` と入力すると終了します。
 
 翻訳先の言語を指定する場合は、``-t`` オプションで指定可能です。
 
 #### 複数行を一度に翻訳
 
-複数行を入力するには、``-m`` オプションをご利用ください。
+複数行を入力するには、``-m`` オプションをご利用ください。  
 入力が完了したら、空行のまま Enter キーを押してください。
 
 ```bash
@@ -187,13 +187,13 @@ usage: 222 / 500000 (0%)
 remaining: 499778
 ```
 
-現在の月で DeepL API で翻訳可能な残りの文字数を確認できます。
+現在の月で DeepL API で翻訳可能な残りの文字数を確認できます。  
 無料のDeepL APIプランでは、月間50万文字まで翻訳できます。
 
 ### デフォルトの翻訳先言語を変更する
 
-デフォルトでは英語 (EN) に設定されています。
-これは ``set --target-lang`` で変更できます。
+デフォルトでは英語 (EN) に設定されています。  
+これは ``set --target-lang`` で変更できます。  
 例えば、日本語 (JA) に変更するには以下のようにします：
 
 ```bash
@@ -202,7 +202,7 @@ $ dptran set --target-lang JA
 
 ### 設定のリセット
 
-すべての設定をリセットできます。
+すべての設定をリセットできます。  
 注意：APIキーもリセットされます。再度dptranを使用する場合は、APIキーを再設定してください。
 
 ```bash
