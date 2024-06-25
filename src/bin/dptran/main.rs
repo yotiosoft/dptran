@@ -239,7 +239,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// Get source text from the stdin.
-fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> Option<Vec<String>> {
+fn get_input(mode: &ExecutionMode, multilines: bool, rm_line_breaks: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -281,9 +281,15 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
         ExecutionMode::TranslateNormal => {
             match text {
                 Some(text) => {
-                    // Split strings containing newline codes.
-                    let lines = text.lines();
-                    Some(lines.map(|x| x.to_string()).collect())
+                    if rm_line_breaks {
+                        // Remove line breaks
+                        let text = text.replace("\n", " ");
+                        Some(vec![text])
+                    } else {
+                        // Split strings containing newline codes.
+                        let lines = text.lines();
+                        Some(lines.map(|x| x.to_string()).collect())
+                    }
                 },
                 None => None
             }
@@ -298,7 +304,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, text: &Option<String>) -> O
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
 fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-            multilines: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
+            multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -318,7 +324,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
     loop {
         // If in interactive mode, get from standard input
         // In normal mode, get from argument
-        let input = get_input(&mode, multilines, &text);
+        let input = get_input(&mode, multilines, rm_line_breaks, &text);
         if input.is_none() {
             return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
         }
@@ -326,6 +332,9 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         // Interactive mode: "quit" to exit
         if mode == ExecutionMode::TranslateInteractive {
             if let Some(input) = &input {
+                if input.len() == 0 {
+                    continue;
+                }
                 if input[0].trim_end() == "quit" {
                     break;
                 }
@@ -472,14 +481,16 @@ fn main() -> Result<(), RuntimeError> {
                 return Ok(());  // Do not overwrite
             }
         }
-        Some(OpenOptions::new().create(true).write(true).truncate(true).open(&output_file).map_err(|e| RuntimeError::FileIoError(e.to_string()))?)
+        Some(OpenOptions::new().create(true).write(true).truncate(true).open(&output_file)
+            .map_err(|e| RuntimeError::FileIoError(e.to_string()))?)
     }
     else {
         None
     };
 
     // (Dialogue &) Translation
-    process(&api_key, mode, source_lang, target_lang.unwrap(), arg_struct.multilines, arg_struct.source_text, ofile)?;
+    process(&api_key, mode, source_lang, target_lang.unwrap(), 
+            arg_struct.multilines, arg_struct.remove_line_breaks, arg_struct.source_text, ofile)?;
 
     Ok(())
 }

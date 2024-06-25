@@ -29,6 +29,7 @@ pub struct ArgStruct {
     pub editor_command: Option<String>,
     pub translate_from: Option<String>,
     pub multilines: bool,
+    pub remove_line_breaks: bool,
     pub translate_to: Option<String>,
     pub source_text: Option<String>,
     pub ofile_path: Option<String>,
@@ -37,34 +38,41 @@ pub struct ArgStruct {
 #[derive(clap::Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Source text
+    /// Source text.
     source_text: Option<Vec<String>>,
 
-    /// Set source language
+    /// Set source language.
+    /// If not specified, the source language is automatically detected.
     #[arg(short, long)]
     from: Option<String>,
 
-    /// Set target language
+    /// Set target language.
+    /// If not specified, the target language is set to the default target language.
     #[arg(short, long)]
     to: Option<String>,
 
-    /// Input multiple lines
+    /// Input multiple lines.
     #[arg(short, long)]
     multilines: bool,
 
-    /// Print usage of DeepL API
+    /// Remove line breaks from the input text.
+    #[arg(short, long)]
+    remove_line_breaks: bool,
+
+    /// Print usage of DeepL API.
     #[arg(short, long)]
     usage: bool,
 
-    /// Input file
+    /// Input file.
     #[arg(short, long)]
     input_file: Option<String>,
 
-    /// Output file
+    /// Output file.
     #[arg(short, long)]
     output_file: Option<String>,
 
-    /// Editor mode
+    /// Editor mode.
+    /// The editor can be configured by `dptran set -e <editor_command>`
     #[arg(short, long)]
     editor: bool,
 
@@ -82,27 +90,27 @@ enum SubCommands {
             .args(["api_key", "target_lang", "cache_max_entries", "editor_command", "show", "clear"]),
     ))]
     Set {
-        /// Set api-key
+        /// Set api-key.
         #[arg(short, long)]
         api_key: Option<String>,
     
-        /// Set default target language
+        /// Set default target language.
         #[arg(short, long)]
         target_lang: Option<String>,
 
-        /// Set cache max entries (default: 100)
+        /// Set cache max entries (default: 100).
         #[arg(long)]
         cache_max_entries: Option<usize>,
 
-        /// Set editor command (e.g. `vi`, `vim` or `emacs -nw`)
+        /// Set editor command (e.g. `vi`, `vim` or `emacs -nw`).
         #[arg(short, long)]
         editor_command: Option<String>,
 
-        /// Show settings
+        /// Show settings.
         #[arg(short, long)]
         show: bool,
     
-        /// Clear settings
+        /// Clear settings.
         #[arg(short, long)]
         clear: bool,
     },
@@ -183,6 +191,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         translate_from: None,
         translate_to: None,
         multilines: false,
+        remove_line_breaks: false,
         source_text: None,
         ofile_path: None,
     };
@@ -190,6 +199,11 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Multilines
     if args.multilines == true {
         arg_struct.multilines = true;
+    }
+
+    // Remove line breaks
+    if args.remove_line_breaks == true {
+        arg_struct.remove_line_breaks = true;
     }
 
     // Usage
