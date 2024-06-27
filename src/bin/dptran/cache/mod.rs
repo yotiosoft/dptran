@@ -88,3 +88,8 @@ pub fn search_cache(value: &String, target_lang: &String) -> Result<Option<Strin
 
     Ok(None)
 }
+
+pub fn clear_cache() -> Result<(), CacheError> {
+    let cache_data = Cache::default();
+    save_cache_data(cache_data)
+}

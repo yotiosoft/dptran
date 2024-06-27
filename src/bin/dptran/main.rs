@@ -283,7 +283,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, rm_line_breaks: bool, text:
                 Some(text) => {
                     if rm_line_breaks {
                         // Remove line breaks
-                        let text = text.replace("\n", " ");
+                        let text = text.lines().collect::<Vec<&str>>().join(" ");
                         Some(vec![text])
                     } else {
                         // Split strings containing newline codes.
@@ -416,6 +416,10 @@ fn main() -> Result<(), RuntimeError> {
             } else {
                 return Err(RuntimeError::StdIoError("Cache max entries is not specified.".to_string()));
             }
+        }
+        ExecutionMode::ClearCache => {
+            cache::clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
+            return Ok(());
         }
         ExecutionMode::SetEditor => {
             if let Some(s) = arg_struct.editor_command {

@@ -16,6 +16,7 @@ pub enum ExecutionMode {
     SetCacheMaxEntries,
     SetEditor,
     DisplaySettings,
+    ClearCache,
     ClearSettings,
     PrintUsage,
 }
@@ -105,14 +106,6 @@ enum SubCommands {
         /// Show settings.
         #[arg(short, long)]
         show: bool,
-
-        /// Set cache max entries (default: 100).
-        #[arg(long)]
-        cache_max_entries: Option<usize>,
-
-        /// Clear chache.
-        #[arg(long)]
-        cache_clear: bool,
     
         /// Clear settings.
         #[arg(short, long)]
@@ -240,7 +233,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, target_lang: default_lang, cache_max_entries, editor_command, show, clear } => {
+            SubCommands::Set { api_key, target_lang: default_lang,  editor_command, show, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -248,10 +241,6 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
                     arg_struct.default_target_lang = Some(default_lang);
-                }
-                if let Some(cache_max_entries) = cache_max_entries {
-                    arg_struct.execution_mode = ExecutionMode::SetCacheMaxEntries;
-                    arg_struct.cache_max_entries = Some(cache_max_entries);
                 }
                 if let Some(editor_command) = editor_command {
                     arg_struct.execution_mode = ExecutionMode::SetEditor;
@@ -271,6 +260,16 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 if target_langs == true {
                     arg_struct.execution_mode = ExecutionMode::ListTargetLangs;
+                }
+                return Ok(arg_struct);
+            }
+            SubCommands::Cache { max_entries, clear } => {
+                if let Some(max_entries) = max_entries {
+                    arg_struct.execution_mode = ExecutionMode::SetCacheMaxEntries;
+                    arg_struct.cache_max_entries = Some(max_entries);
+                }
+                if clear == true {
+                    arg_struct.execution_mode = ExecutionMode::ClearCache;
                 }
                 return Ok(arg_struct);
             }
