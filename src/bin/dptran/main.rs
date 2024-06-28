@@ -111,7 +111,8 @@ fn set_editor_command(editor_command: String) -> Result<(), RuntimeError> {
 
 /// Initialization of settings.
 fn clear_settings() -> Result<(), RuntimeError> {
-    println!("Are you sure you want to clear all settings? (y/N)");
+    print!("Are you sure you want to clear all settings? (y/N) ");
+    io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     // Initialize settings when y is entered.
@@ -147,12 +148,19 @@ fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
     Ok(editor_command)
 }
 
+/// Get the cache enabled status.
+fn get_cache_enabled() -> Result<bool, RuntimeError> {
+    let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
+    Ok(cache_enabled)
+}
+
 /// Display of settings.
 fn display_settings() -> Result<(), RuntimeError> {
     let api_key = get_api_key()?;
     let default_target_lang = get_default_target_language_code()?;
     let cache_max_entries = get_cache_max_entries()?;
     let editor_command = get_editor_command_str()?;
+    let cache_enabled = get_cache_enabled()?;
 
     if let Some(api_key) = api_key {
         println!("API key: {}", api_key);
@@ -171,6 +179,8 @@ fn display_settings() -> Result<(), RuntimeError> {
     else {
         println!("Editor command: not set");
     }
+
+    println!("Cache enabled: {}", cache_enabled);
 
     let config_filepath = configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
     println!("Configuration file path: {}", config_filepath.to_str().unwrap());
@@ -349,7 +359,12 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         }
 
         // Check the cache
-        let cache_result = cache::search_cache(&input.clone().unwrap().join("\n"), &target_lang).map_err(|e| RuntimeError::CacheError(e))?;
+        let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
+        let cache_result = if cache_enabled {
+            cache::search_cache(&input.clone().unwrap().join("\n"), &target_lang).map_err(|e| RuntimeError::CacheError(e))?
+        } else {
+            None
+        };
         let translated_texts = if let Some(cached_text) = cache_result {
             vec![cached_text]
         // If not in cache, translate and store in cache
@@ -359,7 +374,9 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
             // store in cache
             let max_entries = get_cache_max_entries()?;
-            cache::into_cache_element(&input.clone().unwrap().join("\n"), &result.clone().join("\n"), &target_lang, max_entries).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            if cache_enabled {
+                cache::into_cache_element(&input.clone().unwrap().join("\n"), &result.clone().join("\n"), &target_lang, max_entries).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            }
             result
         };
         for translated_text in translated_texts {
@@ -428,6 +445,14 @@ fn main() -> Result<(), RuntimeError> {
             } else {
                 return Err(RuntimeError::StdIoError("Editor command is not specified.".to_string()));
             }
+        }
+        ExecutionMode::EnableCache => {
+            configure::set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
+            return Ok(());
+        }
+        ExecutionMode::DisableCache => {
+            configure::set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
+            return Ok(());
         }
         ExecutionMode::DisplaySettings => {
             display_settings()?;

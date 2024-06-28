@@ -16,6 +16,8 @@ pub enum ExecutionMode {
     SetCacheMaxEntries,
     SetEditor,
     DisplaySettings,
+    EnableCache,
+    DisableCache,
     ClearCache,
     ClearSettings,
     PrintUsage,
@@ -88,7 +90,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "target_lang", "editor_command", "show", "clear"]),
+            .args(["api_key", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear"]),
     ))]
     Set {
         /// Set api-key.
@@ -106,6 +108,14 @@ enum SubCommands {
         /// Show settings.
         #[arg(short, long)]
         show: bool,
+
+        /// Enable cache.
+        #[arg(long)]
+        enable_cache: bool,
+
+        /// Disable cache.
+        #[arg(long)]
+        disable_cache: bool,
     
         /// Clear settings.
         #[arg(short, long)]
@@ -233,7 +243,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, target_lang: default_lang,  editor_command, show, clear } => {
+            SubCommands::Set { api_key, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear } => {
                 if let Some(api_key) = api_key {
                     arg_struct.execution_mode = ExecutionMode::SetApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -248,6 +258,12 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 if show == true {
                     arg_struct.execution_mode = ExecutionMode::DisplaySettings;
+                }
+                if enable_cache == true {
+                    arg_struct.execution_mode = ExecutionMode::EnableCache;
+                }
+                if disable_cache == true {
+                    arg_struct.execution_mode = ExecutionMode::DisableCache;
                 }
                 if clear == true {
                     arg_struct.execution_mode = ExecutionMode::ClearSettings;

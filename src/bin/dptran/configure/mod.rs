@@ -12,6 +12,7 @@ struct Configure {
     pub default_target_language: String,
     pub cache_max_entries: usize,
     pub editor_command: Option<String>,
+    pub cache_enabled: bool,
 }
 impl Default for Configure {
     fn default() -> Self {
@@ -21,6 +22,7 @@ impl Default for Configure {
             default_target_language: "EN-US".to_string(),
             cache_max_entries: 100,
             editor_command: None,
+            cache_enabled: true,
         }
     }
 }
@@ -35,6 +37,7 @@ pub enum ConfigError {
     FailToSetEditor(String),
     FailToClearSettings(String),
     FailToFixSettings,
+    FailToSetCacheEnabled(String),
 }
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -46,6 +49,7 @@ impl fmt::Display for ConfigError {
             ConfigError::FailToSetEditor(ref e) => write!(f, "Failed to set editor: {}", e),
             ConfigError::FailToClearSettings(ref e) => write!(f, "Failed to clear settings: {}", e),
             ConfigError::FailToFixSettings => write!(f, "Failed to fix settings"),
+            ConfigError::FailToSetCacheEnabled(ref e) => write!(f, "Failed to set cache enabled: {}", e),
         }
     }
 }
@@ -103,6 +107,14 @@ pub fn set_editor_command(editor_command: String) -> Result<(), ConfigError> {
     Ok(())
 }
 
+/// Set cache enabled
+pub fn set_cache_enabled(cache_enabled: bool) -> Result<(), ConfigError> {
+    let mut settings = get_settings()?;
+    settings.cache_enabled = cache_enabled;
+    confy::store("dptran", "configure", settings).map_err(|e| ConfigError::FailToSetCacheEnabled(e.to_string()))?;
+    Ok(())
+}
+
 /// Initialize settings
 pub fn clear_settings() -> Result<(), ConfigError> {
     let settings = Configure::default();
@@ -137,6 +149,12 @@ pub fn get_editor_command() -> Result<Option<String>, ConfigError> {
     Ok(settings.editor_command)
 }
 
+/// Get cache enabled
+pub fn get_cache_enabled() -> Result<bool, ConfigError> {
+    let settings = get_settings()?;
+    Ok(settings.cache_enabled)
+}
+
 /// Get configuration file path
 pub fn get_config_file_path() -> Result<PathBuf, ConfigError> {
     confy::get_configuration_file_path("dptran", "configure").map_err(|e| ConfigError::FailToGetSettings(e.to_string()))
@@ -169,6 +187,7 @@ fn fix_settings() -> Result<Configure, ConfigError> {
             default_target_language: config.default_target_language,
             cache_max_entries: 100,
             editor_command: None,
+            cache_enabled: true,
         };
         confy::store("dptran", "configure", &settings).map_err(|e| ConfigError::FailToGetSettings(e.to_string()))?;
         return Ok(settings);
