@@ -373,6 +373,8 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             // translate
             let result = dptran::translate(&api_key, input.clone().unwrap(), &target_lang, &source_lang)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
+            // replace \" with "
+            let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
             // store in cache
             let max_entries = get_cache_max_entries()?;
             if cache_enabled {
