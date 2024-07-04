@@ -360,8 +360,9 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
 
         // Check the cache
         let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
+        let cache_str = input.clone().unwrap().join("\n").trim().to_string();
         let cache_result = if cache_enabled {
-            cache::search_cache(&input.clone().unwrap().join("\n"), &target_lang).map_err(|e| RuntimeError::CacheError(e))?
+            cache::search_cache(&cache_str, &target_lang).map_err(|e| RuntimeError::CacheError(e))?
         } else {
             None
         };
@@ -375,7 +376,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             // store in cache
             let max_entries = get_cache_max_entries()?;
             if cache_enabled {
-                cache::into_cache_element(&input.clone().unwrap().join("\n"), &result.clone().join("\n"), &target_lang, max_entries).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+                cache::into_cache_element(&cache_str, &result.clone().join("\n"), &target_lang, max_entries).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
             }
             result
         };
