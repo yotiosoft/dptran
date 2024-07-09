@@ -22,8 +22,7 @@ atty = { version = "0.2.14", optional = true }
 md5 = { version = "0.7.0", optional = true }
 
 [features]
-default = ["curl", "serde", "serde_json", "confy", "clap", "atty", "md5"]
-lib = ["curl", "serde", "serde_json"]
+default = ["confy", "clap", "atty", "md5"]
 
 [lib]
 name = "dptran"
