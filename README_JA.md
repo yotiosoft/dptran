@@ -13,11 +13,12 @@ Rustで記述されており、DeepL APIへの接続にはcurlを使用してい
 ### インストール
 
 #### crates.io からインストールする
+``dptran``はcrates.ioからインストール可能です。
 
 1. ``rustup`` または ``cargo`` をご使用の環境にインストールします。
 2. cargo で dptran をインストールします。
 ```bash
-$ cargo install dptran --features=app
+$ cargo install dptran
 ```
 
 ### 機能

@@ -13,11 +13,12 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api
 ### Install
 
 #### Use crates.io
+``dptran`` is available on crates.io.
 
 1. Install ``rustup`` or ``cargo`` to your computer.
 2. run this:
 ```bash
-$ cargo install dptran --features=app
+$ cargo install dptran
 ```
 
 ### Features
