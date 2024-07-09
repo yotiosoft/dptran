@@ -218,12 +218,14 @@ $ cargo uninstall dptran
 ## Library crate (v2.0.0-)
 See the documentation for the library crate [here](https://docs.rs/dptran/).
 
-### Usage
+### Install
+``dptran`` includes the binary crate's dependent crates (such as ``clap``, ``serde_json`` and ``confy``) by the default features.  
+To install only the library crate, please disable the default features by adding ``--no-default-features`` argument and enable the ``lib`` feature.
 ```bash
-$ cargo add dptran
+$ cargo add dptran --no-default-features --features lib
 ```
 Or, add this to your Cargo.toml:
 ```toml
 [dependencies]
-dptran = "2.1.0"
+dptran = { version = "2.1.0", features = ["lib"], default-features = false }
 ```
