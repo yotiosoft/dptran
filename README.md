@@ -20,7 +20,6 @@ $ cargo install dptran
 ```
 
 ## Library crate
-### Installation
 ``dptran`` includes the binary crate's dependent crates (such as ``clap``, ``serde_json`` and ``confy``) by the default features.  
 To install only the library crate, please disable the default features by adding ``--no-default-features`` argument.
 ```bash
@@ -32,10 +31,10 @@ Or, add this to your Cargo.toml:
 dptran = { version = "2.1.0", default-features = false }
 ```
 
-## Binary crate
+# Binary crate
 The binary crate provides a command-line tool to translate text using the DeepL API.
 
-### Features
+## Features
 
 - Translate text from the command line arguments.
 - Translate text interactively.
@@ -49,7 +48,7 @@ The binary crate provides a command-line tool to translate text using the DeepL 
 - Check valid language codes.
 - Cache the translation results. (v.2.1.0-)
 
-### Language codes
+## Language codes
 If you omit the destination language option, the translation will be done in English (EN) by default.
 For more information about language codes, see the language list getting from DeepL API:  
 
@@ -58,9 +57,9 @@ $ dptran list -s    # for the list of source languages
 $ dptran list -t    # for the list of target languages
 ```
 
-### Usage
+## Usage
 
-#### Setting API key
+### Setting API key
 
 Please be sure to get your DeepL API key (it's free!) and set it up on dptran before using the service.
 
@@ -68,7 +67,7 @@ Please be sure to get your DeepL API key (it's free!) and set it up on dptran be
 $ dptran set --api-key [API key]
 ```
 
-#### Translate from the command line arguments
+### Translate from the command line arguments
 
 ```bash
 $ dptran Bonjour
@@ -79,7 +78,7 @@ Bonjour
 
 It is possible to specify the source language with the ``-f`` option and the destination language with the ``-t`` option.
 
-#### Translate in interactive mode
+### Translate in interactive mode
 
 ```bash
 $ dptran
@@ -99,7 +98,7 @@ Exit with ``quit``.
 
 If you want to translate the source texts into a specific language, use the ``-t`` option. 
 
-#### Translate multiple lines
+### Translate multiple lines
 
 To enter multiple lines, use the -m option.  
 Then enter a blank line to send the input.
@@ -115,7 +114,7 @@ $ dptran -m -t JA
 使用するには、https://www.deepl.com/en/pro-api/ から DeepL API キーを取得する必要があります。
 ```
 
-#### Translate from the pipeline
+### Translate from the pipeline
 
 You can translate the output of other commands with dptran.
 
@@ -125,7 +124,7 @@ e.g. Translate the content of the man page into Japanese.
 $ man ls | cat | dptran -t JA
 ```
 
-#### Translate from a file
+### Translate from a file
 
 You can translate the contents of a text file with dptran by using the ``-i`` option.
 
@@ -133,35 +132,35 @@ You can translate the contents of a text file with dptran by using the ``-i`` op
 $ dptran -i file.txt
 ```
 
-#### Translate from an editor application (e.g. vi, vim, nano, emacs, etc.)
+### Translate from an editor application (e.g. vi, vim, nano, emacs, etc.)
 
 You can translate the contents from an editor with dptran by using the ``-e`` option.
 
-##### Example: vi
+#### Example: vi
 ```bash
 $ dptran set -e vi
 $ dptran -e
 ```
 
-##### Example: vim
+#### Example: vim
 ```bash
 $ dptran set -e vim
 $ dptran -e
 ```
 
-##### Example: nano
+#### Example: nano
 ```bash
 $ dptran set -e nano
 $ dptran -e
 ```
 
-##### Example: emacs
+#### Example: emacs
 ```bash
 $ dptran set -e "emacs -nw"
 $ dptran -e
 ```
 
-#### Remove line breaks
+### Remove line breaks
 
 You can remove line breaks from the source text with the ``-r`` option.
 
@@ -178,7 +177,7 @@ will be translated as one line like this:
 Bonjour, comment allez-vous ?
 ```
 
-#### Output to a text file
+### Output to a text file
 
 You can output the translation result to a text file with the ``-o`` option.
 
@@ -186,7 +185,7 @@ You can output the translation result to a text file with the ``-o`` option.
 $ dptran -t JA Hello -o output.txt
 ```
 
-#### Show help
+### Show help
 
 For more information about commands, see help:  
 
@@ -194,7 +193,7 @@ For more information about commands, see help:
 $ dptran -h
 ```
 
-#### Displays the number of characters remaining to be translated
+### Displays the number of characters remaining to be translated
 
 ```bash
 $ dptran -u
@@ -205,7 +204,7 @@ remaining: 499778
 You can see the number of remaining characters that can be translated by DeepL API in the current month.
 The free DeepL API plan lets you translate up to 500,000 characters per month.
 
-### Change default target language
+## Change default target language
 
 It is set to English (EN-US) by default.  
 You can change it with ``set --target-lang``.  
@@ -215,7 +214,7 @@ For example, to change it to Japanese (JA), do the following:
 $ dptran set --target-lang JA
 ```
 
-### Reset settings
+## Reset settings
 
 You can reset all settings.  
 Note: The API key will be reset as well. If you wish to use dptran again, please set the API key again.  
@@ -224,11 +223,11 @@ Note: The API key will be reset as well. If you wish to use dptran again, please
 $ dptran set --clear
 ```
 
-### How to uninstall?
+## Uninstall
 
 ```bash
 $ cargo uninstall dptran
 ```
 
-## Library crate (v2.0.0-)
+# Library crate (v2.0.0-)
 See the documentation for the library crate [here](https://docs.rs/dptran/).

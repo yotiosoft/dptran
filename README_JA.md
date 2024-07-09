@@ -20,7 +20,6 @@ $ cargo install dptran
 ```
 
 ## Library crate
-### Installation
 ``dptran`` は、既定でバイナリクレート用の依存クレート（``clap``、``serde_json``、``confy``など）を含みます。  
 ライブラリクレートのみをインストールする場合は、引数``--no-default-features``で default feature を無効にしてください。
 ```bash
@@ -32,10 +31,10 @@ $ cargo add dptran --no-default-features
 dptran = { version = "2.1.0", default-features = false }
 ```
 
-## Binary crate
+# Binary crate
 バイナリクレートは DeepL API を使用してテキストを翻訳できるコマンドラインツールを提供します。
 
-### 機能
+## 機能
 
 - コマンドライン引数からのテキスト翻訳
 - テキストを対話形式で翻訳（intractive mode）
@@ -49,7 +48,7 @@ dptran = { version = "2.1.0", default-features = false }
 - DeepL API の言語コード一覧の取得
 - 翻訳結果のキャッシュ (v.2.1.0-)
 
-### Language codes
+## Language codes
 翻訳先の言語オプションを省略すると、デフォルトでは英語（EN）で翻訳されます。  
 言語コードの一覧を取得するには、以下のコマンドをご利用ください。
 
@@ -58,9 +57,9 @@ $ dptran list -s    # for the list of source languages
 $ dptran list -t    # for the list of target languages
 ```
 
-### 利用方法
+## 利用方法
 
-#### APIキーの設定
+### APIキーの設定
 
 ご利用の前に、必ずDeepL APIキーを取得し、dptranに設定してください。APIキーは無料で取得可能です。
 
@@ -68,7 +67,7 @@ $ dptran list -t    # for the list of target languages
 $ dptran set --api-key [API key]
 ```
 
-#### コマンドライン引数から翻訳
+### コマンドライン引数から翻訳
 
 ```bash
 $ dptran Bonjour
@@ -79,7 +78,7 @@ Bonjour
 
 ``-f``オプションで入力原文の言語を、``-t``オプションで翻訳先の言語を指定することができます。
 
-#### 対話形式で翻訳
+### 対話形式で翻訳
 
 ```bash
 $ dptran
@@ -99,7 +98,7 @@ Had a great time today!
 
 翻訳先の言語を指定する場合は、``-t`` オプションで指定可能です。
 
-#### 複数行を一度に翻訳
+### 複数行を一度に翻訳
 
 複数行を入力するには、``-m`` オプションをご利用ください。  
 入力が完了したら、空行のまま Enter キーを押してください。
@@ -115,7 +114,7 @@ $ dptran -m -t JA
 使用するには、https://www.deepl.com/en/pro-api/ から DeepL API キーを取得する必要があります。
 ```
 
-#### パイプラインから翻訳
+### パイプラインから翻訳
 
 他のコマンドの出力をパイプラインから翻訳できます。
 
@@ -125,7 +124,7 @@ $ dptran -m -t JA
 $ man ls | cat | dptran -t JA
 ```
 
-#### ファイルから翻訳
+### ファイルから翻訳
 
 テキストファイルの内容を ``-i`` オプションで翻訳できます。
 
@@ -133,35 +132,35 @@ $ man ls | cat | dptran -t JA
 $ dptran -i file.txt
 ```
 
-#### エディタアプリから翻訳 (vi, vim, nano, emacs など)
+### エディタアプリから翻訳 (vi, vim, nano, emacs など)
 
 エディタからの入力を ``-e`` オプションで翻訳できます。
 
-##### 例: vi
+#### 例: vi
 ```bash
 $ dptran set -e vi
 $ dptran -e
 ```
 
-##### 例: vim
+#### 例: vim
 ```bash
 $ dptran set -e vim
 $ dptran -e
 ```
 
-##### 例: nano
+#### 例: nano
 ```bash
 $ dptran set -e nano
 $ dptran -e
 ```
 
-##### 例: emacs
+#### 例: emacs
 ```bash
 $ dptran set -e "emacs -nw"
 $ dptran -e
 ```
 
-#### 入力文から改行を削除
+### 入力文から改行を削除
 
 ``-r``オプションでソーステキストから改行を取り除きます。
 
@@ -178,7 +177,7 @@ How are you?
 Bonjour, comment allez-vous ?
 ```
 
-#### 翻訳結果のファイル出力
+### 翻訳結果のファイル出力
 
 ``-o`` オプションで翻訳結果をテキストファイルに出力できます。
 
@@ -186,7 +185,7 @@ Bonjour, comment allez-vous ?
 $ dptran -t JA Hello -o output.txt
 ```
 
-#### ヘルプの表示
+### ヘルプの表示
 
 コマンドの詳細については、ヘルプをご覧ください。 
 
@@ -194,7 +193,7 @@ $ dptran -t JA Hello -o output.txt
 $ dptran -h
 ```
 
-#### 残りの翻訳可能文字数の表示
+### 残りの翻訳可能文字数の表示
 
 ```bash
 $ dptran -u
@@ -205,7 +204,7 @@ remaining: 499778
 現在の月で DeepL API で翻訳可能な残りの文字数を確認できます。  
 無料のDeepL APIプランでは、月間50万文字まで翻訳できます。
 
-### デフォルトの翻訳先言語を変更する
+## デフォルトの翻訳先言語を変更する
 
 デフォルトでは英語 (EN) に設定されています。  
 これは ``set --target-lang`` で変更できます。  
@@ -215,7 +214,7 @@ remaining: 499778
 $ dptran set --target-lang JA
 ```
 
-### 設定のリセット
+## 設定のリセット
 
 すべての設定をリセットできます。  
 注意：APIキーもリセットされます。再度dptranを使用する場合は、APIキーを再設定してください。
@@ -224,11 +223,11 @@ $ dptran set --target-lang JA
 $ dptran set --clear
 ```
 
-### アンインストール方法
+## アンインストール
 
 ```bash
 $ cargo uninstall dptran
 ```
 
-## Library crate (v2.0.0-)
+# Library crate (v2.0.0-)
 library crate に関するドキュメントは[こちら](https://docs.rs/dptran/)をご参照ください。
