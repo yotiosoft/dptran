@@ -9,10 +9,8 @@ A tool to run DeepL translations on your command line.
 It's written in Rust, and uses curl to connect to the DeepL API.  
 To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/).
 
+# Installation
 ## Binary crate
-### Install
-
-#### Use crates.io
 ``dptran`` is available on crates.io.
 
 1. Install ``rustup`` or ``cargo`` to your computer.
@@ -20,6 +18,22 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api
 ```bash
 $ cargo install dptran
 ```
+
+## Library crate
+### Installation
+``dptran`` includes the binary crate's dependent crates (such as ``clap``, ``serde_json`` and ``confy``) by the default features.  
+To install only the library crate, please disable the default features by adding ``--no-default-features`` argument.
+```bash
+$ cargo add dptran --no-default-features
+```
+Or, add this to your Cargo.toml:
+```toml
+[dependencies]
+dptran = { version = "2.1.0", default-features = false }
+```
+
+## Binary crate
+The binary crate provides a command-line tool to translate text using the DeepL API.
 
 ### Features
 
@@ -218,15 +232,3 @@ $ cargo uninstall dptran
 
 ## Library crate (v2.0.0-)
 See the documentation for the library crate [here](https://docs.rs/dptran/).
-
-### Install
-``dptran`` includes the binary crate's dependent crates (such as ``clap``, ``serde_json`` and ``confy``) by the default features.  
-To install only the library crate, please disable the default features by adding ``--no-default-features`` argument.
-```bash
-$ cargo add dptran --no-default-features --features
-```
-Or, add this to your Cargo.toml:
-```toml
-[dependencies]
-dptran = { version = "2.1.0", default-features = false }
-```

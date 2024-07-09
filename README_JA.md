@@ -9,10 +9,8 @@
 Rustで記述されており、DeepL APIへの接続にはcurlを使用しています。  
 ご利用の前に、[https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/) からのDeepL APIキーの取得が必要です。
 
+# インストール
 ## Binary crate
-### インストール
-
-#### crates.io からインストールする
 ``dptran``はcrates.ioからインストール可能です。
 
 1. ``rustup`` または ``cargo`` をご使用の環境にインストールします。
@@ -20,6 +18,22 @@ Rustで記述されており、DeepL APIへの接続にはcurlを使用してい
 ```bash
 $ cargo install dptran
 ```
+
+## Library crate
+### Installation
+``dptran`` は、既定でバイナリクレート用の依存クレート（``clap``、``serde_json``、``confy``など）を含みます。  
+ライブラリクレートのみをインストールする場合は、引数``--no-default-features``で default feature を無効にしてください。
+```bash
+$ cargo add dptran --no-default-features
+```
+または、Cargo.toml に下記を追加してください。
+```toml
+[dependencies]
+dptran = { version = "2.1.0", default-features = false }
+```
+
+## Binary crate
+バイナリクレートは DeepL API を使用してテキストを翻訳できるコマンドラインツールを提供します。
 
 ### 機能
 
@@ -218,15 +232,3 @@ $ cargo uninstall dptran
 
 ## Library crate (v2.0.0-)
 library crate に関するドキュメントは[こちら](https://docs.rs/dptran/)をご参照ください。
-
-### インストール
-``dptran`` は、既定でバイナリクレート用の依存クレート（``clap``、``serde_json``、``confy``など）を含んでいます。  
-ライブラリクレートのみをインストールする場合は、引数``--no-default-features``で default feature を無効にしてください。
-```bash
-$ cargo add dptran --no-default-features
-```
-または、Cargo.toml に下記を追加してください。
-```toml
-[dependencies]
-dptran = { version = "2.1.0", default-features = false }
-```
