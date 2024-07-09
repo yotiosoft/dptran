@@ -221,12 +221,12 @@ library crate に関するドキュメントは[こちら](https://docs.rs/dptra
 
 ### インストール
 ``dptran`` は、既定でバイナリクレート用の依存クレート（``clap``、``serde_json``、``confy``など）を含んでいます。  
-ライブラリクレートのみをインストールする場合は、引数``--no-default-features``でデフォルト機能を無効にして、``lib`` feature を有効にしてください。
+ライブラリクレートのみをインストールする場合は、引数``--no-default-features``で default feature を無効にしてください。
 ```bash
-$ cargo add dptran --no-default-features --features lib
+$ cargo add dptran --no-default-features
 ```
-または、Cargo.toml に下記を追加:
+または、Cargo.toml に下記を追加してください。
 ```toml
 [dependencies]
-dptran = { version = "2.1.0", features = ["lib"], default-features = false }
+dptran = { version = "2.1.0", default-features = false }
 ```

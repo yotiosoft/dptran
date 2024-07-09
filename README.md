@@ -221,12 +221,12 @@ See the documentation for the library crate [here](https://docs.rs/dptran/).
 
 ### Install
 ``dptran`` includes the binary crate's dependent crates (such as ``clap``, ``serde_json`` and ``confy``) by the default features.  
-To install only the library crate, please disable the default features by adding ``--no-default-features`` argument and enable the ``lib`` feature.
+To install only the library crate, please disable the default features by adding ``--no-default-features`` argument.
 ```bash
-$ cargo add dptran --no-default-features --features lib
+$ cargo add dptran --no-default-features --features
 ```
 Or, add this to your Cargo.toml:
 ```toml
 [dependencies]
-dptran = { version = "2.1.0", features = ["lib"], default-features = false }
+dptran = { version = "2.1.0", default-features = false }
 ```
