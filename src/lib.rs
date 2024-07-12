@@ -80,16 +80,11 @@ pub fn check_language_code(api_key: &String, lang_code: &String, lang_type: Lang
 /// Convert to correct language code from input source language code string. Using DeepL API.  
 /// api_key: DeepL API key  
 /// language_code: Language code to convert  
+/// Caution: EN, PT are not automatically converted to EN-US, PT-PT from version 2.1.0.
 pub fn correct_source_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
-    // EN, PTは変換
-    let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
-        "EN" => "EN-US".to_string(),
-        "PT" => "PT-PT".to_string(),
-        _ => language_code.to_ascii_uppercase(),
-    };
-
-    match check_language_code(api_key, &language_code_uppercase, LangType::Source)? {
-        true => Ok(language_code_uppercase),
+    let source_language = language_code.to_ascii_uppercase().to_string();
+    match check_language_code(api_key, &source_language, LangType::Source)? {
+        true => Ok(source_language),
         false => Err(DpTranError::InvalidLanguageCode),
     }
 }
@@ -97,17 +92,11 @@ pub fn correct_source_language_code(api_key: &String, language_code: &str) -> Re
 /// Convert to correct language code from input target language code string. Using DeepL API.
 /// api_key: DeepL API key
 /// language_code: Language code to convert
+/// Caution: EN, PT are not automatically converted to EN-US, PT-PT from version 2.1.0.
 pub fn correct_target_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
-    // EN, PTは変換
-    let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
-        "EN" => "EN-US".to_string(),
-        "PT" => "PT-PT".to_string(),
-        "ZH" => "ZH-HANS".to_string(),
-        _ => language_code.to_ascii_uppercase(),
-    };
-
-    match check_language_code(api_key, &language_code_uppercase, LangType::Target)? {
-        true => Ok(language_code_uppercase),
+    let target_language = language_code.to_ascii_uppercase().to_string();
+    match check_language_code(api_key, &target_language, LangType::Target)? {
+        true => Ok(target_language),
         false => Err(DpTranError::InvalidLanguageCode),
     }
 }

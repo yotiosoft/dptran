@@ -495,9 +495,22 @@ fn main() -> Result<(), RuntimeError> {
 
     // Language code check and correction
     if let Some(sl) = source_lang {
+        // EN, PT will be converted to EN-US, PT-PT.
+        let sl = match sl.to_ascii_uppercase().as_str() {
+            "EN" => "EN-US".to_string(),
+            "PT" => "PT-PT".to_string(),
+            _ => sl.to_ascii_uppercase(),
+        };
         source_lang = Some(dptran::correct_source_language_code(&api_key, &sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
     if let Some(tl) = target_lang {
+        // EN, PT, ZH will be converted to EN-US, PT-PT, ZH-HANS.
+        let tl = match tl.to_ascii_uppercase().as_str() {
+            "EN" => "EN-US".to_string(),
+            "PT" => "PT-PT".to_string(),
+            "ZH" => "ZH-HANS".to_string(),
+            _ => tl.to_ascii_uppercase(),
+        };
         target_lang = Some(dptran::correct_target_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
 
