@@ -77,14 +77,32 @@ pub fn check_language_code(api_key: &String, lang_code: &String, lang_type: Lang
     Ok(false)
 }
 
-/// Convert to correct language code from input language code string. Using DeepL API.  
+/// Convert to correct language code from input source language code string. Using DeepL API.  
 /// api_key: DeepL API key  
 /// language_code: Language code to convert  
-pub fn correct_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
+pub fn correct_source_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
     // EN, PTは変換
     let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
         "EN" => "EN-US".to_string(),
         "PT" => "PT-PT".to_string(),
+        _ => language_code.to_ascii_uppercase(),
+    };
+
+    match check_language_code(api_key, &language_code_uppercase, LangType::Target)? {
+        true => Ok(language_code_uppercase),
+        false => Err(DpTranError::InvalidLanguageCode),
+    }
+}
+
+/// Convert to correct language code from input target language code string. Using DeepL API.
+/// api_key: DeepL API key
+/// language_code: Language code to convert
+pub fn correct_target_language_code(api_key: &String, language_code: &str) -> Result<LangCode, DpTranError> {
+    // EN, PTは変換
+    let language_code_uppercase = match language_code.to_ascii_uppercase().as_str() {
+        "EN" => "EN-US".to_string(),
+        "PT" => "PT-PT".to_string(),
+        "ZH" => "ZH-HANS".to_string(),
         _ => language_code.to_ascii_uppercase(),
     };
 
@@ -200,7 +218,7 @@ fn lib_tests() {
     }
 
     // correct_language_code test
-    let res = correct_language_code(api_key, "EN");
+    let res = correct_target_language_code(api_key, "EN");
     match res {
         Ok(res) => {
             assert_eq!(res, "EN-US");

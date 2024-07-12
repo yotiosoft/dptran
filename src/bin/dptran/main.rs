@@ -94,7 +94,7 @@ fn set_default_target_language(arg_default_target_language: String) -> Result<()
     };
 
     // Check if the language code is correct
-    if let Ok(validated_language_code) = dptran::correct_language_code(&api_key, &arg_default_target_language) {
+    if let Ok(validated_language_code) = dptran::correct_target_language_code(&api_key, &arg_default_target_language) {
         configure::set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
@@ -494,10 +494,10 @@ fn main() -> Result<(), RuntimeError> {
 
     // Language code check and correction
     if let Some(sl) = source_lang {
-        source_lang = Some(dptran::correct_language_code(&api_key, &sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+        source_lang = Some(dptran::correct_source_language_code(&api_key, &sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
     if let Some(tl) = target_lang {
-        target_lang = Some(dptran::correct_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+        target_lang = Some(dptran::correct_target_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
 
     // Output filepath
