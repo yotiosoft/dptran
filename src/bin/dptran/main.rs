@@ -224,8 +224,9 @@ fn show_target_language_codes() -> Result<(), RuntimeError> {
     let mut target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
 
     // special case code conversion
-    target_lang_codes.push(("EN".to_string(), "English".to_string()));
-    target_lang_codes.push(("PT".to_string(), "Portuguese".to_string()));
+    target_lang_codes.push(("EN".to_string(), "English (American)".to_string()));
+    target_lang_codes.push(("PT".to_string(), "Portuguese (European)".to_string()));
+    target_lang_codes.push(("ZH".to_string(), "Chinese (simplified)".to_string()));
 
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&target_lang_codes);

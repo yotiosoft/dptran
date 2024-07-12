@@ -88,7 +88,7 @@ pub fn correct_source_language_code(api_key: &String, language_code: &str) -> Re
         _ => language_code.to_ascii_uppercase(),
     };
 
-    match check_language_code(api_key, &language_code_uppercase, LangType::Target)? {
+    match check_language_code(api_key, &language_code_uppercase, LangType::Source)? {
         true => Ok(language_code_uppercase),
         false => Err(DpTranError::InvalidLanguageCode),
     }
