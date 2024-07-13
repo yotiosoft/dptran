@@ -81,6 +81,12 @@ code {
 
     text-align: center;
 }
+.content .column .title-small {
+    font-size: 30px;
+    font-weight: bold;
+
+    text-align: center;
+}
 .content .column .text {
     margin: 20px;
 
