@@ -27,11 +27,20 @@ body {
 }
 .catch .catch_contents {
     position: absolute;
-    top: 25px;
-    left: 25px;
+    top: 0px;
+    left: 15px;
     font-weight: bold;
     color: white;
+}
 
+.catch_contents {
+    display: table;
+    height: 100%;
+
+    h2 {
+        display: table-cell;
+        vertical-align: middle;
+    }
 }
 
 .content .column {
