@@ -70,14 +70,15 @@ $ dptran set --api-key [API key]
 
 ### Translate from the command line arguments
 
+If any language is not specified, the source language is automatically detected and the destination language is set to English (EN) by default.  
+It is possible to specify the source language with the ``-f`` option and the destination language with the ``-t`` option.
+
 ```bash
 $ dptran Bonjour
 Hello
 $ dptran -t FR Hello
 Bonjour
 ```
-
-It is possible to specify the source language with the ``-f`` option and the destination language with the ``-t`` option.
 
 ### Translate in interactive mode
 
