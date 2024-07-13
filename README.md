@@ -85,7 +85,7 @@ $ dptran
 > ありがとうございます。
 Thank you very much.
 > Ich stehe jeden Tag um 7 Uhr auf.
-毎日7時に起きています。
+I get up at 7 a.m. every day.
 > La reunión comienza a las 10 a.m.
 The meeting begins at 10 a.m.
 > 今天玩儿得真开心！
