@@ -2,8 +2,9 @@
 
 [English version](README.md) | 日本語
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![crates.io](https://img.shields.io/badge/crates.io-v2.1.0-brightgreen.svg)
 
 コマンドラインでDeepL翻訳を実行するツールです。  
 Rustで記述されており、DeepL APIへの接続にはcurlを使用しています。  
