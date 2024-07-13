@@ -113,6 +113,7 @@
                         $ dptran -f DE Hallo<br>
                         Hello
                     </div>
+                    <br>
                     To specify the destination language, use the <code>-t</code> option followed by the language code.
                     <div class="code-block">
                         $ dptran -t FR Hello<br>
@@ -129,11 +130,11 @@
                     Multiple source texts can be translated interactively. Exit with <code>quit</code>.<br>
                     If you want to translate the source texts into a specific language, use the <code>-t</code> option. 
                     <div class="code-block">
-                        $ dptran<br>
+                        $ dptran -t EN<br>
                         > ありがとうございます。<br>
                         Thank you very much.<br>
                         > Ich stehe jeden Tag um 7 Uhr auf.<br>
-                        毎日7時に起きています。<br>
+                        I get up at 7 a.m. every day.<br>
                         > quit
                     </div>
                 </div>
@@ -145,6 +146,7 @@
                 </div>
                 <div class="text">
                     You can translate the output of other commands with dptran.<br>
+                    <br>
                     e.g. Translate the content of the man page into Japanese. <br>
                     <div class="code-block">
                         $ man ls | cat | dptran -t JA
@@ -182,10 +184,12 @@
                 <div class="text">
                     <code>dptran</code> can be used as a library in your Rust project.<br>
                     <code>dptran</code> includes the binary crate's dependent crates (such as <code>clap</code>, <code>serde_json</code> and <code>confy</code>) by the default features.<br>
+                    <br>
                     To install only the library crate, please disable the default features by adding <code>--no-default-features</code> argument.
                     <div class="code-block">
                         $ cargo add dptran --no-default-features
                     </div>
+                    <br>
                     Or, add this to your Cargo.toml:
                     <div class="code-block">
                         [dependencies]<br>
