@@ -64,6 +64,26 @@ code {
     color: white;
 }
 
+.code-copy-button {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 5px;
+    height: 100%;
+    cursor: pointer;
+
+    img {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.code-and-button {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
 .content .column {
     width: 75%;
     margin-left: auto;

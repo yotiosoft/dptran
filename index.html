@@ -25,6 +25,17 @@
         <link rel="stylesheet" href="https://indestructibletype.com/fonts/Jost.css" type="text/css" charset="utf-8" />
 
         <link rel="icon" type="image/png" href="./img/logo/icon.png">
+
+        <script>
+            function copy_code(code) {
+                var copy_text = document.createElement("textarea");
+                copy_text.value = code;
+                document.body.appendChild(copy_text);
+                copy_text.select();
+                document.execCommand('copy');
+                document.body.removeChild(copy_text);
+            }
+        </script>
     </head>
 
     <body>
@@ -67,7 +78,14 @@
                 <div class="text" style="text-align: center;">
                     <h2>Install Now!</h2>
                     Available on <a href="https://crates.io/crates/dptran">crates.io</a>.<br>
-                    <div class="code-block">$ cargo install dptran</div>
+                    <div class="code-and-button">
+                        <div class="code-block">$ cargo install dptran</div>
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('cargo install dptran');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div> 
 
