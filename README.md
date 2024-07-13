@@ -50,7 +50,7 @@ The binary crate provides a command-line tool to translate text using the DeepL 
 - Cache the translation results. (v.2.1.0-)
 
 ## Language codes
-If you omit the destination language option, the translation will be done in English (EN) by default.
+If you omit the destination language option, the translation will be done in English (EN) by default.  
 For more information about language codes, see the language list getting from DeepL API:  
 
 ```bash
