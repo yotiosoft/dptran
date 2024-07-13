@@ -135,6 +135,8 @@
                     Translate from the command line arguments
                 </div>
                 <div class="text">
+                    If any language is not specified, the source language is automatically detected.<br>
+                    And the destination language is set to English (EN-US; by default).<br>
                     <div class="code-block">
                         $ dptran Bonjour<br>
                         Hello
@@ -194,7 +196,7 @@
                 <div class="text">
                     You can translate the output of other commands with dptran.<br>
                     <br>
-                    e.g. Translate the content of the man page into Japanese. <br>
+                    e.g. Translate the content of the man page into Japanese (JA). <br>
                     <div class="code-block">
                         $ man ls | cat | dptran -t JA
                         <div class="code-copy-button">
@@ -280,6 +282,18 @@
                             <th>Version</th>
                             <th>Release date</th>
                             <th>Install</th>
+                        </tr>
+                        <tr>
+                            <td>ver.2.1.0</td>
+                            <td>July 14, 2024</td>
+                            <td><div class="code-block">
+                                $ cargo install dptran@=2.1.0
+                                <div class="code-copy-button">
+                                    <a href="javascript:copy_code('cargo install dptran@=2.0.0');">
+                                        <img src="./img/icons/copy.svg" alt="copy">
+                                    </a>
+                                </div>
+                            </div></td>
                         </tr>
                         <tr>
                             <td>ver.2.0.0</td>
