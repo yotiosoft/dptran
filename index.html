@@ -54,17 +54,24 @@
         </div>
         
         <div class="content">
+            <div id="about" class="inpage_link"></div>
             <div class="column">
                 <div class="title">
                     Translate on your command line.
                 </div>
+                <div class="text">
+                    A tool to run DeepL translations on your command line.<br>
+                    It's written in Rust, and uses curl to connect to the DeepL API.<br>
+                    To use, you need to get the DeepL API key from <a href="https://www.deepl.com/en/pro-api/">https://www.deepl.com/en/pro-api/</a>.
+                </div>
                 <div class="text" style="text-align: center;">
-                    Install Now!<br><br>
+                    <h2>Install Now!</h2>
+                    Available on <a href="https://crates.io/crates/dptran">crates.io</a>.<br>
                     <div class="code-block">$ cargo install dptran</div>
                 </div>
             </div> 
 
-            <div id="license" class="inpage_link"></div>
+            <div id="features" class="inpage_link"></div>
             <div class="column">
                 <div class="title">
                     Features
@@ -86,9 +93,13 @@
                     </ul>
                 </div>
             </div>
-
+            
+            <div id="bin" class="inpage_link"></div>
             <div class="column">
                 <div class="title">
+                    Use as a command-line tool (binary crate)
+                </div>
+                <div class="title-small">
                     Translate from the command line arguments
                 </div>
                 <div class="text">
@@ -97,7 +108,12 @@
                         Hello
                     </div>
                     <br>
-                    It is possible to specify the source language with the <code>-f</code> option and the destination language with the <code>-t</code> option.
+                    To specify the source language, use the <code>-f</code> option followed by the language code.
+                    <div class="code-block">
+                        $ dptran -f DE Hallo<br>
+                        Hello
+                    </div>
+                    To specify the destination language, use the <code>-t</code> option followed by the language code.
                     <div class="code-block">
                         $ dptran -t FR Hello<br>
                         Bonjour
@@ -106,7 +122,7 @@
             </div>
 
             <div class="column">
-                <div class="title">
+                <div class="title-small">
                     Translate in interactive mode
                 </div>
                 <div class="text">
@@ -124,7 +140,7 @@
             </div>
 
             <div class="column">
-                <div class="title">
+                <div class="title-small">
                     Translate from the pipeline
                 </div>
                 <div class="text">
@@ -137,7 +153,7 @@
             </div>
 
             <div class="column">
-                <div class="title">
+                <div class="title-small">
                     Translate from a file
                 </div>
                 <div class="text">
@@ -149,7 +165,7 @@
             </div>
 
             <div class="column">
-                <div class="title">
+                <div class="title-small">
                     ...And more features!
                 </div>
                 <div class="text">
@@ -157,6 +173,7 @@
                 </div>
             </div>
 
+            <div id="lib" class="inpage_link"></div>
             <div id="license" class="inpage_link"></div>
             <div class="column">
                 <div class="title">
@@ -179,7 +196,7 @@
                 </div>
             </div>
 
-            <div id="download" class="inpage_link"></div>
+            <div id="releases" class="inpage_link"></div>
             <div class="column">
                 <div class="title">
                     Releases
