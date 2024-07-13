@@ -201,7 +201,7 @@ usage: 222 / 500000 (0%)
 remaining: 499778
 ```
 
-You can see the number of remaining characters that can be translated by DeepL API in the current month.
+You can see the number of remaining characters that can be translated by DeepL API in the current month.  
 The free DeepL API plan lets you translate up to 500,000 characters per month.
 
 ## Change default target language
