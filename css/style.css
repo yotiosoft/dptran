@@ -43,6 +43,27 @@ body {
     }
 }
 
+code {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.9em;
+    background-color: #888888;
+    border-radius: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+    color: white;
+}
+
+.code-block {
+    font-family: 'Jost', sans-serif;
+    background-color: #333333;
+    border-radius: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: white;
+}
+
 .content .column {
     width: 75%;
     margin-left: auto;
