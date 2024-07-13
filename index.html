@@ -27,9 +27,20 @@
         <link rel="icon" type="image/png" href="./img/logo/icon.png">
 
         <script>
+            var version = "2.1.0";
+            
             function copy_code(code) {
                 var copy_text = document.createElement("textarea");
                 copy_text.value = code;
+                document.body.appendChild(copy_text);
+                copy_text.select();
+                document.execCommand('copy');
+                document.body.removeChild(copy_text);
+            }
+
+            function copy_dependencies() {
+                var copy_text = document.createElement("textarea");
+                copy_text.value = "[dependencies]\ndptran = { version = \"" + version + "\", default-features = false }";
                 document.body.appendChild(copy_text);
                 copy_text.select();
                 document.execCommand('copy');
@@ -78,12 +89,15 @@
                 <div class="text" style="text-align: center;">
                     <h2>Install Now!</h2>
                     Available on <a href="https://crates.io/crates/dptran">crates.io</a>.<br>
+                    Latest version: v<span style="font-weight: bold;"><script>document.write(version);</script></span><br>
                     <div class="code-and-button">
-                        <div class="code-block">$ cargo install dptran</div>
-                        <div class="code-copy-button">
-                            <a href="javascript:copy_code('cargo install dptran');">
-                                <img src="./img/icons/copy.svg" alt="copy">
-                            </a>
+                        <div class="code-block">
+                            <div class="code">$ cargo install dptran</div>
+                            <div class="code-copy-button">
+                                <a href="javascript:copy_code('cargo install dptran');">
+                                    <img src="./img/icons/copy.svg" alt="copy">
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -124,18 +138,33 @@
                     <div class="code-block">
                         $ dptran Bonjour<br>
                         Hello
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('dptran Bonjour');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                     <br>
                     To specify the source language, use the <code>-f</code> option followed by the language code.
                     <div class="code-block">
                         $ dptran -f DE Hallo<br>
                         Hello
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('dptran -f DE Hallo');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                     <br>
                     To specify the destination language, use the <code>-t</code> option followed by the language code.
                     <div class="code-block">
                         $ dptran -t FR Hello<br>
                         Bonjour
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('dptran -t FR Hello');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -168,6 +197,11 @@
                     e.g. Translate the content of the man page into Japanese. <br>
                     <div class="code-block">
                         $ man ls | cat | dptran -t JA
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('man ls | cat | dptran -t JA');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -180,6 +214,11 @@
                     You can translate the contents of a text file with dptran by using the <code>-i</code> option.<br>
                     <div class="code-block">
                         $ dptran -i file.txt
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('dptran -i file.txt');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -205,13 +244,25 @@
                     <br>
                     To install only the library crate, please disable the default features by adding <code>--no-default-features</code> argument.
                     <div class="code-block">
-                        $ cargo add dptran --no-default-features
+                        <div class="code">$ cargo add dptran --no-default-features</div>
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_code('cargo add dptran --no-default-features');">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                     <br>
                     Or, add this to your Cargo.toml:
                     <div class="code-block">
                         [dependencies]<br>
-                        dptran = { version = "2.1.0", default-features = false }
+                        <script>
+                            document.write('dptran = { version = "' + version + '", default-features = false }');
+                        </script>
+                        <div class="code-copy-button">
+                            <a href="javascript:copy_dependencies();">
+                                <img src="./img/icons/copy.svg" alt="copy">
+                            </a>
+                        </div>
                     </div>
                     <br>
                     For more information about the library, see the <a href="https://docs.rs/dptran">documentation</a>.
@@ -233,22 +284,50 @@
                         <tr>
                             <td>ver.2.0.0</td>
                             <td>March 3, 2024</td>
-                            <td><div class="code-block">$ cargo install dptran@=2.0.0</div></td>
+                            <td><div class="code-block">
+                                $ cargo install dptran@=2.0.0
+                                <div class="code-copy-button">
+                                    <a href="javascript:copy_code('cargo install dptran@=2.0.0');">
+                                        <img src="./img/icons/copy.svg" alt="copy">
+                                    </a>
+                                </div>
+                            </div></td>
                         </tr>
                         <tr>
                             <td>ver.1.0.2</td>
                             <td>December 1, 2023</td>
-                            <td><div class="code-block">$ cargo install dptran@=1.0.2</div></td>
+                            <td><div class="code-block">
+                                $ cargo install dptran@=1.0.2
+                                <div class="code-copy-button">
+                                    <a href="javascript:copy_code('cargo install dptran@=1.0.2');">
+                                        <img src="./img/icons/copy.svg" alt="copy">
+                                    </a>
+                                </div>
+                            </div></td>
                         </tr>
                         <tr>
                             <td>ver.1.0.1</td>
                             <td>December 1, 2023</td>
-                            <td><div class="code-block">$ cargo install dptran@=1.0.1</div></td>
+                            <td><div class="code-block">
+                                $ cargo install dptran@=1.0.1
+                                <div class="code-copy-button">
+                                    <a href="javascript:copy_code('cargo install dptran@=1.0.1');">
+                                        <img src="./img/icons/copy.svg" alt="copy">
+                                    </a>
+                                </div>
+                            </div></td>
                         </tr>
                         <tr>
                             <td>ver.1.0.0</td>
                             <td>December 1, 2023</td>
-                            <td><div class="code-block">$ cargo install dptran@=1.0.0</div></td>
+                            <td><div class="code-block">
+                                $ cargo install dptran@=1.0.0
+                                <div class="code-copy-button">
+                                    <a href="javascript:copy_code('cargo install dptran@=1.0.0');">
+                                        <img src="./img/icons/copy.svg" alt="copy">
+                                    </a>
+                                </div>
+                            </div></td>
                         </tr>
                     </table>
                 </div>
