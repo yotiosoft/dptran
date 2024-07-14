@@ -7,6 +7,7 @@ use md5;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct CacheElement {
     pub key: String,
+    pub source_langcode: Option<String>,
     pub target_langcode: String,
     pub value: String,
 }
@@ -14,11 +15,13 @@ struct CacheElement {
 // Cache struct
 #[derive(Serialize, Deserialize, Debug)]
 struct Cache {
+    pub saved_version: String,
     pub elements: HashMap<String, CacheElement>,
 }
 impl Default for Cache {
     fn default() -> Self {
         Self {
+            saved_version: env!("CARGO_PKG_VERSION").to_string(),
             elements: HashMap::new(),
         }
     }
@@ -45,7 +48,17 @@ fn save_cache_data(cache_data: Cache) -> Result<(), CacheError> {
     confy::store("dptran", "cache", cache_data).map_err(|e| CacheError::FailToReadCache(e.to_string()))
 }
 
-pub fn into_cache_element(source_text: &String, value: &String, target_lang: &String, max_entries: usize) -> Result<(), CacheError> {
+fn cache_hash(text: &String, source_lang: &Option<String>, target_lang: &String) -> String {
+    let mut s = format!("text:{}:", text);
+    if source_lang.is_some() {
+        s.push_str(format!(":source:{}", target_lang).as_str());
+    }
+    s.push_str(format!("target:{}", target_lang).as_str());
+    let hash = md5::compute(s.as_bytes());
+    format!("{:x}", hash)
+}
+
+pub fn into_cache_element(source_text: &String, value: &String, source_lang: &Option<String>, target_lang: &String, max_entries: usize) -> Result<(), CacheError> {
     // read cache data file
     let mut cache_data = get_cache_data()?;
     // if caches are more than max_entries, remove the oldest one
@@ -59,11 +72,11 @@ pub fn into_cache_element(source_text: &String, value: &String, target_lang: &St
     let s = source_text.clone();
     let v = value.clone();
     // create key by md5
-    let hash = md5::compute(s.as_bytes());
-    let key = format!("{:x}", hash);
+    let key = cache_hash(&s, source_lang, target_lang);
     // create cache element
     let element = CacheElement {
         key: key.clone(),
+        source_langcode: source_lang.clone(),
         target_langcode: target_lang.clone(),
         value: v,
     };
@@ -74,15 +87,21 @@ pub fn into_cache_element(source_text: &String, value: &String, target_lang: &St
     Ok(())
 }
 
-pub fn search_cache(value: &String, target_lang: &String) -> Result<Option<String>, CacheError> {
+pub fn search_cache(value: &String, source_lang: &Option<String>, target_lang: &String) -> Result<Option<String>, CacheError> {
     let cache_data = get_cache_data()?;
     let v = value.clone();
-    let hash = md5::compute(v.as_bytes());
-    let key = format!("{:x}", hash);
+    let key = cache_hash(&v, source_lang, target_lang);
 
     if let Some(element) = cache_data.elements.get(&key) {
-        if element.target_langcode == *target_lang {
-            return Ok(Some(element.value.clone()));
+        if source_lang.is_none() {
+            if element.target_langcode == *target_lang && element.source_langcode.is_none() {
+                return Ok(Some(element.value.clone()));
+            }
+        }
+        else if element.source_langcode.is_some() {
+            if element.target_langcode == *target_lang && element.source_langcode.as_ref().unwrap() == source_lang.as_ref().unwrap() {
+                return Ok(Some(element.value.clone()));
+            }
         }
     }
 
