@@ -287,7 +287,12 @@ fn get_input(mode: &ExecutionMode, multilines: bool, rm_line_breaks: bool, text:
                 print!("..");
                 stdout.flush().unwrap();
             }
-            Some(input_vec)
+            if rm_line_breaks {
+                let input_vec = vec![input_vec.join(" ")];
+                Some(input_vec)
+            } else {
+                Some(input_vec)
+            }
         }
         ExecutionMode::TranslateNormal => {
             match text {
