@@ -63,7 +63,8 @@ $ dptran list -t    # for the list of target languages
 ### Setting API key
 
 Please be sure to get your DeepL API key and set it up on dptran before using the service.  
-The API key is available for free.
+The API key is available for free.  
+[https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/)
 
 ```bash
 $ dptran set --api-key [API key]

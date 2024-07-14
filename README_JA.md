@@ -63,7 +63,8 @@ $ dptran list -t    # for the list of target languages
 ### APIキーの設定
 
 ご利用の前に、必ずDeepL APIキーを取得し、dptranに設定してください。  
-APIキーは無料で取得可能です。
+APIキーは無料で取得可能です。  
+[https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/)
 
 ```bash
 $ dptran set --api-key [API key]
