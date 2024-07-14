@@ -25,7 +25,7 @@ md5 = { version = "0.7.0", optional = true }
 
 [features]
 default = ["confy", "clap", "atty", "md5"]
-app = ["confy", "clap", "atty", "md5"]      # for compatibility with the previous version (- v.2.0.0)
+app = ["confy", "clap", "atty", "md5"]      # for compatibility with the previous version (- v2.0.0)
 
 # Use --no-default-features to disable default features
 [lib]

@@ -41,13 +41,13 @@ The binary crate provides a command-line tool to translate text using the DeepL 
 - Translate text interactively.
 - Translate multiple lines.
 - Translate text from the pipeline.
-- Translate text from a file. (v.2.1.0-)
-- Translate text from an editor. (v.2.1.0-)
-- Remove line breaks from the source text. (v.2.1.0-)
-- Output to a text file. (v.2.1.0-)
+- Translate text from a file. (v2.1.0-)
+- Translate text from an editor. (v2.1.0-)
+- Remove line breaks from the source text. (v2.1.0-)
+- Output to a text file. (v2.1.0-)
 - Check the number of characters remaining to be translated.
 - Check valid language codes.
-- Cache the translation results. (v.2.1.0-)
+- Cache the translation results. (v2.1.0-)
 
 ## Language codes
 If you omit the destination language option, the translation will be done in English (EN) by default.  
