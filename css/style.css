@@ -45,7 +45,7 @@ body {
 
 code {
     font-family: 'Noto Sans JP', sans-serif;
-    font-size: 0.9em;
+    font-size: medium;
     background-color: #888888;
     border-radius: 3px;
     padding-left: 5px;
@@ -91,19 +91,21 @@ code {
 
     margin-top: 50px;
 
-    font-family: 'Noto Sans JP', sans-serif;
-
     text-align: center;
 }
 .content .column .title {
-    font-size: 40px;
+    font-size: 50px;
     font-weight: bold;
+
+    font-family: 'Josefin Sans', 'Noto Sans JP', sans-serif;
 
     text-align: center;
 }
 .content .column .title-small {
-    font-size: 30px;
+    font-size: 40px;
     font-weight: bold;
+
+    font-family: 'Josefin Sans', 'Noto Sans JP', sans-serif;
 
     text-align: center;
 }
@@ -112,6 +114,8 @@ code {
 
     font-size: larger;
     width: fit-content;
+
+    font-family: 'Noto Sans JP', sans-serif;
 
     margin-left: auto;
     margin-right: auto;

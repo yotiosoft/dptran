@@ -49,7 +49,7 @@
     display: flex;
     align-items: center;
 
-    font-family: 'Noto Sans JP', sans-serif;
+    font-family: 'Josefin Sans', 'Noto Sans JP', sans-serif;
     font-size: medium;
     color: black;
 }
@@ -65,7 +65,7 @@
     display: flex;
     align-items: center;
 
-    font-family: 'Noto Sans JP', sans-serif;
+    font-family: 'Josefin Sans', 'Noto Sans JP', sans-serif;
     font-size: medium;
     color: black;
 
@@ -102,7 +102,7 @@
 
     width: 100%;
 
-    font-family: 'Noto Sans JP', sans-serif;
+    font-family: 'Josefin Sans', 'Noto Sans JP', sans-serif;
     font-size: medium;
 }
 
