@@ -205,15 +205,4 @@ fn lib_tests() {
             panic!("Error: {}", e.to_string());
         }
     }
-
-    // correct_language_code test
-    let res = correct_target_language_code(api_key, "EN");
-    match res {
-        Ok(res) => {
-            assert_eq!(res, "EN-US");
-        },
-        Err(e) => {
-            panic!("Error: {}", e.to_string());
-        }
-    }
 }

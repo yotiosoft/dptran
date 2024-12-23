@@ -19,7 +19,7 @@ impl Default for Configure {
         Self {
             settings_version: env!("CARGO_PKG_VERSION").to_string(),
             api_key: String::new(),
-            default_target_language: "EN-US".to_string(),
+            default_target_language: "EN".to_string(),
             cache_max_entries: 100,
             editor_command: None,
             cache_enabled: true,
@@ -170,7 +170,7 @@ impl Default for ConfigureBeforeV200 {
     fn default() -> Self {
         Self {
             api_key: String::new(),
-            default_target_language: "EN-US".to_string(),
+            default_target_language: "EN".to_string(),
         }
     }
 }

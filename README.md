@@ -238,7 +238,7 @@ The free DeepL API plan lets you translate up to 500,000 characters per month.
 
 ## Change default target language
 
-It is set to English (EN-US) by default.  
+It is set to English (EN) by default.  
 You can change it with ``set --target-lang``.  
 For example, to change it to Japanese (JA), do the following:
 
