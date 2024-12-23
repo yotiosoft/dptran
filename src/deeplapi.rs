@@ -12,14 +12,26 @@ const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
 /// Language code and language name
 pub type LangCodeName = (String, String);
 
+#[derive(Debug, PartialEq)]
+enum LangType {
+    Source,
+    Target,
+}
+
 /// Extended language codes and names.
 /// Because DeepL API's ``/languages`` endpoint returns only the language codes that support document translation,
 /// although only text translation is supported. Additionally, if the language code is unspecified variant, it is not returned.
 /// Therefore, dptran adds the following language codes and names manually.
 /// This constants must be updated when the DeepL API is updated.
 /// See <https://https://developers.deepl.com/docs/resources/supported-languages>.
-static EXTENDED_LANG_CODES: [&str; 4] = ["AR", "EN", "PT", "ZH-HANT"];
-static EXTENDED_LANG_NAMES: [&str; 4] = ["Arabic", "English", "Portuguese", "Chinese (Traditional)"];
+
+static EXTENDED_LANG_CODES: [(&str, &str, LangType); 5] = [
+    ("AR", "Arabic", LangType::Source),
+    ("AR", "Arabic", LangType::Target),
+    ("EN", "English", LangType::Target),
+    ("PT", "Portuguese", LangType::Target),
+    ("ZH-HANT", "Chinese (Traditional)", LangType::Target)
+];
 
 /// DeepL API error.  
 /// ``ConnectionError``: Connection error occurred in the process of sending and receiving data.  
@@ -129,6 +141,8 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
+    let lang_type = if type_name == "source" { LangType::Source } else { LangType::Target };
+
     let mut lang_codes: Vec<LangCodeName> = Vec::new();
     // Add got language codes
     for value in v.as_array().expect("Invalid response at get_language_codes") {
@@ -143,7 +157,9 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     }
     // Add extended language codes
     for i in 0..EXTENDED_LANG_CODES.len() {
-        lang_codes.push((EXTENDED_LANG_CODES[i].to_string(), EXTENDED_LANG_NAMES[i].to_string()));
+        if EXTENDED_LANG_CODES[i].2 == lang_type {
+            lang_codes.push((EXTENDED_LANG_CODES[i].0.to_string(), EXTENDED_LANG_CODES[i].1.to_string()));
+        }
     }
     // Sort by language code
     lang_codes.sort_by(|a, b| a.0.cmp(&b.0));

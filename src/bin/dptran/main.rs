@@ -221,11 +221,7 @@ fn show_target_language_codes() -> Result<(), RuntimeError> {
     };
 
     // List of Language Codes.
-    let mut target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
-
-    // special case code conversion
-    target_lang_codes.push(("EN".to_string(), "English (American)".to_string()));
-    target_lang_codes.push(("PT".to_string(), "Portuguese (European)".to_string()));
+    let target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
 
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&target_lang_codes);
@@ -500,21 +496,9 @@ fn main() -> Result<(), RuntimeError> {
 
     // Language code check and correction
     if let Some(sl) = source_lang {
-        // EN, PT will be converted to EN-US, PT-PT.
-        let sl = match sl.to_ascii_uppercase().as_str() {
-            "EN" => "EN-US".to_string(),
-            "PT" => "PT-PT".to_string(),
-            _ => sl.to_ascii_uppercase(),
-        };
         source_lang = Some(dptran::correct_source_language_code(&api_key, &sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
     if let Some(tl) = target_lang {
-        // EN, PT will be converted to EN-US, PT-PT.
-        let tl = match tl.to_ascii_uppercase().as_str() {
-            "EN" => "EN-US".to_string(),
-            "PT" => "PT-PT".to_string(),
-            _ => tl.to_ascii_uppercase(),
-        };
         target_lang = Some(dptran::correct_target_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
 
