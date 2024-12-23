@@ -4,7 +4,7 @@ English | [日本語版はこちら](README_JA.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![crates.io](https://img.shields.io/badge/crates.io-v2.1.0-brightgreen.svg)
+![crates.io](https://img.shields.io/badge/crates.io-v2.1.1-brightgreen.svg)
 
 A tool to run DeepL translations on your command line.   
 It's written in Rust, and uses curl to connect to the DeepL API.  
@@ -29,7 +29,7 @@ $ cargo add dptran --no-default-features
 Or, add this to your Cargo.toml:
 ```toml
 [dependencies]
-dptran = { version = "2.1.0", default-features = false }
+dptran = { version = "2.1.1", default-features = false }
 ```
 
 # Binary crate
@@ -55,7 +55,35 @@ For more information about language codes, see the language list getting from De
 
 ```bash
 $ dptran list -s    # for the list of source languages
+ AR: Arabic     BG: Bulgarian  CS: Czech     
+ DA: Danish     DE: German     EL: Greek     
+ EN: English    ES: Spanish    ET: Estonian  
+ FI: Finnish    FR: French     HU: Hungarian 
+ ID: Indonesian IT: Italian    JA: Japanese  
+ KO: Korean     LT: Lithuanian LV: Latvian   
+ NB: Norwegian  NL: Dutch      PL: Polish    
+ PT: Portuguese RO: Romanian   RU: Russian   
+ SK: Slovak     SL: Slovenian  SV: Swedish   
+ TR: Turkish    UK: Ukrainian  ZH: Chinese   
 $ dptran list -t    # for the list of target languages
+ AR     : Arabic                 BG     : Bulgarian             
+ CS     : Czech                  DA     : Danish                
+ DE     : German                 EL     : Greek                 
+ EN     : English                EN-GB  : English (British)     
+ EN-US  : English (American)     ES     : Spanish               
+ ET     : Estonian               FI     : Finnish               
+ FR     : French                 HU     : Hungarian             
+ ID     : Indonesian             IT     : Italian               
+ JA     : Japanese               KO     : Korean                
+ LT     : Lithuanian             LV     : Latvian               
+ NB     : Norwegian              NL     : Dutch                 
+ PL     : Polish                 PT     : Portuguese            
+ PT-BR  : Portuguese (Brazilian) PT-PT  : Portuguese (European) 
+ RO     : Romanian               RU     : Russian               
+ SK     : Slovak                 SL     : Slovenian             
+ SV     : Swedish                TR     : Turkish               
+ UK     : Ukrainian              ZH     : Chinese (simplified)  
+ ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (Traditional)
 ```
 
 ## Usage
