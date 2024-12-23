@@ -30,7 +30,7 @@ static EXTENDED_LANG_CODES: [(&str, &str, LangType); 5] = [
     ("AR", "Arabic", LangType::Target),
     ("EN", "English", LangType::Target),
     ("PT", "Portuguese", LangType::Target),
-    ("ZH-HANT", "Chinese (Traditional)", LangType::Target)
+    ("ZH-HANT", "Chinese (traditional)", LangType::Target)
 ];
 
 /// DeepL API error.  

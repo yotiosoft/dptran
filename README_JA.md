@@ -83,7 +83,7 @@ $ dptran list -t    # for the list of target languages
  SK     : Slovak                 SL     : Slovenian             
  SV     : Swedish                TR     : Turkish               
  UK     : Ukrainian              ZH     : Chinese (simplified)  
- ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (Traditional)
+ ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (traditional)
 ```
 
 ## 利用方法
