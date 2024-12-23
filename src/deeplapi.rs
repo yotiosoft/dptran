@@ -133,13 +133,20 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     // Add got language codes
     for value in v.as_array().expect("Invalid response at get_language_codes") {
         value.get("language").ok_or("Invalid response".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-        let lang_code = (value["language"].to_string(), value["name"].to_string());
-        lang_codes.push(lang_code);
+        // Remove quotation marks
+        let lang_code_with_quote = value["language"].to_string();
+        let lang_code = &lang_code_with_quote[1..lang_code_with_quote.len()-1];
+        let lang_name_with_quote = value["name"].to_string();
+        let lang_name = &lang_name_with_quote[1..lang_name_with_quote.len()-1];
+        let lang_code_pair = (lang_code.to_string(), lang_name.to_string());
+        lang_codes.push(lang_code_pair);
     }
     // Add extended language codes
     for i in 0..EXTENDED_LANG_CODES.len() {
         lang_codes.push((EXTENDED_LANG_CODES[i].to_string(), EXTENDED_LANG_NAMES[i].to_string()));
     }
+    // Sort by language code
+    lang_codes.sort_by(|a, b| a.0.cmp(&b.0));
     // return
     if lang_codes.len() == 0 {
         Err(DeeplAPIError::GetLanguageCodesError)
