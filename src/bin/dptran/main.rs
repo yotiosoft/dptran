@@ -1,7 +1,7 @@
 use std::io::{self, Write, stdin, stdout, BufWriter};
 use std::fs::OpenOptions;
 use std::fmt::Debug;
-use ar_reshaper::{ArabicReshaper, reshape_line};
+use unicode_bidi::BidiInfo;
 
 mod parse;
 mod configure;
@@ -394,11 +394,15 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
                     println!("{}", translated_text);
                 }
             } else {
-                let reshaper = ArabicReshaper::default();
+                let bidi = BidiInfo::new(&translated_text, None);
+                for para in &bidi.paragraphs {
+                    let line = para.range.clone();
+                    println!("{:?}", line);
+                    let display = bidi.reorder_line(para, line);
 
-                println!("{}", reshaper.reshape(translated_text));
-                println!("{}", "سلام دنیا");
-                println!("\u{061c}{}", reshaper.reshape("سلام دنیا"));
+                    print!("{}", format!("{}", display));
+                }
+                println!();
             }
         }
         // In normal mode, exit the loop once.

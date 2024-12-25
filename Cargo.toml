@@ -22,11 +22,11 @@ confy = { version = "0.6.1", optional = true }
 clap = { version = "4.1.4", features = ["derive"], optional = true }
 atty = { version = "0.2.14", optional = true }
 md5 = { version = "0.7.0", optional = true }
-ar-reshaper = "1.5.0"
+unicode-bidi = { version = "0.3.18", optional = true }
 
 [features]
-default = ["confy", "clap", "atty", "md5"]
-app = ["confy", "clap", "atty", "md5"]      # for compatibility with the previous version (- v2.0.0)
+default = ["confy", "clap", "atty", "md5", "unicode-bidi"]
+app = ["confy", "clap", "atty", "md5", "unicode-bidi"]      # for compatibility with the previous version (- v2.0.0)
 
 # Use --no-default-features to disable default features
 [lib]
