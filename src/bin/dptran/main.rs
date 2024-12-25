@@ -312,6 +312,19 @@ fn get_input(mode: &ExecutionMode, multilines: bool, rm_line_breaks: bool, text:
     }
 }
 
+/// Return a formatted string of the translation result.
+/// Use the unicode_bidi crate to handle bidirectional text.
+fn format_translation_result(translated_text: &str) -> String {
+    let bidi = BidiInfo::new(translated_text, None);
+    let mut formatted_text = String::new();
+    for para in &bidi.paragraphs {
+        let line = para.range.clone();
+        let display = bidi.reorder_line(para, line);
+        formatted_text.push_str(&format!("{}", display));
+    }
+    formatted_text
+}
+
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
@@ -386,23 +399,17 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
             result
         };
         for translated_text in translated_texts {
+            let formatted_text = format_translation_result(&translated_text);
             if let Some(ofile) = &mut ofile {
                 // append to the file
                 let mut buf_writer = BufWriter::new(ofile);
                 writeln!(buf_writer, "{}", translated_text).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
                 if mode == ExecutionMode::TranslateInteractive {
-                    println!("{}", translated_text);
+                    println!("{}", formatted_text);
                 }
             } else {
-                let bidi = BidiInfo::new(&translated_text, None);
-                for para in &bidi.paragraphs {
-                    let line = para.range.clone();
-                    println!("{:?}", line);
-                    let display = bidi.reorder_line(para, line);
-
-                    print!("{}", format!("{}", display));
-                }
-                println!();
+                // print to stdout
+                println!("{}", formatted_text);
             }
         }
         // In normal mode, exit the loop once.
