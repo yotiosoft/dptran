@@ -1,6 +1,7 @@
 use std::io::{self, Write, stdin, stdout, BufWriter};
 use std::fs::OpenOptions;
 use std::fmt::Debug;
+use ar_reshaper::{ArabicReshaper, reshape_line};
 
 mod parse;
 mod configure;
@@ -393,7 +394,11 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
                     println!("{}", translated_text);
                 }
             } else {
-                println!("{}", translated_text);
+                let reshaper = ArabicReshaper::default();
+
+                println!("{}", reshaper.reshape(translated_text));
+                println!("{}", "سلام دنیا");
+                println!("\u{061c}{}", reshaper.reshape("سلام دنیا"));
             }
         }
         // In normal mode, exit the loop once.

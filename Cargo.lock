@@ -52,6 +52,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ar-reshaper"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08dae85b57b725df143d5a2eb92c032dd032f062a636826fda1e1a4b21c40c03"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -196,6 +202,7 @@ dependencies = [
 name = "dptran"
 version = "2.1.1"
 dependencies = [
+ "ar-reshaper",
  "atty",
  "clap",
  "confy",
