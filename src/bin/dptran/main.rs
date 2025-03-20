@@ -14,11 +14,14 @@ use parse::ExecutionMode;
 
 enum RuntimeError {
     DeeplApiError(dptran::DpTranError),
+    ApiKeyIsNotSet,
     ConfigError(ConfigError),
     StdIoError(String),
     FileIoError(String),
     EditorError(String),
+    EditorCommandIsNotSet,
     CacheError(CacheError),
+    CacheMaxEntriesIsNotSet,
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -40,11 +43,14 @@ impl ToString for RuntimeError {
                     e => format!("Deepl API error: {}", e.to_string()),
                 }
             }
+            RuntimeError::ApiKeyIsNotSet => "API key is not set.".to_string(),
             RuntimeError::ConfigError(e) => format!("Config error: {}", e),
             RuntimeError::StdIoError(e) => format!("Standard I/O error: {}", e),
             RuntimeError::FileIoError(e) => format!("File I/O error: {}", e),
             RuntimeError::EditorError(e) => format!("Editor error: {}", e),
+            RuntimeError::EditorCommandIsNotSet => "Editor command is not specified.".to_string(),
             RuntimeError::CacheError(e) => format!("Cache error: {}", e),
+            RuntimeError::CacheMaxEntriesIsNotSet => "Cache max entries is not specified.".to_string(),
         }
     }
 }
@@ -440,7 +446,7 @@ fn main() -> Result<(), RuntimeError> {
                 set_api_key(s)?;
                 return Ok(());
             } else {
-                return Err(RuntimeError::StdIoError("API key is not specified.".to_string()));
+                return Err(RuntimeError::ApiKeyIsNotSet);
             }
         }
         ExecutionMode::SetDefaultTargetLang => {
@@ -456,7 +462,7 @@ fn main() -> Result<(), RuntimeError> {
                 configure::set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
-                return Err(RuntimeError::StdIoError("Cache max entries is not specified.".to_string()));
+                return Err(RuntimeError::CacheMaxEntriesIsNotSet);
             }
         }
         ExecutionMode::ClearCache => {
@@ -468,7 +474,7 @@ fn main() -> Result<(), RuntimeError> {
                 set_editor_command(s)?;
                 return Ok(());
             } else {
-                return Err(RuntimeError::StdIoError("Editor command is not specified.".to_string()));
+                return Err(RuntimeError::EditorCommandIsNotSet);
             }
         }
         ExecutionMode::EnableCache => {
