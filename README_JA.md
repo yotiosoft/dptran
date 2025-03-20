@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![crates.io](https://img.shields.io/badge/crates.io-v2.1.1-brightgreen.svg)
+![crates.io](https://img.shields.io/badge/crates.io-v2.2.0-brightgreen.svg)
 
 コマンドラインでDeepL翻訳を実行するツールです。  
 Rustで記述されており、DeepL APIへの接続にはcurlを使用しています。  
@@ -29,7 +29,7 @@ $ cargo add dptran --no-default-features
 または、Cargo.toml に下記を追加してください。
 ```toml
 [dependencies]
-dptran = { version = "2.1.1", default-features = false }
+dptran = { version = "2.2.0", default-features = false }
 ```
 
 # Binary crate
