@@ -23,7 +23,7 @@ enum LangType {
 /// although only text translation is supported. Additionally, if the language code is unspecified variant, it is not returned.
 /// Therefore, dptran adds the following language codes and names manually.
 /// This constants must be updated when the DeepL API is updated.
-/// See <https://https://developers.deepl.com/docs/resources/supported-languages>.
+/// See <https://developers.deepl.com/docs/resources/supported-languages>.
 
 static EXTENDED_LANG_CODES: [(&str, &str, LangType); 5] = [
     ("AR", "Arabic", LangType::Source),
