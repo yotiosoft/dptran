@@ -59,7 +59,8 @@ impl Debug for RuntimeError {
 fn get_usage() -> Result<DpTranUsage, RuntimeError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        dptran::get_usage(&api_key).map_err(|e| RuntimeError::DeeplApiError(e))
+        let dptran = dptran::DpTran::with(&api_key);
+        dptran.get_usage().map_err(|e| RuntimeError::DeeplApiError(e))
     } else {
         Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
     }
@@ -92,9 +93,10 @@ fn set_default_target_language(arg_default_target_language: String) -> Result<()
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
+    let dptran = dptran::DpTran::with(&api_key);
 
     // Check if the language code is correct
-    if let Ok(validated_language_code) = dptran::correct_target_language_code(&api_key, &arg_default_target_language) {
+    if let Ok(validated_language_code) = dptran.correct_target_language_code(&arg_default_target_language) {
         configure::set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
         println!("Default target language has been set to {}.", validated_language_code);
         Ok(())
@@ -195,9 +197,10 @@ fn show_source_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
+    let dptran = dptran::DpTran::with(&api_key);
 
     // List of source language codes.
-    let source_lang_codes = dptran::get_language_codes(&api_key, LangType::Source).map_err(|e| RuntimeError::DeeplApiError(e))?;
+    let source_lang_codes = dptran.get_language_codes(LangType::Source).map_err(|e| RuntimeError::DeeplApiError(e))?;
     
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&source_lang_codes);
@@ -219,9 +222,10 @@ fn show_target_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
+    let dptran = dptran::DpTran::with(&api_key);
 
     // List of Language Codes.
-    let target_lang_codes = dptran::get_language_codes(&api_key, LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
+    let target_lang_codes = dptran.get_language_codes(LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
 
     let mut i = 0;
     let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&target_lang_codes);
@@ -314,7 +318,7 @@ fn get_input(mode: &ExecutionMode, multilines: bool, rm_line_breaks: bool, text:
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
-fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
             multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
@@ -372,7 +376,7 @@ fn process(api_key: &String, mode: ExecutionMode, source_lang: Option<String>, t
         // If not in cache, translate and store in cache
         } else {
             // translate
-            let result = dptran::translate(&api_key, input.clone().unwrap(), &target_lang, &source_lang)
+            let result = dptran.translate(input.clone().unwrap(), &target_lang, &source_lang)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
             // replace \" with "
             let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
@@ -493,13 +497,14 @@ fn main() -> Result<(), RuntimeError> {
             return Ok(());
         },
     };
+    let dptran = dptran::DpTran::with(&api_key);
 
     // Language code check and correction
     if let Some(sl) = source_lang {
-        source_lang = Some(dptran::correct_source_language_code(&api_key, &sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+        source_lang = Some(dptran.correct_source_language_code(&sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
     if let Some(tl) = target_lang {
-        target_lang = Some(dptran::correct_target_language_code(&api_key, &tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+        target_lang = Some(dptran.correct_target_language_code(&tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
     }
 
     // Output filepath
@@ -523,7 +528,7 @@ fn main() -> Result<(), RuntimeError> {
     };
 
     // (Dialogue &) Translation
-    process(&api_key, mode, source_lang, target_lang.unwrap(), 
+    process(&dptran, mode, source_lang, target_lang.unwrap(), 
             arg_struct.multilines, arg_struct.remove_line_breaks, arg_struct.source_text, ofile)?;
 
     Ok(())
