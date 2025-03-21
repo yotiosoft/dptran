@@ -12,7 +12,7 @@ To use, you need to get the DeepL API key from [https://www.deepl.com/en/pro-api
 
 # Installation
 ## Binary crate
-``dptran`` is available on crates.io.
+``dptran`` is available on crates.io ([https://crates.io/crates/dptran](https://crates.io/crates/dptran)).
 
 1. Install ``rustup`` or ``cargo`` to your computer.
 2. run this:

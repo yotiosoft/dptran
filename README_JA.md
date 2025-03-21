@@ -12,7 +12,7 @@ Rustで記述されており、DeepL APIへの接続にはcurlを使用してい
 
 # インストール
 ## Binary crate
-``dptran``はcrates.ioからインストール可能です。
+``dptran``はcrates.ioからインストール可能です ([https://crates.io/crates/dptran](https://crates.io/crates/dptran))。
 
 1. ``rustup`` または ``cargo`` をご使用の環境にインストールします。
 2. cargo で dptran をインストールします。
