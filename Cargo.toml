@@ -1,10 +1,10 @@
 [package]
 name = "dptran"
-version = "2.2.0"
+version = "2.2.1"
 authors = ["yotio <yotio@yotiosoft.com>"]
 description = "A tool to run DeepL translations on command line written by Rust."
 license = "MIT OR Apache-2.0"
-edition = "2024"
+edition = "2021"
 default-run = "dptran"
 repository = "https://github.com/yotiosoft/dptran"
 categories = ["text-processing", "localization", "internationalization", "command-line-interface", "api-bindings"]

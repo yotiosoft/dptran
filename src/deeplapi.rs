@@ -25,9 +25,7 @@ enum LangType {
 /// This constants must be updated when the DeepL API is updated.
 /// See <https://developers.deepl.com/docs/resources/supported-languages>.
 
-static EXTENDED_LANG_CODES: [(&str, &str, LangType); 5] = [
-    ("AR", "Arabic", LangType::Source),
-    ("AR", "Arabic", LangType::Target),
+static EXTENDED_LANG_CODES: [(&str, &str, LangType); 3] = [
     ("EN", "English", LangType::Target),
     ("PT", "Portuguese", LangType::Target),
     ("ZH-HANT", "Chinese (traditional)", LangType::Target)
