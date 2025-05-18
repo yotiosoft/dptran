@@ -21,7 +21,7 @@ jobs:
     if: github.ref_name == 'dev'
     environment: build-and-test-for-dev
     env:
-      DPTRAN_DEEPL_API_TOKEN: ${{ secrets.DPTRAN_DEEPL_API_TOKEN }}
+      DPTRAN_DEEPL_API_KEY: ${{ secrets.DPTRAN_DEEPL_API_TOKEN }}
     steps:
     - uses: actions/checkout@v4
     - name: Build
@@ -37,7 +37,7 @@ jobs:
     if: github.ref_name == 'main'
     environment: build-and-test
     env:
-      DPTRAN_DEEPL_API_TOKEN: ${{ secrets.DPTRAN_DEEPL_API_TOKEN }}
+      DPTRAN_DEEPL_API_KEY: ${{ secrets.DPTRAN_DEEPL_API_TOKEN }}
     steps:
     - uses: actions/checkout@v4
     - name: Build
