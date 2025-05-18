@@ -25,10 +25,9 @@ enum LangType {
 /// This constants must be updated when the DeepL API is updated.
 /// See <https://developers.deepl.com/docs/resources/supported-languages>.
 
-static EXTENDED_LANG_CODES: [(&str, &str, LangType); 3] = [
+static EXTENDED_LANG_CODES: [(&str, &str, LangType); 2] = [
     ("EN", "English", LangType::Target),
     ("PT", "Portuguese", LangType::Target),
-    ("ZH-HANT", "Chinese (traditional)", LangType::Target)
 ];
 
 /// DeepL API error.  
@@ -156,6 +155,11 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     // Add extended language codes
     for i in 0..EXTENDED_LANG_CODES.len() {
         if EXTENDED_LANG_CODES[i].2 == lang_type {
+            // Check: if the language code is already in the list
+            if lang_codes.iter().any(|x| x.0 == EXTENDED_LANG_CODES[i].0 && x.1 == EXTENDED_LANG_CODES[i].1) {
+                // If it is already in the list, skip it
+                continue;
+            }
             lang_codes.push((EXTENDED_LANG_CODES[i].0.to_string(), EXTENDED_LANG_CODES[i].1.to_string()));
         }
     }
