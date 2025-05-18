@@ -173,84 +173,125 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     }
 }
 
-#[test]
-/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
-fn api_translate_test() {
-    // translate test
-    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-    let text = vec!["Hello, World!".to_string()];
-    let target_lang = "JA".to_string();
-    let source_lang = None;
-    let res = translate(&api_key, &text, &target_lang, &source_lang);
-    match res {
-        Ok(res) => {
-            //assert_eq!(res[0], "ハロー、ワールド！");
-            println!("res: {}", res[0]);
-        },
-        Err(e) => {
-            panic!("Error: {}", e);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn retry_or_panic(e: &DeeplAPIError) -> bool {
+        if e == &DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests) {
+            // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            return true;
+        }
+        else {
+            panic!("Error: {}", e.to_string());
         }
     }
-}
 
-#[test]
-fn api_usage_test() {
-    // usage test
-    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-    let res = get_usage(&api_key);
-    if res.is_err() {
-        panic!("Error: {}", res.unwrap_err());
-    }
-}
-
-#[test]
-fn api_get_language_codes_test() {
-    // get_language_codes test
-    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-    let res = get_language_codes(&api_key, "source".to_string());
-    match res {
-        Ok(res) => {
-            if res.len() == 0 {
-                panic!("Error: language codes is empty");
+    #[test]
+    /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+    /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+    fn api_translate_test() {
+        // translate test
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
+        let text = vec!["Hello, World!".to_string()];
+        let target_lang = "JA".to_string();
+        let source_lang = None;
+        let res = translate(&api_key, &text, &target_lang, &source_lang);
+        match res {
+            Ok(res) => {
+                //assert_eq!(res[0], "ハロー、ワールド！");
+                println!("res: {}", res[0]);
+            },
+            Err(e) => {
+                if retry_or_panic(&e) {
+                    // retry
+                    api_translate_test();
+                }
             }
-        },
-        Err(e) => {
-            panic!("Error: {}", e);
         }
     }
-}
 
-#[test]
-fn json_to_vec_test() {
-    let json = r#"{"translations":[{"detected_source_language":"EN","text":"ハロー、ワールド！"}]}"#.to_string();
-    let res = json_to_vec(&json);
-    match res {
-        Ok(res) => {
-            assert_eq!(res[0], "ハロー、ワールド！");
-        },
-        Err(e) => {
-            panic!("Error: {}", e);
+    #[test]
+    fn api_usage_test() {
+        // usage test
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
+        let res = get_usage(&api_key);
+        if res.is_err() {
+            if retry_or_panic(&res.err().unwrap()) {
+                // retry
+                api_usage_test();
+            }
         }
     }
-}
 
-#[test]
-fn error_test() {
-    // no api_key
-    let text = vec!["Hello, World!".to_string()];
-    let target_lang = "JA".to_string();
-    let source_lang = None;
-    let res = translate(&"".to_string(), &text, &target_lang, &source_lang);
-    match res {
-        Ok(_) => {
-            panic!("Error: translation success");
-        },
-        Err(e) => {
-            assert_eq!(e, DeeplAPIError::JsonError("Invalid response".to_string()));
+    #[test]
+    fn api_get_language_codes_test() {
+        // get_language_codes test
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
+        let res = get_language_codes(&api_key, "source".to_string());
+        match res {
+            Ok(res) => {
+                if res.len() == 0 {
+                    panic!("Error: language codes is empty");
+                }
+
+                // Are there extended language codes?
+                let mut found = false;
+                for i in 0..EXTENDED_LANG_CODES.len() {
+                    if res.iter().any(|x| x.0 == EXTENDED_LANG_CODES[i].0 && x.1 == EXTENDED_LANG_CODES[i].1) {
+                        found = true;
+                        break;
+                    }
+                }
+                if !found {
+                    panic!("Error: extended language codes not found");
+                }
+            },
+            Err(e) => {
+                if retry_or_panic(&e) {
+                    // retry
+                    api_get_language_codes_test();
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn json_to_vec_test() {
+        let json = r#"{"translations":[{"detected_source_language":"EN","text":"ハロー、ワールド！"}]}"#.to_string();
+        let res = json_to_vec(&json);
+        match res {
+            Ok(res) => {
+                assert_eq!(res[0], "ハロー、ワールド！");
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn error_test() {
+        // no api_key
+        let text = vec!["Hello, World!".to_string()];
+        let target_lang = "JA".to_string();
+        let source_lang = None;
+        let res = translate(&"".to_string(), &text, &target_lang, &source_lang);
+        match res {
+            Ok(_) => {
+                panic!("Error: translation success");
+            },
+            Err(e) => {
+                if e == DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests) {
+                    // retry
+                    error_test();
+                }
+                assert_eq!(e, DeeplAPIError::JsonError("Invalid response".to_string()));
+            }
         }
     }
 }
