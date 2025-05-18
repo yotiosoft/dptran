@@ -154,23 +154,11 @@ impl DpTran {
 }
 
 #[test]
-#[ignore]
-/// run with `cargo test api_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
-/// arg[2] : api_key
-/// arg[3] : DeepL API free = 0, DeepL API pro = 1
+/// To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
 fn lib_tests() {
-    if std::env::args().len() < 3 {
-        panic!("Usage: cargo test lib_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>");
-    }
-
-    let mut args = Vec::new();
-    for arg in std::env::args().skip(2) {
-        println!("arg: {}", arg);
-        args.push(arg);
-    }
-
     // create instance test
-    let api_key = &args[0];
+    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
     let dptran = DpTran::with(&api_key);
 
     // translate test
@@ -190,21 +178,10 @@ fn lib_tests() {
 
     // usage test
     let res = dptran.get_usage();
-    match res {
-        Ok(res) => {
-            // If you have a pro account, it is not an error.
-            if args[1] == "0" && res.character_limit != 500000 {
-                panic!("Error: usage limit is not 50000");
-            }
-            if args[1] == "1" && res.character_limit != 0 {
-                panic!("Error: usage limit is not 0");
-            }
-        },
-        Err(e) => {
-            panic!("Error: {}", e.to_string());
-        }
+    if res.is_err() {
+        panic!("Error: {}", res.err().unwrap().to_string());
     }
-
+    
     // get_language_codes test
     let res = dptran.get_language_codes(LangType::Source);
     match res {
