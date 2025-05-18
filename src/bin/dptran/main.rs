@@ -386,8 +386,8 @@ fn main() -> Result<(), RuntimeError> {
             println!("Welcome to dptran!\n
                 First, please set your DeepL API-key:\n
                   $ dptran set --api-key <API_KEY>\n
-                Or, you can set it in the environment variable DPTRAN_API_KEY.\n
-                  $ export DPTRAN_API_KEY=<API_KEY>\n\n
+                Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.\n
+                  $ export DPTRAN_DEEPL_API_KEY=<API_KEY>\n\n
                 If you don't have an API-key, please sign up for a free/pro account at DeepL.\n
                 You can get DeepL API-key for free here:\n  https://www.deepl.com/en/pro-api?cta=header-pro-api/");
             return Ok(());
