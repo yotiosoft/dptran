@@ -116,6 +116,11 @@ pub fn get_default_target_language_code() -> Result<String, RuntimeError> {
 /// Load the API key from the configuration file.
 pub fn get_api_key() -> Result<Option<String>, RuntimeError> {
     let api_key = configure::get_api_key().map_err(|e| RuntimeError::ConfigError(e))?;
+    // If the API key is not set, check environment variables
+    if api_key.is_none() {
+        let env_api_key = std::env::var("DPTRAN_API_KEY").ok();
+        return Ok(env_api_key);
+    }
     Ok(api_key)
 }
 
