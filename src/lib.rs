@@ -154,8 +154,9 @@ impl DpTran {
 }
 
 #[test]
-/// To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-fn lib_tests() {
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+fn lib_translate_test() {
     // create instance test
     let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
         .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -175,14 +176,28 @@ fn lib_tests() {
             panic!("Error: {}", e.to_string());
         }
     }
+}
 
+#[test]
+fn lib_usage_test() {
     // usage test
+    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
+    let dptran = DpTran::with(&api_key);
+
     let res = dptran.get_usage();
     if res.is_err() {
         panic!("Error: {}", res.err().unwrap().to_string());
     }
-    
+}
+
+#[test]
+fn lib_get_language_code_test() {   
     // get_language_codes test
+    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
+    let dptran = DpTran::with(&api_key);
+
     let res = dptran.get_language_codes(LangType::Source);
     match res {
         Ok(res) => {
@@ -194,8 +209,15 @@ fn lib_tests() {
             panic!("Error: {}", e.to_string());
         }
     }
+}
 
+#[test]
+fn lib_check_language_code_test() {
     // check_language_code test
+    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
+    let dptran = DpTran::with(&api_key);
+    
     let res = dptran.check_language_code(&"EN-US".to_string(), LangType::Target);
     match res {
         Ok(res) => {
