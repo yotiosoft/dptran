@@ -1,122 +1,12 @@
 use std::io::{self, Write, stdin, stdout, BufWriter};
 use std::fs::OpenOptions;
-use std::fmt::Debug;
 use unicode_bidi::BidiInfo;
 
-mod parse;
-mod configure;
-mod cache;
+mod backend;
+use backend::RuntimeError;
+use backend::ExecutionMode;
 
-use dptran::{DpTranError, DpTranUsage, LangType};
-use configure::ConfigError;
-use cache::CacheError;
-use parse::ExecutionMode;
-
-enum RuntimeError {
-    DeeplApiError(dptran::DpTranError),
-    ApiKeyIsNotSet,
-    ConfigError(ConfigError),
-    StdIoError(String),
-    FileIoError(String),
-    EditorError(String),
-    EditorCommandIsNotSet,
-    CacheError(CacheError),
-    CacheMaxEntriesIsNotSet,
-}
-impl ToString for RuntimeError {
-    fn to_string(&self) -> String {
-        match self {
-            RuntimeError::DeeplApiError(e) => {
-                match e {
-                    dptran::DpTranError::DeeplApiError(e) => {
-                        match e {
-                            dptran::DeeplAPIError::ConnectionError(e) => {
-                                match e {
-                                    dptran::ConnectionError::Forbidden => "403 Forbidden Error. Maybe the API key is invalid.".to_string(),
-                                    dptran::ConnectionError::NotFound => "404 Not Found Error. Make sure the internet connection is working.".to_string(),
-                                    e => format!("Connection error: {}", e),
-                                }
-                            },
-                            e => format!("Deepl API error: {}", e.to_string()),
-                        }
-                    },
-                    e => format!("Deepl API error: {}", e.to_string()),
-                }
-            }
-            RuntimeError::ApiKeyIsNotSet => "API key is not set.".to_string(),
-            RuntimeError::ConfigError(e) => format!("Config error: {}", e),
-            RuntimeError::StdIoError(e) => format!("Standard I/O error: {}", e),
-            RuntimeError::FileIoError(e) => format!("File I/O error: {}", e),
-            RuntimeError::EditorError(e) => format!("Editor error: {}", e),
-            RuntimeError::EditorCommandIsNotSet => "Editor command is not specified.".to_string(),
-            RuntimeError::CacheError(e) => format!("Cache error: {}", e),
-            RuntimeError::CacheMaxEntriesIsNotSet => "Cache max entries is not specified.".to_string(),
-        }
-    }
-}
-impl Debug for RuntimeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
-/// Get the number of characters remaining to be translated
-/// Retrieved from <https://api-free.deepl.com/v2/usage>
-/// Returns an error if acquisition fails
-fn get_usage() -> Result<DpTranUsage, RuntimeError> {
-    let api_key = get_api_key()?;
-    if let Some(api_key) = api_key {
-        let dptran = dptran::DpTran::with(&api_key);
-        dptran.get_usage().map_err(|e| RuntimeError::DeeplApiError(e))
-    } else {
-        Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
-    }
-}
-
-/// Display the number of characters remaining.
-fn show_usage() -> Result<(), RuntimeError> {
-    let usage = get_usage()?;
-    if usage.unlimited {
-        println!("usage: {} / unlimited", usage.character_count);
-    }
-    else {
-        println!("usage: {} / {} ({}%)", usage.character_count, usage.character_limit, (usage.character_count as f64 / usage.character_limit as f64 * 100.0).round());
-        println!("remaining: {}", usage.character_limit - usage.character_count);
-    }
-    Ok(())
-}
-
-/// Set API key (using confy crate).
-/// Set the API key in the configuration file config.json.
-fn set_api_key(api_key: String) -> Result<(), RuntimeError> {
-    configure::set_api_key(api_key).map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(())
-}
-
-/// Set default destination language.
-/// Set the default target language for translation in the configuration file config.json.
-fn set_default_target_language(arg_default_target_language: String) -> Result<(), RuntimeError> {
-    let api_key = match get_api_key()? {
-        Some(api_key) => api_key,
-        None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
-    };
-    let dptran = dptran::DpTran::with(&api_key);
-
-    // Check if the language code is correct
-    if let Ok(validated_language_code) = dptran.correct_target_language_code(&arg_default_target_language) {
-        configure::set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
-        println!("Default target language has been set to {}.", validated_language_code);
-        Ok(())
-    } else {
-        Err(RuntimeError::DeeplApiError(DpTranError::InvalidLanguageCode))
-    }
-}
-
-/// Set the editor command.
-fn set_editor_command(editor_command: String) -> Result<(), RuntimeError> {
-    configure::set_editor_command(editor_command).map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(())
-}
+use dptran::{DpTranError, LangType};
 
 /// Initialization of settings.
 fn clear_settings() -> Result<(), RuntimeError> {
@@ -126,50 +16,20 @@ fn clear_settings() -> Result<(), RuntimeError> {
     io::stdin().read_line(&mut input).unwrap();
     // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
-        configure::clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
+        backend::clear_settings()?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
     Ok(())
 }
 
-/// Get the configured default destination language code.
-fn get_default_target_language_code() -> Result<String, RuntimeError> {
-    let default_target_lang = configure::get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(default_target_lang)
-}
-
-/// Load the API key from the configuration file.
-fn get_api_key() -> Result<Option<String>, RuntimeError> {
-    let api_key = configure::get_api_key().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(api_key)
-}
-
-/// Get the maximum number of cache entries.
-fn get_cache_max_entries() -> Result<usize, RuntimeError> {
-    let cache_max_entries = configure::get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(cache_max_entries)
-}
-
-/// Load the editor command from the configuration file.
-fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
-    let editor_command = configure::get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(editor_command)
-}
-
-/// Get the cache enabled status.
-fn get_cache_enabled() -> Result<bool, RuntimeError> {
-    let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(cache_enabled)
-}
-
 /// Display of settings.
 fn display_settings() -> Result<(), RuntimeError> {
-    let api_key = get_api_key()?;
-    let default_target_lang = get_default_target_language_code()?;
-    let cache_max_entries = get_cache_max_entries()?;
-    let editor_command = get_editor_command_str()?;
-    let cache_enabled = get_cache_enabled()?;
+    let api_key = backend::get_api_key()?;
+    let default_target_lang = backend::get_default_target_language_code()?;
+    let cache_max_entries = backend::get_cache_max_entries()?;
+    let editor_command = backend::get_editor_command_str()?;
+    let cache_enabled = backend::get_cache_enabled()?;
 
     if let Some(api_key) = api_key {
         println!("API key: {}", api_key);
@@ -191,16 +51,24 @@ fn display_settings() -> Result<(), RuntimeError> {
 
     println!("Cache enabled: {}", cache_enabled);
 
-    let config_filepath = configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
+    let config_filepath = backend::configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
     println!("Configuration file path: {}", config_filepath.to_str().unwrap());
 
+    Ok(())
+}
+
+/// Set default destination language.
+/// Set the default target language for translation in the configuration file config.json.
+fn set_default_target_language(arg_default_target_language: &String) -> Result<(), RuntimeError> {
+    let validated_language_code = backend::set_default_target_language(arg_default_target_language)?;
+    println!("Default target language has been set to {}.", validated_language_code);
     Ok(())
 }
 
 /// Display list of source language codes.
 /// Retrieved from <https://api-free.deepl.com/v2/languages>
 fn show_source_language_codes() -> Result<(), RuntimeError> {
-    let api_key = match get_api_key()? {
+    let api_key = match backend::get_api_key()? {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
@@ -225,7 +93,7 @@ fn show_source_language_codes() -> Result<(), RuntimeError> {
 }
 /// Display of list of language codes to be translated.
 fn show_target_language_codes() -> Result<(), RuntimeError> {
-    let api_key = match get_api_key()? {
+    let api_key = match backend::get_api_key()? {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
@@ -255,8 +123,21 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
     (len, max_code_len, max_str_len)
 }
 
+/// Display the number of characters remaining.
+pub fn show_usage() -> Result<(), RuntimeError> {
+    let usage = backend::get_usage()?;
+    if usage.unlimited {
+        println!("usage: {} / unlimited", usage.character_count);
+    }
+    else {
+        println!("usage: {} / {} ({}%)", usage.character_count, usage.character_limit, (usage.character_count as f64 / usage.character_limit as f64 * 100.0).round());
+        println!("remaining: {}", usage.character_limit - usage.character_count);
+    }
+    Ok(())
+}
+
 /// Get source text from the stdin.
-fn get_input(mode: &ExecutionMode, multilines: bool, rm_line_breaks: bool, text: &Option<String>) -> Option<Vec<String>> {
+fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bool, text: &Option<String>) -> Option<Vec<String>> {
     let stdin = stdin();
     let mut stdout = stdout();
 
@@ -363,48 +244,35 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
         if input.is_none() {
             return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
         }
+        let input = input.unwrap();
 
         // Interactive mode: "quit" to exit
         if mode == ExecutionMode::TranslateInteractive {
-            if let Some(input) = &input {
-                if input.len() == 0 {
-                    continue;
-                }
-                if input[0].trim_end() == "quit" {
-                    break;
-                }
-                if input[0].clone().trim_end().is_empty() {
-                    continue;
-                }
+            if input.len() == 0 {
+                continue;
             }
-        }
-        // Normal mode: Exit if empty string
-        if mode == ExecutionMode::TranslateNormal && input.is_none() {
-            break;
+            if input[0].trim_end() == "quit" {
+                break;
+            }
+            if input[0].clone().trim_end().is_empty() {
+                continue;
+            }
         }
 
         // Check the cache
-        let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
-        let cache_str = input.clone().unwrap().join("\n").trim().to_string();
-        let cache_result = if cache_enabled {
-            cache::search_cache(&cache_str, &source_lang, &target_lang).map_err(|e| RuntimeError::CacheError(e))?
-        } else {
-            None
-        };
+        let cache_result = backend::search_cache(&input, &source_lang, &target_lang)?;
         let translated_texts = if let Some(cached_text) = cache_result {
             vec![cached_text]
         // If not in cache, translate and store in cache
         } else {
             // translate
-            let result = dptran.translate(input.clone().unwrap(), &target_lang, &source_lang)
+            let result = dptran.translate(&input, &target_lang, &source_lang)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?;
             // replace \" with "
             let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
             // store in cache
-            let max_entries = get_cache_max_entries()?;
-            if cache_enabled {
-                cache::into_cache_element(&cache_str, &result.clone().join("\n"), &source_lang, &target_lang, max_entries)
-                    .map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+            if backend::get_cache_enabled()? {
+                backend::into_cache(&input, &result, &source_lang, &target_lang)?;
             }
             result
         };
@@ -434,7 +302,7 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
     // Parsing arguments.
-    let arg_struct = parse::parser()?;
+    let arg_struct = backend::parse::parser()?;
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {
@@ -443,7 +311,7 @@ fn main() -> Result<(), RuntimeError> {
         }
         ExecutionMode::SetApiKey => {
             if let Some(s) = arg_struct.api_key {
-                set_api_key(s)?;
+                backend::set_api_key(s)?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::ApiKeyIsNotSet);
@@ -451,7 +319,7 @@ fn main() -> Result<(), RuntimeError> {
         }
         ExecutionMode::SetDefaultTargetLang => {
             if let Some(s) = arg_struct.default_target_lang {
-                set_default_target_language(s)?;
+                set_default_target_language(&s)?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
@@ -459,30 +327,30 @@ fn main() -> Result<(), RuntimeError> {
         }
         ExecutionMode::SetCacheMaxEntries => {
             if let Some(s) = arg_struct.cache_max_entries {
-                configure::set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                backend::configure::set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::CacheMaxEntriesIsNotSet);
             }
         }
         ExecutionMode::ClearCache => {
-            cache::clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
+            backend::cache::clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
             return Ok(());
         }
         ExecutionMode::SetEditor => {
             if let Some(s) = arg_struct.editor_command {
-                set_editor_command(s)?;
+                backend::set_editor_command(s)?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::EditorCommandIsNotSet);
             }
         }
         ExecutionMode::EnableCache => {
-            configure::set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
+            backend::configure::set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         ExecutionMode::DisableCache => {
-            configure::set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
+            backend::configure::set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         ExecutionMode::DisplaySettings => {
@@ -508,11 +376,11 @@ fn main() -> Result<(), RuntimeError> {
     let mut target_lang = arg_struct.translate_to;
 
     if target_lang.is_none() {
-        target_lang = Some(get_default_target_language_code()?);
+        target_lang = Some(backend::get_default_target_language_code()?);
     }
 
     // API Key confirmation
-    let api_key = match get_api_key()? {
+    let api_key = match backend::get_api_key()? {
         Some(api_key) => api_key,
         None => {
             println!("Welcome to dptran!\nFirst, please set your DeepL API-key:\n  $ dptran set --api-key <API_KEY>\nYou can get DeepL API-key for free here:\n  https://www.deepl.com/en/pro-api?cta=header-pro-api/");

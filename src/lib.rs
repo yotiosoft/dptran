@@ -148,7 +148,7 @@ impl DpTran {
     /// text: Text to translate  
     /// target_lang: Target language  
     /// source_lang: Source language (optional)  
-    pub fn translate(&self, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
+    pub fn translate(&self, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
         deeplapi::translate(&self.api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
@@ -176,7 +176,7 @@ fn lib_tests() {
     let text = vec!["Hello, World!".to_string()];
     let target_lang = "JA".to_string();
     let source_lang = None;
-    let res = dptran.translate(text, &target_lang, &source_lang);
+    let res = dptran.translate(&text, &target_lang, &source_lang);
     match res {
         Ok(res) => {
             //assert_eq!(res[0], "ハロー、ワールド！");

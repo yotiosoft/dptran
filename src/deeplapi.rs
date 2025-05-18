@@ -56,14 +56,14 @@ impl fmt::Display for DeeplAPIError {
 
 /// Translation
 /// Returns an error if it fails
-fn request_translate(auth_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
+fn request_translate(auth_key: &String, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
     let url = DEEPL_API_TRANSLATE.to_string();
     let mut query = if source_lang.is_none() {
         format!("auth_key={}&target_lang={}", auth_key, target_lang)
     } else {
         format!("auth_key={}&target_lang={}&source_lang={}", auth_key, target_lang, source_lang.as_ref().unwrap())
     };
-
+    
     for t in text {
         query = format!("{}&text={}", query, t);
     }
@@ -91,7 +91,7 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
 /// Return translation results.
 /// Receive translation results in json format and display translation results.
 /// Return error if json parsing fails.
-pub fn translate(api_key: &String, text: Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
+pub fn translate(api_key: &String, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
     let auth_key = api_key;
 
     // Get json of translation result with request_translate().
@@ -189,7 +189,7 @@ fn api_tests() {
     let text = vec!["Hello, World!".to_string()];
     let target_lang = "JA".to_string();
     let source_lang = None;
-    let res = translate(api_key, text, &target_lang, &source_lang);
+    let res = translate(api_key, &text, &target_lang, &source_lang);
     match res {
         Ok(res) => {
             //assert_eq!(res[0], "ハロー、ワールド！");
@@ -251,14 +251,14 @@ fn error_test() {
     let text = vec!["Hello, World!".to_string()];
     let target_lang = "JA".to_string();
     let source_lang = None;
-    let res = translate(&"".to_string(), text, &target_lang, &source_lang);
+    let res = translate(&"".to_string(), &text, &target_lang, &source_lang);
     match res {
         Ok(_) => {
             panic!("Error: translation success");
         },
         Err(e) => {
             if e != DeeplAPIError::ConnectionError(connection::ConnectionError::Forbidden) {
-                panic!("Error: wrong error");
+                panic!("Error: wrong error: {}", e);
             }
         }
     }
