@@ -27,6 +27,7 @@ jobs:
     - name: Run tests
       run: |
         echo "DPTRAN_DEEPL_API_TOKEN=${{ secrets.DPTRAN_DEEPL_API_TOKEN }}" >> "$GITHUB_ENV"
+        echo "DPTRAN_DEEPL_API_TOKEN=${{ secrets.DPTRAN_DEEPL_API_TOKEN }}"
         cargo test --verbose
 
   build-main:
@@ -42,4 +43,5 @@ jobs:
     - name: Run tests
       run: |
         echo "DPTRAN_DEEPL_API_TOKEN=${{ secrets.DPTRAN_DEEPL_API_TOKEN }}" >> "$GITHUB_ENV"
+        echo "DPTRAN_DEEPL_API_TOKEN=${{ secrets.DPTRAN_DEEPL_API_TOKEN }}"
         cargo test --verbose
