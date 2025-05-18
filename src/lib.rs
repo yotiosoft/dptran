@@ -153,6 +153,8 @@ impl DpTran {
     }
 }
 
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -355,12 +357,10 @@ mod tests {
     }
 
     #[test]
-    /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-    /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
     fn lib_translate_test() {
         impl_lib_translate_test(0);
     }
-    
+
     #[test]
     fn lib_usage_test() {
         // usage test

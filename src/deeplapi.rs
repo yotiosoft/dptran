@@ -173,6 +173,8 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
     }
 }
 
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,17 +267,18 @@ mod tests {
                 panic!("Error: translation success");
             },
             Err(e) => {
-                if retry_or_panic(&e, times) {
+                if e == DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests) && times < 3 {
                     // retry
                     impl_api_error_test(times + 1);
+                }
+                else if e != DeeplAPIError::JsonError("Invalid response".to_string()) {
+                    panic!("Error: {}", e.to_string());
                 }
             }
         }
     }
 
     #[test]
-    /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-    /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
     fn api_translate_test() {
         // translate test
         impl_api_translate_test(0);
