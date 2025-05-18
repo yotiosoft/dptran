@@ -14,10 +14,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-dev:
 
     runs-on: ubuntu-latest
 
+    if: github.ref_name == 'dev'
+    environment: build-and-test-for-dev
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+
+  build-main:
+
+    runs-on: ubuntu-latest
+    
+    if: github.ref_name == 'main'
+    environment: build-and-test
     steps:
     - uses: actions/checkout@v4
     - name: Build
