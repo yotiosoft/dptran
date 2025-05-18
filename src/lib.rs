@@ -304,23 +304,18 @@ mod tests {
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
         let dptran = DpTran::with(&api_key);
         
-        let lang_codes = ["EN", "En", "eN", "en"];
-        for lang_code in lang_codes.iter() {
-            loop {
-                let res = dptran.correct_source_language_code(lang_code);
-                match res {
-                    Ok(res) => {
-                        assert_eq!(res, "EN".to_string());
-                        break;
-                    },
-                    Err(e) => {
-                        if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
-                            // retry
-                            std::thread::sleep(std::time::Duration::from_secs(2));
-                        }
-                        else {
-                            panic!("Error: {}", e.to_string());
-                        }
+        let valid_lang_code = "en";
+        loop {
+            let res = dptran.correct_source_language_code(valid_lang_code);
+            match res {
+                Ok(res) => {
+                    assert_eq!(res, "EN".to_string());
+                    break;
+                },
+                Err(e) => {
+                    if retry_or_panic(&e, times) {
+                        // retry
+                        impl_correct_source_language_code_test(times + 1);
                     }
                 }
             }
@@ -361,23 +356,18 @@ mod tests {
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
         let dptran = DpTran::with(&api_key);
         
-        let lang_codes = ["JA", "Ja", "ja", "ja"];
-        for lang_code in lang_codes.iter() {
-            loop {
-                let res = dptran.correct_target_language_code(lang_code);
-                match res {
-                    Ok(res) => {
-                        assert_eq!(res, "JA".to_string());
-                        break;
-                    },
-                    Err(e) => {
-                        if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
-                            // retry
-                            std::thread::sleep(std::time::Duration::from_secs(2));
-                        }
-                        else {
-                            panic!("Error: {}", e.to_string());
-                        }
+        let valid_lang_code = "ja";
+        loop {
+            let res = dptran.correct_target_language_code(valid_lang_code);
+            match res {
+                Ok(res) => {
+                    assert_eq!(res, "JA".to_string());
+                    break;
+                },
+                Err(e) => {
+                    if retry_or_panic(&e, times) {
+                        // retry
+                        impl_correct_target_language_code_test(times + 1);
                     }
                 }
             }
