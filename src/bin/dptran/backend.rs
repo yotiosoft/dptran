@@ -12,6 +12,7 @@ use std::io::{Write, BufWriter};
 use std::fs::OpenOptions;
 use unicode_bidi::BidiInfo;
 
+#[derive(PartialEq)]
 pub enum RuntimeError {
     DeeplApiError(dptran::DpTranError),
     ApiKeyIsNotSet,

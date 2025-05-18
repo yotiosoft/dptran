@@ -433,3 +433,119 @@ fn main() -> Result<(), RuntimeError> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn retry_or_panic(e: &RuntimeError, times: u8) -> bool {
+        if e == &RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::ConnectionError(dptran::ConnectionError::TooManyRequests))) && times < 3 {
+            // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            return true;
+        }
+        else {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+
+    fn impl_app_show_source_language_codes_test(times: u8) {
+        let result = show_source_language_codes();
+        if let Err(e) = &result {
+            if retry_or_panic(e, 1) {
+                return impl_app_show_source_language_codes_test(times + 1);
+            }
+        }
+        assert!(result.is_ok());
+    }
+
+    fn impl_app_show_target_language_codes_test(times: u8) {
+        let result = show_target_language_codes();
+        if let Err(e) = &result {
+            if retry_or_panic(e, 1) {
+                return impl_app_show_target_language_codes_test(times + 1);
+            }
+        }
+        assert!(result.is_ok());
+    }
+
+    fn impl_app_show_usage_test(times: u8) {
+        let result = show_usage();
+        if let Err(e) = &result {
+            if retry_or_panic(e, 1) {
+                return impl_app_show_usage_test(times + 1);
+            }
+        }
+        assert!(result.is_ok());
+    }
+
+    fn impl_app_process_test(times: u8) {
+        let api_key = backend::get_api_key().unwrap();
+        let dptran = dptran::DpTran::with(&api_key.unwrap());
+        let mode = ExecutionMode::TranslateNormal;
+        let multilines = false;
+        let rm_line_breaks = false;
+        let text = Some("Hello, world!".to_string());
+        let source_lang = Some("en".to_string());
+        let target_lang = "fr".to_string();
+        let ofile = None;
+
+        let result = process(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, ofile);
+        if let Err(e) = &result {
+            if retry_or_panic(e, 1) {
+                return impl_app_process_test(times + 1);
+            }
+        }
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn app_get_langcodes_maxlen_test() {
+        let lang_codes = vec![
+            ("en".to_string(), "English".to_string()),
+            ("fr".to_string(), "French".to_string()),
+            ("de".to_string(), "German".to_string()),
+        ];
+        let (len, max_code_len, max_str_len) = get_langcodes_maxlen(&lang_codes);
+        assert_eq!(len, 3);
+        assert_eq!(max_code_len, 2);
+        assert_eq!(max_str_len, 7);
+    }
+
+    #[test]
+    fn app_display_settings_test() {
+        let result = display_settings();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn app_show_source_language_codes_test() {
+        impl_app_show_source_language_codes_test(0);
+    }
+
+    #[test]
+    fn app_show_target_language_codes_test() {
+        impl_app_show_target_language_codes_test(0);
+    }
+
+    #[test]
+    fn app_show_usage_test() {
+        impl_app_show_usage_test(0);
+    }
+
+    #[test]
+    fn app_get_input_test() {
+        let mode = ExecutionMode::TranslateNormal;
+        let multilines = false;
+        let rm_line_breaks = false;
+        let text = "Hello, world!".to_string();
+
+        let result = get_input(&mode, multilines, rm_line_breaks, &Some(text));
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn app_process_test() {
+        impl_app_process_test(0);
+    }
+}

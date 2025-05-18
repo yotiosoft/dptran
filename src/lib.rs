@@ -391,13 +391,13 @@ mod tests {
     }
 
     #[test]
-    fn correct_source_language_code_test() {
+    fn lib_correct_source_language_code_test() {
         // correct_source_language_code test
         impl_correct_source_language_code_test(0);
     }
 
     #[test]
-    fn correct_target_language_code_test() {
+    fn lib_correct_target_language_code_test() {
         // correct_target_language_code test
         impl_correct_target_language_code_test(0);
     }
