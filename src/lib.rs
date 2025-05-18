@@ -157,8 +157,8 @@ impl DpTran {
 mod tests {
     use super::*;
 
-    fn retry_or_panic(e: &DpTranError) -> bool {
-        if e == &DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) {
+    fn retry_or_panic(e: &DpTranError, times: u8) -> bool {
+        if e == &DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
             // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
             std::thread::sleep(std::time::Duration::from_secs(2));
             return true;
@@ -168,10 +168,7 @@ mod tests {
         }
     }
 
-    #[test]
-    /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-    /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
-    fn lib_translate_test() {
+    fn impl_lib_translate_test(times: u8) {
         // create instance test
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -188,16 +185,22 @@ mod tests {
                 println!("res: {}", res[0]);
             },
             Err(e) => {
-                if retry_or_panic(&e) {
+                if retry_or_panic(&e, times) {
                     // retry
-                    lib_translate_test();
+                    impl_lib_translate_test(times + 1);
                 }
             }
         }
     }
 
     #[test]
-    fn lib_usage_test() {
+    /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+    /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+    fn lib_translate_test() {
+        impl_lib_translate_test(0);
+    }
+
+    fn impl_lib_usage_test(times: u8) {
         // usage test
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -205,15 +208,20 @@ mod tests {
 
         let res = dptran.get_usage();
         if res.is_err() {
-            if retry_or_panic(&res.err().unwrap()) {
+            if retry_or_panic(&res.err().unwrap(), times) {
                 // retry
-                lib_usage_test();
+                impl_lib_usage_test(times + 1);
             }
         }
     }
-
+    
     #[test]
-    fn lib_get_language_code_test() {   
+    fn lib_usage_test() {
+        // usage test
+        impl_lib_usage_test(0);
+    }
+
+    fn impl_lib_get_language_code_test(times: u8) {
         // get_language_codes test
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -227,16 +235,21 @@ mod tests {
                 }
             },
             Err(e) => {
-                if retry_or_panic(&e) {
+                if retry_or_panic(&e, times) {
                     // retry
-                    lib_get_language_code_test();
+                    impl_lib_get_language_code_test(times + 1);
                 }
             }
         }
     }
 
     #[test]
-    fn lib_check_language_code_test() {
+    fn lib_get_language_code_test() {   
+        // get_language_codes test
+        impl_lib_get_language_code_test(0);
+    }
+
+    fn impl_lib_check_language_code_test(times: u8) {
         // check_language_code test
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -248,9 +261,9 @@ mod tests {
                 assert_eq!(res, true);
             },
             Err(e) => {
-                if retry_or_panic(&e) {
+                if retry_or_panic(&e, times) {
                     // retry
-                    lib_check_language_code_test();
+                    impl_lib_check_language_code_test(times + 1);
                 }
             }
         }
@@ -260,12 +273,18 @@ mod tests {
                 assert_eq!(res, false);
             },
             Err(e) => {
-                if retry_or_panic(&e) {
+                if retry_or_panic(&e, times) {
                     // retry
-                    lib_check_language_code_test();
+                    impl_lib_check_language_code_test(times + 1);
                 }
             }
         }
+    }
+
+    #[test]
+    fn lib_check_language_code_test() {
+        // check_language_code test
+        impl_lib_check_language_code_test(0);
     }
 
     #[test]
@@ -279,8 +298,7 @@ mod tests {
         assert_eq!(dptran.get_api_key(), "test".to_string());
     }
 
-    #[test]
-    fn correct_source_language_code_test() {
+    fn impl_correct_source_language_code_test(times: u8) {
         // correct_source_language_code test
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -296,7 +314,7 @@ mod tests {
                         break;
                     },
                     Err(e) => {
-                        if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) {
+                        if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
                             // retry
                             std::thread::sleep(std::time::Duration::from_secs(2));
                         }
@@ -316,7 +334,7 @@ mod tests {
                     panic!("Invalid language code but got: {}", res);
                 },
                 Err(e) => {
-                    if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) {
+                    if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
                         // retry
                         std::thread::sleep(std::time::Duration::from_secs(2));
                     }
@@ -332,7 +350,12 @@ mod tests {
     }
 
     #[test]
-    fn correct_target_language_code_test() {
+    fn correct_source_language_code_test() {
+        // correct_source_language_code test
+        impl_correct_source_language_code_test(0);
+    }
+
+    fn impl_correct_target_language_code_test(times: u8) {
         // correct_target_language_code test
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
             .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -348,7 +371,7 @@ mod tests {
                         break;
                     },
                     Err(e) => {
-                        if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) {
+                        if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
                             // retry
                             std::thread::sleep(std::time::Duration::from_secs(2));
                         }
@@ -368,7 +391,7 @@ mod tests {
                     panic!("Invalid language code but got: {}", res);
                 },
                 Err(e) => {
-                    if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) {
+                    if e == DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests)) && times < 3 {
                         // retry
                         std::thread::sleep(std::time::Duration::from_secs(2));
                     }
@@ -381,5 +404,11 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn correct_target_language_code_test() {
+        // correct_target_language_code test
+        impl_correct_target_language_code_test(0);
     }
 }
