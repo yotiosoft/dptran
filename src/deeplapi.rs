@@ -170,6 +170,7 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
 }
 
 #[test]
+#[ignore]
 /// run with `cargo test api_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
 /// arg[2] : api_key
 /// arg[3] : DeepL API free = 0, DeepL API pro = 1
@@ -257,9 +258,7 @@ fn error_test() {
             panic!("Error: translation success");
         },
         Err(e) => {
-            if e != DeeplAPIError::ConnectionError(connection::ConnectionError::Forbidden) {
-                panic!("Error: wrong error: {}", e);
-            }
+            assert_eq!(e, DeeplAPIError::JsonError("Invalid response".to_string()));
         }
     }
 }

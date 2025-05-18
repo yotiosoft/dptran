@@ -154,6 +154,7 @@ impl DpTran {
 }
 
 #[test]
+#[ignore]
 /// run with `cargo test api_tests -- <api_key> <DeepL API free = 0, DeepL API pro = 1>`
 /// arg[2] : api_key
 /// arg[3] : DeepL API free = 0, DeepL API pro = 1
