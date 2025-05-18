@@ -371,9 +371,27 @@ fn main() -> Result<(), RuntimeError> {
             println!("First, please set your DeepL API-key:");
             println!("\t$ dptran set --api-key <API_KEY>");
             println!();
+        
             println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");
-            println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
+            if cfg!(target_os = "windows") {
+                // Windows向け表示
+                println!("\nFor Windows (PowerShell):");
+                println!("\t$env:DPTRAN_DEEPL_API_KEY = \"<API_KEY>\"");
+                println!("To make it persistent, use the System Environment Variables:");
+                println!("\t1. Open 'System Properties' > 'Environment Variables'");
+                println!("\t2. Add a new user or system variable named 'DPTRAN_DEEPL_API_KEY' with your API key.");
+                println!("(Alternatively, for Command Prompt):");
+                println!("\t> set DPTRAN_DEEPL_API_KEY=<API_KEY>");
+                println!("Note: This is temporary and will be lost when the window is closed.");
+            } else {
+                // Unix/macOS/Linux 向け表示
+                println!("\nFor Linux/macOS:");
+                println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
+                println!("To make it persistent, add the above line to your shell config file:");
+                println!("\t~/.bashrc, ~/.zshrc, or ~/.bash_profile (depending on your shell)");
+            }
             println!();
+
             println!("If you don't have an API-key, please sign up for a free/pro account at DeepL.");
             println!("You can get DeepL API-key for free here:");
             println!("\thttps://www.deepl.com/en/pro-api?cta=header-pro-api/");
