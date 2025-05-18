@@ -1,6 +1,4 @@
-use std::io::{self, Write, stdin, stdout, BufWriter};
-use std::fs::OpenOptions;
-use unicode_bidi::BidiInfo;
+use std::io::{self, Write, stdin, stdout};
 
 mod backend;
 use backend::RuntimeError;
@@ -203,19 +201,6 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
     }
 }
 
-/// Return a formatted string of the translation result.
-/// Use the unicode_bidi crate to handle bidirectional text.
-fn format_translation_result(translated_text: &str) -> String {
-    let bidi = BidiInfo::new(translated_text, None);
-    let mut formatted_text = String::new();
-    for para in &bidi.paragraphs {
-        let line = para.range.clone();
-        let display = bidi.reorder_line(para, line);
-        formatted_text.push_str(&format!("{}", display));
-    }
-    formatted_text
-}
-
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
@@ -277,11 +262,10 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
             result
         };
         for translated_text in translated_texts {
-            let formatted_text = format_translation_result(&translated_text);
+            let formatted_text = backend::format_translation_result(&translated_text);
             if let Some(ofile) = &mut ofile {
                 // append to the file
-                let mut buf_writer = BufWriter::new(ofile);
-                writeln!(buf_writer, "{}", translated_text).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+                backend::append_to_file(ofile, &formatted_text)?;
                 if mode == ExecutionMode::TranslateInteractive {
                     println!("{}", formatted_text);
                 }
@@ -416,8 +400,7 @@ fn main() -> Result<(), RuntimeError> {
                 return Ok(());  // Do not overwrite
             }
         }
-        Some(OpenOptions::new().create(true).write(true).truncate(true).open(&output_file)
-            .map_err(|e| RuntimeError::FileIoError(e.to_string()))?)
+        Some(backend::create_file(&output_file)?)
     }
     else {
         None

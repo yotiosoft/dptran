@@ -1,13 +1,16 @@
 pub mod parse;
 pub mod configure;
 pub mod cache;
-
-use std::fmt::Debug;
 use configure::ConfigError;
 use cache::CacheError;
 pub use parse::ExecutionMode;
 
 use dptran::{DpTranError, DpTranUsage};
+
+use std::fmt::Debug;
+use std::io::{Write, BufWriter};
+use std::fs::OpenOptions;
+use unicode_bidi::BidiInfo;
 
 pub enum RuntimeError {
     DeeplApiError(dptran::DpTranError),
@@ -160,5 +163,31 @@ pub fn into_cache(before_translate_str: &Vec<String>, after_translate_str: &Vec<
     let after_translate_str = after_translate_str.clone().join("\n").trim().to_string();
     let max_entries = get_cache_max_entries()?;
     cache::into_cache_element(&before_translate_str, &after_translate_str, source_lang, target_lang, max_entries).map_err(|e| RuntimeError::CacheError(e))?;
+    Ok(())
+}
+
+/// Return a formatted string of the translation result.
+/// Use the unicode_bidi crate to handle bidirectional text.
+pub fn format_translation_result(translated_text: &str) -> String {
+    let bidi = BidiInfo::new(translated_text, None);
+    let mut formatted_text = String::new();
+    for para in &bidi.paragraphs {
+        let line = para.range.clone();
+        let display = bidi.reorder_line(para, line);
+        formatted_text.push_str(&format!("{}", display));
+    }
+    formatted_text
+}
+
+/// Create a new file.
+pub fn create_file(file_path: &str) -> Result<std::fs::File, RuntimeError> {
+    let ofile = OpenOptions::new().create(true).write(true).truncate(true).open(&file_path).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
+    Ok(ofile)
+}
+
+/// Append to the file
+pub fn append_to_file(ofile: &std::fs::File, text: &str) -> Result<(), RuntimeError> {
+    let mut buf_writer = BufWriter::new(ofile);
+    writeln!(buf_writer, "{}", text).map_err(|e| RuntimeError::FileIoError(e.to_string()))?;
     Ok(())
 }
