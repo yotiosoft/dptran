@@ -174,8 +174,9 @@ pub fn get_language_codes(api_key: &String, type_name: String) -> Result<Vec<Lan
 }
 
 #[test]
-/// To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-fn api_tests() {
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+fn api_translate_test() {
     // translate test
     let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
         .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
@@ -192,14 +193,24 @@ fn api_tests() {
             panic!("Error: {}", e);
         }
     }
+}
 
+#[test]
+fn api_usage_test() {
     // usage test
+    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
     let res = get_usage(&api_key);
     if res.is_err() {
         panic!("Error: {}", res.unwrap_err());
     }
+}
 
+#[test]
+fn api_get_language_codes_test() {
     // get_language_codes test
+    let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
+        .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
     let res = get_language_codes(&api_key, "source".to_string());
     match res {
         Ok(res) => {
