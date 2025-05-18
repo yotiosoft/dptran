@@ -1,0 +1,30 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --verbose
+
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      DPTRAN_DEEPL_API_KEY: 1c664a9f-4696-d92d-1caa-b4a3634ec562:fx
+      
+    steps:
+    - name: Run tests
+      run: cargo test --verbose
