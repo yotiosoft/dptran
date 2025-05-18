@@ -29,7 +29,7 @@ $ cargo add dptran --no-default-features
 または、Cargo.toml に下記を追加してください。
 ```toml
 [dependencies]
-dptran = { version = "2.2.2", default-features = false }
+dptran = { version = "2.3.0", default-features = false }
 ```
 
 # Binary crate
