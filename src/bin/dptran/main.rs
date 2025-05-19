@@ -49,7 +49,8 @@ fn display_settings() -> Result<(), RuntimeError> {
 
     println!("Cache enabled: {}", cache_enabled);
 
-    let config_filepath = backend::configure::get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
+    let config_filepath = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
     println!("Configuration file path: {}", config_filepath.to_str().unwrap());
 
     Ok(())
@@ -311,7 +312,8 @@ fn main() -> Result<(), RuntimeError> {
         }
         ExecutionMode::SetCacheMaxEntries => {
             if let Some(s) = arg_struct.cache_max_entries {
-                backend::configure::set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::CacheMaxEntriesIsNotSet);
@@ -330,11 +332,13 @@ fn main() -> Result<(), RuntimeError> {
             }
         }
         ExecutionMode::EnableCache => {
-            backend::configure::set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
+            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                .set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         ExecutionMode::DisableCache => {
-            backend::configure::set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
+            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                .set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         ExecutionMode::DisplaySettings => {

@@ -77,7 +77,8 @@ pub fn get_usage() -> Result<DpTranUsage, RuntimeError> {
 /// Set API key (using confy crate).
 /// Set the API key in the configuration file config.json.
 pub fn set_api_key(api_key: String) -> Result<(), RuntimeError> {
-    configure::set_api_key(api_key).map_err(|e| RuntimeError::ConfigError(e))?;
+    configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .set_api_key(api_key).map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(())
 }
 
@@ -92,7 +93,8 @@ pub fn set_default_target_language(arg_default_target_language: &String) -> Resu
 
     // Check if the language code is correct
     if let Ok(validated_language_code) = dptran.correct_target_language_code(arg_default_target_language) {
-        configure::set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
+        configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+            .set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
         Ok(validated_language_code)
     } else {
         Err(RuntimeError::DeeplApiError(DpTranError::InvalidLanguageCode))
@@ -101,25 +103,29 @@ pub fn set_default_target_language(arg_default_target_language: &String) -> Resu
 
 /// Set the editor command.
 pub fn set_editor_command(editor_command: String) -> Result<(), RuntimeError> {
-    configure::set_editor_command(editor_command).map_err(|e| RuntimeError::ConfigError(e))?;
+    configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .set_editor_command(editor_command).map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(())
 }
 
 /// Clear the settings.
 pub fn clear_settings() -> Result<(), RuntimeError> {
-    configure::clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
+    configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(())
 }
 
 /// Get the configured default destination language code.
 pub fn get_default_target_language_code() -> Result<String, RuntimeError> {
-    let default_target_lang = configure::get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
+    let default_target_lang = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(default_target_lang)
 }
 
 /// Load the API key from the configuration file.
 pub fn get_api_key() -> Result<Option<String>, RuntimeError> {
-    let api_key = configure::get_api_key().map_err(|e| RuntimeError::ConfigError(e))?;
+    let api_key = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_api_key().map_err(|e| RuntimeError::ConfigError(e))?;
     // If the API key is not set, check environment variables
     if api_key.is_none() {
         let env_api_key = std::env::var("DPTRAN_DEEPL_API_KEY").ok();
@@ -130,25 +136,29 @@ pub fn get_api_key() -> Result<Option<String>, RuntimeError> {
 
 /// Get the maximum number of cache entries.
 pub fn get_cache_max_entries() -> Result<usize, RuntimeError> {
-    let cache_max_entries = configure::get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
+    let cache_max_entries = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(cache_max_entries)
 }
 
 /// Load the editor command from the configuration file.
 pub fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
-    let editor_command = configure::get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
+    let editor_command = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(editor_command)
 }
 
 /// Get the cache enabled status.
 pub fn get_cache_enabled() -> Result<bool, RuntimeError> {
-    let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
+    let cache_enabled = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(cache_enabled)
 }
 
 /// Search the cache
 pub fn search_cache(query: &Vec<String>, source_lang:&Option<String>, target_lang: &String) -> Result<Option<String>, RuntimeError> {
-    let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
+    let cache_enabled = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
     let cache_str = query.join("\n").trim().to_string();
     let cache_result = if cache_enabled {
         cache::search_cache("cache", &cache_str, source_lang, target_lang).map_err(|e| RuntimeError::CacheError(e))?
