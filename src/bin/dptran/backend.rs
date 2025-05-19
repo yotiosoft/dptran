@@ -151,7 +151,7 @@ pub fn search_cache(query: &Vec<String>, source_lang:&Option<String>, target_lan
     let cache_enabled = configure::get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
     let cache_str = query.join("\n").trim().to_string();
     let cache_result = if cache_enabled {
-        cache::search_cache(&cache_str, source_lang, target_lang).map_err(|e| RuntimeError::CacheError(e))?
+        cache::search_cache("cache", &cache_str, source_lang, target_lang).map_err(|e| RuntimeError::CacheError(e))?
     } else {
         None
     };
@@ -163,7 +163,7 @@ pub fn into_cache(before_translate_str: &Vec<String>, after_translate_str: &Vec<
     let before_translate_str = before_translate_str.clone().join("\n").trim().to_string();
     let after_translate_str = after_translate_str.clone().join("\n").trim().to_string();
     let max_entries = get_cache_max_entries()?;
-    cache::into_cache_element(&before_translate_str, &after_translate_str, source_lang, target_lang, max_entries).map_err(|e| RuntimeError::CacheError(e))?;
+    cache::into_cache_element("cache", &before_translate_str, &after_translate_str, source_lang, target_lang, max_entries).map_err(|e| RuntimeError::CacheError(e))?;
     Ok(())
 }
 
