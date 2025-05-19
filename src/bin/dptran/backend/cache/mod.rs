@@ -13,7 +13,12 @@ struct CacheElement {
 }
 
 // Cache struct
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CacheWrapper {
+    cache_name: String,
+    cache: Cache,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct Cache {
     pub saved_version: String,
     pub elements: HashMap<String, CacheElement>,
@@ -40,77 +45,80 @@ impl fmt::Display for CacheError {
     }
 }
 
-fn get_cache_data(cache_name: &str) -> Result<Cache, CacheError> {
-    confy::load::<Cache>("dptran", cache_name).map_err(|e| CacheError::FailToReadCache(e.to_string()))
+pub fn get_cache_data(cache_name: &str) -> Result<CacheWrapper, CacheError> {
+    let cache = confy::load::<Cache>("dptran", cache_name).map_err(|e| CacheError::FailToReadCache(e.to_string()))?;
+    Ok(CacheWrapper {
+        cache_name: cache_name.to_string(),
+        cache,
+    })
 }
 
-fn save_cache_data(cache_data: Cache, cache_name: &str) -> Result<(), CacheError> {
-    confy::store("dptran", cache_name, cache_data).map_err(|e| CacheError::FailToReadCache(e.to_string()))
-}
-
-fn cache_hash(text: &String, source_lang: &Option<String>, target_lang: &String) -> String {
-    let mut s = format!("text:{}:", text);
-    if source_lang.is_some() {
-        s.push_str(format!(":source:{}", target_lang).as_str());
+impl CacheWrapper {
+    fn save_cache_data(&self) -> Result<(), CacheError> {
+        confy::store("dptran", self.cache_name.as_str(), self.cache.clone()).map_err(|e| CacheError::FailToReadCache(e.to_string()))
     }
-    s.push_str(format!("target:{}", target_lang).as_str());
-    let hash = md5::compute(s.as_bytes());
-    format!("{:x}", hash)
-}
 
-pub fn into_cache_element(cache_name: &str, source_text: &String, value: &String, source_lang: &Option<String>, target_lang: &String, max_entries: usize) -> Result<(), CacheError> {
-    // read cache data file
-    let mut cache_data = get_cache_data(cache_name)?;
-    // if caches are more than max_entries, remove the oldest one
-    if cache_data.elements.len() >= max_entries {
-        // Find the oldest key
-        if let Some(oldest_key) = cache_data.elements.keys().next().cloned() {
-            cache_data.elements.remove(&oldest_key);
+    fn cache_hash(&self, text: &String, source_lang: &Option<String>, target_lang: &String) -> String {
+        let mut s = format!("text:{}:", text);
+        if source_lang.is_some() {
+            s.push_str(format!(":source:{}", target_lang).as_str());
         }
+        s.push_str(format!("target:{}", target_lang).as_str());
+        let hash = md5::compute(s.as_bytes());
+        format!("{:x}", hash)
     }
-    // clone source_text and value
-    let s = source_text.clone();
-    let v = value.clone();
-    // create key by md5
-    let key = cache_hash(&s, source_lang, target_lang);
-    // create cache element
-    let element = CacheElement {
-        key: key.clone(),
-        source_langcode: source_lang.clone(),
-        target_langcode: target_lang.clone(),
-        value: v,
-    };
-    // insert element into cache_data
-    cache_data.elements.insert(key, element);
-    // save cache data
-    save_cache_data(cache_data, &cache_name)?;
-    Ok(())
-}
 
-pub fn search_cache(cache_name: &str, value: &String, source_lang: &Option<String>, target_lang: &String) -> Result<Option<String>, CacheError> {
-    let cache_data = get_cache_data(cache_name)?;
-    let v = value.clone();
-    let key = cache_hash(&v, source_lang, target_lang);
-
-    if let Some(element) = cache_data.elements.get(&key) {
-        if source_lang.is_none() {
-            if element.target_langcode == *target_lang && element.source_langcode.is_none() {
-                return Ok(Some(element.value.clone()));
+    pub fn into_cache_element(&mut self, source_text: &String, value: &String, source_lang: &Option<String>, target_lang: &String, max_entries: usize) -> Result<(), CacheError> {
+        // if caches are more than max_entries, remove the oldest one
+        if self.cache.elements.len() >= max_entries {
+            // Find the oldest key
+            if let Some(oldest_key) = self.cache.elements.keys().next().cloned() {
+                self.cache.elements.remove(&oldest_key);
             }
         }
-        else if element.source_langcode.is_some() {
-            if element.target_langcode == *target_lang && element.source_langcode.as_ref().unwrap() == source_lang.as_ref().unwrap() {
-                return Ok(Some(element.value.clone()));
-            }
-        }
+        // clone source_text and value
+        let s = source_text.clone();
+        let v = value.clone();
+        // create key by md5
+        let key = self.cache_hash(&s, source_lang, target_lang);
+        // create cache element
+        let element = CacheElement {
+            key: key.clone(),
+            source_langcode: source_lang.clone(),
+            target_langcode: target_lang.clone(),
+            value: v,
+        };
+        // insert element into cache_data
+        self.cache.elements.insert(key, element);
+        // save cache data
+        self.save_cache_data()?;
+        Ok(())
     }
 
-    Ok(None)
-}
+    pub fn search_cache(&self, value: &String, source_lang: &Option<String>, target_lang: &String) -> Result<Option<String>, CacheError> {
+        let v = value.clone();
+        let key = self.cache_hash(&v, source_lang, target_lang);
 
-pub fn clear_cache(cache_name: &str) -> Result<(), CacheError> {
-    let cache_data = Cache::default();
-    save_cache_data(cache_data, cache_name)
+        if let Some(element) = self.cache.elements.get(&key) {
+            if source_lang.is_none() {
+                if element.target_langcode == *target_lang && element.source_langcode.is_none() {
+                    return Ok(Some(element.value.clone()));
+                }
+            }
+            else if element.source_langcode.is_some() {
+                if element.target_langcode == *target_lang && element.source_langcode.as_ref().unwrap() == source_lang.as_ref().unwrap() {
+                    return Ok(Some(element.value.clone()));
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
+    pub fn clear_cache(&mut self) -> Result<(), CacheError> {
+        self.cache = Cache::default();
+        self.save_cache_data()
+    }
 }
 
 mod tests {
@@ -120,14 +128,14 @@ mod tests {
         let source_lang = Some(String::from("en"));
         let target_lang = String::from("fr");
         let expected_hash = "e19f0a05bb2edd7b53bbc66dd0c8ec5e";
-        let hash = super::cache_hash(&text, &source_lang, &target_lang);
+        let hash = super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+            .cache_hash(&text, &source_lang, &target_lang);
         assert_eq!(hash.len(), 32);
         assert_eq!(hash, expected_hash);
     }
 
     #[test]
     fn cache_into_and_search_test() {
-        let cache_name = String::from("test_cache");
         let source_text = String::from("Hello");
         let value = String::from("Bonjour");
         let source_lang = Some(String::from("en"));
@@ -135,23 +143,26 @@ mod tests {
         let max_entries = 10;
 
         // Clear cache before test
-        super::clear_cache(&cache_name).unwrap();
+        super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+            .clear_cache().unwrap();
 
         // Insert into cache
-        let result = super::into_cache_element(&cache_name, &source_text, &value, &source_lang, &target_lang, max_entries);
+        let result = super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+            .into_cache_element(&source_text, &value, &source_lang, &target_lang, max_entries);
         assert!(result.is_ok());
 
         // Search in cache
-        let search_result = super::search_cache(&cache_name, &source_text, &source_lang, &target_lang);
+        let search_result = super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+            .search_cache(&source_text, &source_lang, &target_lang);
         assert!(search_result.is_ok());
         assert_eq!(search_result.unwrap(), Some(value));
     }
 
     #[test]
     fn cache_clear_test() {
-        let cache_name = String::from("test_cache");
+        let mut cache = super::get_cache_data("test_cache").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap();
 
-        _ = super::clear_cache(&cache_name);
+        _ = cache.clear_cache();
 
         // Insert some data into cache
         let source_text = String::from("Hello");
@@ -159,19 +170,19 @@ mod tests {
         let source_lang = Some(String::from("en"));
         let target_lang = String::from("fr");
         let max_entries = 10;
-        let result = super::into_cache_element(&cache_name, &source_text, &value, &source_lang, &target_lang, max_entries);
+        let result = cache.into_cache_element(&source_text, &value, &source_lang, &target_lang, max_entries);
         assert!(result.is_ok());
 
         // Check if cache has data
-        let cache_data = super::get_cache_data(&cache_name).unwrap();
-        assert_eq!(cache_data.elements.len(), 1);
+        let mut cache_data = super::get_cache_data("test_cache").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap();
+        assert_eq!(cache_data.cache.elements.len(), 1);
 
         // Clear cache
-        let result = super::clear_cache(&cache_name);
+        let result = cache_data.clear_cache();
         assert!(result.is_ok());
 
         // Check if cache is empty
-        let cache_data = super::get_cache_data(&cache_name).unwrap();
-        assert_eq!(cache_data.elements.len(), 0);
+        let cache_data = super::get_cache_data("test_cache").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap();
+        assert_eq!(cache_data.cache.elements.len(), 0);
     }
 }

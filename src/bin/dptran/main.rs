@@ -320,7 +320,8 @@ fn main() -> Result<(), RuntimeError> {
             }
         }
         ExecutionMode::ClearCache => {
-            backend::cache::clear_cache("cache").map_err(|e| RuntimeError::CacheError(e))?;
+            backend::cache::get_cache_data("cache").map_err(|e| RuntimeError::CacheError(e))?
+                .clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
             return Ok(());
         }
         ExecutionMode::SetEditor => {

@@ -166,8 +166,8 @@ fn load_stdin() -> io::Result<Option<String>> {
 
 fn read_from_editor() -> Result<String, RuntimeError> {
     // Get editor command
-    let editor = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-        .get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
+    let configure = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+    let editor = configure.get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
     if let Some(editor) = editor {
         // Parse the editor command and the arguments
         // e.g., "emacs -nw" -> "emacs", "-nw"
@@ -175,8 +175,7 @@ fn read_from_editor() -> Result<String, RuntimeError> {
         let editor = editor_args.next().unwrap();
         let editor_args = editor_args.collect::<Vec<&str>>().join(" ");
         // Get tmp file path
-        let config_filepath = configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-            .get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
+        let config_filepath = configure.get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
         let tmp_filepath = config_filepath.parent().unwrap().join("tmp.txt");
         // Open by the editor
         let mut child = if editor_args.len() > 0 {
