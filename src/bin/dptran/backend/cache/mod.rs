@@ -121,14 +121,17 @@ impl CacheWrapper {
     }
 }
 
+#[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn cache_hash_test() {
         let text = String::from("Hello");
         let source_lang = Some(String::from("en"));
         let target_lang = String::from("fr");
         let expected_hash = "e19f0a05bb2edd7b53bbc66dd0c8ec5e";
-        let hash = super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+        let hash = get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .cache_hash(&text, &source_lang, &target_lang);
         assert_eq!(hash.len(), 32);
         assert_eq!(hash, expected_hash);
@@ -143,16 +146,16 @@ mod tests {
         let max_entries = 10;
 
         // Clear cache before test
-        super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+        get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .clear_cache().unwrap();
 
         // Insert into cache
-        let result = super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+        let result = get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .into_cache_element(&source_text, &value, &source_lang, &target_lang, max_entries);
         assert!(result.is_ok());
 
         // Search in cache
-        let search_result = super::get_cache_data("cacge_test").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap()
+        let search_result = get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .search_cache(&source_text, &source_lang, &target_lang);
         assert!(search_result.is_ok());
         assert_eq!(search_result.unwrap(), Some(value));
@@ -160,7 +163,7 @@ mod tests {
 
     #[test]
     fn cache_clear_test() {
-        let mut cache = super::get_cache_data("test_cache").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap();
+        let mut cache = get_cache_data("test_cache").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap();
 
         _ = cache.clear_cache();
 
@@ -174,7 +177,7 @@ mod tests {
         assert!(result.is_ok());
 
         // Check if cache has data
-        let mut cache_data = super::get_cache_data("test_cache").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap();
+        let mut cache_data = get_cache_data("test_cache").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap();
         assert_eq!(cache_data.cache.elements.len(), 1);
 
         // Clear cache
@@ -182,7 +185,7 @@ mod tests {
         assert!(result.is_ok());
 
         // Check if cache is empty
-        let cache_data = super::get_cache_data("test_cache").map_err(|e| super::CacheError::FailToReadCache(e.to_string())).unwrap();
+        let cache_data = get_cache_data("test_cache").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap();
         assert_eq!(cache_data.cache.elements.len(), 0);
     }
 }

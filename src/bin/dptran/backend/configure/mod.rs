@@ -192,57 +192,60 @@ fn fix_settings(configure_name: &str) -> Result<Configure, ConfigError> {
     Err(ConfigError::FailToFixSettings)
 }
 
+#[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn configure_set_api_key_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let new_api_key = "new_api_key".to_string();
         config_wrapper.set_api_key(new_api_key).unwrap();
-        let updated_config = super::ConfigureWrapper::get("configure_test").unwrap();
+        let updated_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(updated_config.configure.api_key, "new_api_key");
     }
 
     #[test]
     fn configure_set_default_target_language_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let new_target_language = "FR".to_string();
         config_wrapper.set_default_target_language(&new_target_language).unwrap();
-        let updated_config = super::ConfigureWrapper::get("configure_test").unwrap();
+        let updated_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(updated_config.configure.default_target_language, "FR");
     }
 
     #[test]
     fn configure_set_cache_max_entries_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let new_cache_max_entries = 200;
         config_wrapper.set_cache_max_entries(new_cache_max_entries).unwrap();
-        let updated_config = super::ConfigureWrapper::get("configure_test").unwrap();
+        let updated_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(updated_config.configure.cache_max_entries, 200);
     }
 
     #[test]
     fn configure_set_editor_command_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let new_editor_command = "vim".to_string();
         config_wrapper.set_editor_command(new_editor_command).unwrap();
-        let updated_config = super::ConfigureWrapper::get("configure_test").unwrap();
+        let updated_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(updated_config.configure.editor_command, Some("vim".to_string()));
     }
 
     #[test]
     fn configure_set_cache_enabled_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let new_cache_enabled = false;
         config_wrapper.set_cache_enabled(new_cache_enabled).unwrap();
-        let updated_config = super::ConfigureWrapper::get("configure_test").unwrap();
+        let updated_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(updated_config.configure.cache_enabled, false);
     }
 
     #[test]
     fn configure_clear_settings_test() {
-        let config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         config_wrapper.clear_settings().unwrap();
-        let cleared_config = super::ConfigureWrapper::get("configure_test").unwrap();
+        let cleared_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(cleared_config.configure.api_key, "");
         assert_eq!(cleared_config.configure.default_target_language, "EN");
         assert_eq!(cleared_config.configure.cache_max_entries, 100);
@@ -253,7 +256,7 @@ mod tests {
     #[test]
     fn configure_get_default_target_language_code_test() {
         // set up a test configuration 
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         config_wrapper.set_default_target_language(&"FR".to_string()).unwrap();
         let default_target_language = config_wrapper.get_default_target_language_code().unwrap();
         assert_eq!(default_target_language, "FR");
@@ -261,7 +264,7 @@ mod tests {
 
     #[test]
     fn configure_get_api_key_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let api_key_to_set = "configure_api_key".to_string();
         config_wrapper.set_api_key(api_key_to_set.clone()).unwrap();
         let api_key = config_wrapper.get_api_key().unwrap();
@@ -270,7 +273,7 @@ mod tests {
 
     #[test]
     fn configure_get_cache_max_entries_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let cache_max_entries_to_set = 200;
         config_wrapper.set_cache_max_entries(cache_max_entries_to_set).unwrap();
         let cache_max_entries = config_wrapper.get_cache_max_entries().unwrap();
@@ -279,7 +282,7 @@ mod tests {
 
     #[test]
     fn configure_get_editor_command_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let editor_command_to_set = "vim".to_string();
         config_wrapper.set_editor_command(editor_command_to_set.clone()).unwrap();
         let editor_command = config_wrapper.get_editor_command().unwrap();
@@ -288,7 +291,7 @@ mod tests {
 
     #[test]
     fn configure_get_cache_enabled_test() {
-        let mut config_wrapper = super::ConfigureWrapper::get("configure_test").unwrap();
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let cache_enabled_to_set = false;
         config_wrapper.set_cache_enabled(cache_enabled_to_set).unwrap();
         let cache_enabled = config_wrapper.get_cache_enabled().unwrap();
@@ -298,11 +301,11 @@ mod tests {
     #[test]
     fn configure_fix_settings_test() {
         // Create a temporary configuration file with old settings
-        let old_config = super::ConfigureBeforeV200::default();
+        let old_config = ConfigureBeforeV200::default();
         confy::store("dptran", "configure_configure_old", &old_config).unwrap();
 
         // Call the fix_settings function
-        let fixed_config = super::fix_settings("configure_configure_old").unwrap();
+        let fixed_config = fix_settings("configure_configure_old").unwrap();
 
         // Check if the settings were updated correctly
         assert_eq!(fixed_config.settings_version, env!("CARGO_PKG_VERSION"));
