@@ -100,3 +100,51 @@ pub fn send_and_get(url: String, post_data: String) -> Result<String, Connection
         Err(handle_error(response_code))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_send_and_get() {
+        let url = "https://api-free.deepl.com/v2/translate".to_string();
+        let post_data = "text=Hello&target_lang=FR&auth_key=YOUR_AUTH_KEY".to_string();
+        let result = send_and_get(url, post_data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_handle_error() {
+        let error_code = 400;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::BadRequest);
+
+        let error_code = 403;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::Forbidden);
+
+        let error_code = 404;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::NotFound);
+
+        let error_code = 413;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::RequestEntityTooLarge);
+
+        let error_code = 429;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::TooManyRequests);
+
+        let error_code = 456;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::UnprocessableEntity);
+
+        let error_code = 503;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::ServiceUnavailable);
+
+        let error_code = 999;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::UnknownError);
+    }
+}
