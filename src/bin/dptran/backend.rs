@@ -220,7 +220,33 @@ pub fn append_to_file(ofile: &std::fs::File, text: &str) -> Result<(), RuntimeEr
 
 #[cfg(test)]
 mod tests {
+    use dptran::DeeplAPIError;
+
     use super::*;
+
+    fn retry_or_panic(e: &RuntimeError, times: u8) -> bool {
+        if e == &RuntimeError::DeeplApiError(DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(dptran::ConnectionError::TooManyRequests))) && times < 3 {
+            // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            return true;
+        }
+        else {
+            panic!("Error: {}", e.to_string());
+        }
+    }
+
+    fn impl_backend_get_usage(times: u8) {
+        let usage = get_usage();
+        if let Err(e) = &usage {
+            if retry_or_panic(&e, 1) {
+                return impl_backend_get_usage(times + 1);
+            }
+        }
+        assert!(usage.is_ok());
+        let usage = usage.unwrap();
+        assert!(usage.character_count > 0);
+        assert!(usage.character_limit > 0);
+    }
 
     #[test]
     fn backend_get_and_set_api_key() {
@@ -300,5 +326,19 @@ mod tests {
         let translated_text = "Hello, welcome to DeepL";
         let formatted_text = format_translation_result(translated_text);
         assert_eq!(formatted_text, "Hello, welcome to DeepL");
+    }
+
+    #[test]
+    fn backend_create_and_append_file() {
+        let file_path = "test_file.txt";
+        let text = "Hello, world!";
+        let ofile = create_file(file_path).unwrap();
+        append_to_file(&ofile, text).unwrap();
+        std::fs::remove_file(file_path).unwrap(); // Clean up
+    }
+    
+    #[test]
+    fn backend_get_usage() {
+        impl_backend_get_usage(0);
     }
 }
