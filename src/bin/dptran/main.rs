@@ -440,7 +440,7 @@ fn main() -> Result<(), RuntimeError> {
 }
 
 #[cfg(test)]
-mod tests {
+mod func_tests {
     use super::*;
 
     fn retry_or_panic(e: &RuntimeError, times: u8) -> bool {
@@ -552,5 +552,190 @@ mod tests {
     #[test]
     fn app_process_test() {
         impl_app_process_test(0);
+    }
+}
+
+#[cfg(test)]
+mod runtime_tests {
+    use std::{io::Write, process::Command, process::Stdio};
+
+    #[test]
+    fn test_runtime() {
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Hello, world!")
+            .arg("-t")
+            .arg("ja")
+            .output();
+
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+        assert!(text.stdout != b"Hello\n");
+
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Hello")
+            .arg("-t")
+            .arg("en")
+            .output();
+
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+        assert!(text.stdout == b"Hello\n");
+    }
+
+    #[test]
+    fn test_runtime_with_file() {
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-t")
+            .arg("en")
+            .arg("Hello")
+            .arg("-o")
+            .arg("test.txt")
+            .output();
+
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Check if the file exists
+        let file_path = std::path::Path::new("test.txt");
+        assert!(file_path.exists(), "File test.txt does not exist.");
+        // Check if the file is not empty
+        let metadata = std::fs::metadata(file_path).unwrap();
+        assert!(metadata.len() > 0, "File test.txt is empty.");
+        let file_content = std::fs::read_to_string(file_path).unwrap();
+        assert!(file_content.contains("Hello"), "File test.txt does not contain the expected content.");
+        // Clean up the file
+        std::fs::remove_file(file_path).unwrap();
+    }
+
+    #[test]
+    fn test_runtime_with_cache() {
+        // 1st run..
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Hello, world!")
+            .arg("-t")
+            .arg("ja")
+            .output();
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Get usage..
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let usage = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-u")
+            .output();
+        let usage = usage.unwrap();
+        if usage.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&usage.stderr));
+        }
+        // to u32
+        let usage_before = usage.stdout
+            .split(|&b| b == b' ')
+            .filter_map(|s| std::str::from_utf8(s).ok())
+            .filter_map(|s| s.parse::<u32>().ok())
+            .next()
+            .unwrap();
+
+        // 2nd run.
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let mut cmd = Command::new("cargo");
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Hello, world!")
+            .arg("-t")
+            .arg("ja")
+            .output();
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Get usage once again.
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let mut cmd = Command::new("cargo");
+        let usage = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-u")
+            .output();
+        let usage = usage.unwrap();
+        if usage.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&usage.stderr));
+        }
+
+        // to u32
+        let usage_after = usage.stdout
+            .split(|&b| b == b' ')
+            .filter_map(|s| std::str::from_utf8(s).ok())
+            .filter_map(|s| s.parse::<u32>().ok())
+            .next()
+            .unwrap();
+
+        // Check if the usage has not changed.
+        assert!(usage_after == usage_before);
+    }
+
+    /// Test for the interactive mode.
+    #[test]
+    fn test_runtime_interactive() {
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-t")
+            .arg("en")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn();
+
+        let mut child = text.unwrap();
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let input = "Hello, world!\nquit\n";
+        let output = child.stdin.as_mut().unwrap().write_all(input.as_bytes());
+        if let Err(e) = output {
+            panic!("Error: {}", e);
+        }
+        let output = child.wait_with_output();
+        if let Err(e) = output {
+            panic!("Error: {}", e);
+        }
+        let output = output.unwrap();
+        if output.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&output.stderr));
+        }
+        // Check if the output contains "Hello, world!"
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        assert!(output_str.contains("Hello, world!"), "Output does not contain the expected text.");
     }
 }
