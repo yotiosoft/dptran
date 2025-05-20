@@ -228,24 +228,40 @@ mod tests {
         set_api_key(api_key.clone()).unwrap();
     }
 
+    fn retry_or_panic(e: &RuntimeError, times: u8) -> bool {
+        if e == &RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::ConnectionError(dptran::ConnectionError::TooManyRequests))) 
+            && times < 3 {
+            // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            return true;
+        }
+        else {
+            panic!("Error: {} {}", e.to_string(), times);
+        }
+    }
+
+    fn impl_backend_get_and_set_default_target_language(times: u8) {
+        set_correct_api_key();
+        let default_target_language = "JA".to_string();
+        if let Err(e) = set_default_target_language(&default_target_language) {
+            if retry_or_panic(&e, times) {
+                impl_backend_get_and_set_default_target_language(times + 1);
+            }
+        }
+        let retrieved_default_target_language = get_default_target_language_code().expect("Failed to get default target language");
+        assert_eq!(retrieved_default_target_language, default_target_language);
+        // Clear settings to test the default value
+        clear_settings().unwrap();
+        let retrieved_default_target_language = get_default_target_language_code().expect("Failed to get default target language");
+        assert_eq!(retrieved_default_target_language, "EN");
+    }
+
     #[test]
     fn backend_get_and_set_api_key() {
         let api_key = "test_api_key".to_string();
         set_api_key(api_key.clone()).unwrap();
         let retrieved_api_key = get_api_key().unwrap();
         assert_eq!(retrieved_api_key, Some(api_key));
-    }
-
-    #[test]
-    fn backend_get_and_set_default_target_language() {
-        set_correct_api_key();
-        let default_target_language = "JA".to_string();
-        set_default_target_language(&default_target_language).unwrap();
-        let retrieved_default_target_language = get_default_target_language_code().unwrap();
-        assert_eq!(retrieved_default_target_language, default_target_language);
-        clear_settings().unwrap();
-        let retrieved_default_target_language = get_default_target_language_code().unwrap();
-        assert_eq!(retrieved_default_target_language, "EN");
     }
 
     #[test]
@@ -302,5 +318,26 @@ mod tests {
         // Check if cache is empty
         let cache_data_elements = search_cache(&source_text, &source_lang, &target_lang).unwrap();
         assert_eq!(cache_data_elements, None);
+    }
+
+    #[test]
+    fn backend_format_translation_result_test() {
+        // some Arabic text
+        let translated_text = "مرحبا بك في ديبل";
+        let formatted_text = format_translation_result(translated_text);
+        assert_eq!(formatted_text, "لبيد يف كب ابحرم");     // Arabic text is right-to-left
+        // some Japanese text
+        let translated_text = "こんにちは、DeepLへようこそ";
+        let formatted_text = format_translation_result(translated_text);
+        assert_eq!(formatted_text, "こんにちは、DeepLへようこそ");
+        // some English text
+        let translated_text = "Hello, welcome to DeepL";
+        let formatted_text = format_translation_result(translated_text);
+        assert_eq!(formatted_text, "Hello, welcome to DeepL");
+    }
+
+    #[test]
+    fn backend_get_and_set_default_target_language() {
+        impl_backend_get_and_set_default_target_language(0);
     }
 }
