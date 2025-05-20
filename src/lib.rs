@@ -190,6 +190,7 @@ mod tests {
                 if retry_or_panic(&e, times) {
                     // retry
                     impl_lib_translate_test(times + 1);
+                    return;
                 }
             }
         }
@@ -206,6 +207,7 @@ mod tests {
             if retry_or_panic(&res.err().unwrap(), times) {
                 // retry
                 impl_lib_usage_test(times + 1);
+                return;
             }
         }
     }
@@ -227,6 +229,7 @@ mod tests {
                 if retry_or_panic(&e, times) {
                     // retry
                     impl_lib_get_language_code_test(times + 1);
+                    return;
                 }
             }
         }
@@ -247,6 +250,7 @@ mod tests {
                 if retry_or_panic(&e, times) {
                     // retry
                     impl_lib_check_language_code_test(times + 1);
+                    return;
                 }
             }
         }
@@ -259,6 +263,7 @@ mod tests {
                 if retry_or_panic(&e, times) {
                     // retry
                     impl_lib_check_language_code_test(times + 1);
+                    return;
                 }
             }
         }
@@ -282,6 +287,7 @@ mod tests {
                     if retry_or_panic(&e, times) {
                         // retry
                         impl_correct_source_language_code_test(times + 1);
+                        return;
                     }
                 }
             }
@@ -328,6 +334,7 @@ mod tests {
                     if retry_or_panic(&e, times) {
                         // retry
                         impl_correct_target_language_code_test(times + 1);
+                        return;
                     }
                 }
             }

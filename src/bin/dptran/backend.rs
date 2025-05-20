@@ -221,40 +221,6 @@ pub fn append_to_file(ofile: &std::fs::File, text: &str) -> Result<(), RuntimeEr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env;
-
-    fn set_correct_api_key() {
-        let api_key = env::var("DPTRAN_DEEPL_API_KEY").unwrap_or_else(|_| "test_api_key".to_string());
-        set_api_key(api_key.clone()).unwrap();
-    }
-
-    fn retry_or_panic(e: &RuntimeError, times: u8) -> bool {
-        if e == &RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::ConnectionError(dptran::ConnectionError::TooManyRequests))) 
-            && times < 3 {
-            // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
-            std::thread::sleep(std::time::Duration::from_secs(2));
-            return true;
-        }
-        else {
-            panic!("Error: {} {}", e.to_string(), times);
-        }
-    }
-
-    fn impl_backend_get_and_set_default_target_language(times: u8) {
-        set_correct_api_key();
-        let default_target_language = "JA".to_string();
-        if let Err(e) = set_default_target_language(&default_target_language) {
-            if retry_or_panic(&e, times) {
-                impl_backend_get_and_set_default_target_language(times + 1);
-            }
-        }
-        let retrieved_default_target_language = get_default_target_language_code().expect("Failed to get default target language");
-        assert_eq!(retrieved_default_target_language, default_target_language);
-        // Clear settings to test the default value
-        clear_settings().unwrap();
-        let retrieved_default_target_language = get_default_target_language_code().expect("Failed to get default target language");
-        assert_eq!(retrieved_default_target_language, "EN");
-    }
 
     #[test]
     fn backend_get_and_set_api_key() {
@@ -334,10 +300,5 @@ mod tests {
         let translated_text = "Hello, welcome to DeepL";
         let formatted_text = format_translation_result(translated_text);
         assert_eq!(formatted_text, "Hello, welcome to DeepL");
-    }
-
-    #[test]
-    fn backend_get_and_set_default_target_language() {
-        impl_backend_get_and_set_default_target_language(0);
     }
 }

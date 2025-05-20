@@ -206,6 +206,7 @@ mod tests {
                 if retry_or_panic(&e, 0) {
                     // retry
                     impl_api_translate_test(times + 1);
+                    return;
                 }
             }
         }
@@ -220,6 +221,7 @@ mod tests {
             if retry_or_panic(&res.err().unwrap(), times) {
                 // retry
                 impl_api_usage_test(times + 1);
+                return;
             }
         }
     }
@@ -251,6 +253,7 @@ mod tests {
                 if retry_or_panic(&e, times) {
                     // retry
                     impl_api_get_language_codes_test(times + 1);
+                    return;
                 }
             }
         }
