@@ -99,6 +99,17 @@ The API key is available for free (up to 500,000 characters per month).
 $ dptran set --api-key [API key]
 ```
 
+Or you can set the API key in the environment variable ``DPTRAN_DEEPL_API_KEY``.
+
+On Linux or MacOS:
+```bash
+$ export DPTRAN_DEEPL_API_KEY=[API key]
+```
+To set it permanently, add the above line to your ``~/.bashrc`` or ``~/.zshrc`` file.
+
+On Windows:
+Set the environment variable in the system properties.
+
 ### Translate from the command line arguments
 
 If any language is not specified, the source language is automatically detected and the destination language is set to English (EN) by default.  
