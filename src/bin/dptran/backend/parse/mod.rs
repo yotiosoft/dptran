@@ -94,9 +94,13 @@ enum SubCommands {
             .args(["api_key", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear"]),
     ))]
     Set {
-        /// Set api-key.
+        /// Set DeepL API key (free).
         #[arg(short, long)]
-        api_key: Option<String>,
+        api_key_free: Option<String>,
+
+        /// Set DeepL API key (pro).
+        #[arg(short, long)]
+        api_key_pro: Option<String>,
     
         /// Set default target language.
         #[arg(short, long)]
@@ -248,6 +252,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
+                    arg_struct.api_key = Some(api_key);
+                }
+                if let Some(api_key) = api_key_pro {
+                    arg_struct.execution_mode = ExecutionMode::SetProApiKey;
                     arg_struct.api_key = Some(api_key);
                 }
                 if let Some(default_lang) = default_lang {
