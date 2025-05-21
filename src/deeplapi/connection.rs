@@ -106,15 +106,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_send_and_get() {
-        let url = "https://api-free.deepl.com/v2/translate".to_string();
-        let post_data = "text=Hello&target_lang=FR&auth_key=YOUR_AUTH_KEY".to_string();
+    fn send_and_get_test() {
+        let url = "https://api-free.deepl.com/v2/".to_string();
+        let post_data = "text=Hello&target_lang=FR&auth_key=".to_string();
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
+        let url = format!("{}translate?auth_key={}", url, api_key);
         let result = send_and_get(url, post_data);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn test_handle_error() {
+    fn handling_error_test() {
         let error_code = 400;
         let error = handle_error(error_code);
         assert_eq!(error, ConnectionError::BadRequest);

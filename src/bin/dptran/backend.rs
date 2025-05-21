@@ -249,7 +249,7 @@ mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_api_key() {
+    fn backend_get_and_set_api_key_test() {
         let api_key = "test_api_key".to_string();
         set_api_key(api_key.clone()).unwrap();
         let retrieved_api_key = get_api_key().unwrap();
@@ -257,7 +257,7 @@ mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_editor_command() {
+    fn backend_get_and_set_editor_command_test() {
         let editor_command = "test_editor".to_string();
         set_editor_command(editor_command.clone()).unwrap();
         let retrieved_editor_command = get_editor_command_str().unwrap();
@@ -268,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_cache_max_entries() {
+    fn backend_get_and_set_cache_max_entries_test() {
         let cache_max_entries = 50;
         configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e)).unwrap()
             .set_cache_max_entries(cache_max_entries).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
@@ -280,7 +280,7 @@ mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_cache_enabled() {
+    fn backend_get_and_set_cache_enabled_test() {
         let cache_enabled = false;
         configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e)).unwrap()
             .set_cache_enabled(cache_enabled).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
@@ -292,7 +292,7 @@ mod tests {
     }
 
     #[test]
-    fn backend_into_and_search_cache() {
+    fn backend_into_and_search_cache_test() {
         let source_text = vec!["Hello".to_string()];
         let translated_text = vec!["Bonjour".to_string()];
         let source_lang = Some("en".to_string());
@@ -329,7 +329,7 @@ mod tests {
     }
 
     #[test]
-    fn backend_create_and_append_file() {
+    fn backend_create_and_append_file_test() {
         let file_path = "test_file.txt";
         let text = "Hello, world!";
         let ofile = create_file(file_path).unwrap();
@@ -338,7 +338,7 @@ mod tests {
     }
     
     #[test]
-    fn backend_get_usage() {
+    fn backend_get_usage_test() {
         impl_backend_get_usage(0);
     }
 }

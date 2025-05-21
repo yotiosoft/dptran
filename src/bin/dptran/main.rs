@@ -560,7 +560,7 @@ mod runtime_tests {
     use std::{io::Write, process::Command, process::Stdio};
 
     #[test]
-    fn test_runtime() {
+    fn runtime_test() {
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
@@ -597,7 +597,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn test_runtime_with_file() {
+    fn runtime_with_file_test() {
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
@@ -629,7 +629,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn test_runtime_with_cache() {
+    fn runtime_with_cache_test() {
         // 1st run..
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -707,7 +707,7 @@ mod runtime_tests {
 
     /// Test for the interactive mode.
     #[test]
-    fn test_runtime_interactive() {
+    fn runtime_interactive_mode_test() {
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
@@ -731,6 +731,34 @@ mod runtime_tests {
             panic!("Error: {}", e);
         }
         let output = output.unwrap();
+        if output.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&output.stderr));
+        }
+        // Check if the output contains "Hello, world!"
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        assert!(output_str.contains("Hello, world!"), "Output does not contain the expected text.");
+    }
+
+    #[test]
+    fn runtime_from_pipe_test() {
+        let mut echo_cmd = Command::new("echo")
+            .arg("Hello, world!")
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Failed to start echo command");
+
+        let dptran_cmd = Command::new("cargo")
+            .arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-t")
+            .arg("en")
+            .stdin(Stdio::from(echo_cmd.stdout.take().unwrap()))
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Failed to start dptran command");
+        
+        let output = dptran_cmd.wait_with_output().expect("Failed to read dptran output");
         if output.status.success() != true {
             panic!("Error: {}", String::from_utf8_lossy(&output.stderr));
         }
