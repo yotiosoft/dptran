@@ -11,7 +11,8 @@ pub enum ExecutionMode {
     TranslateInteractive,
     ListSourceLangs,
     ListTargetLangs,
-    SetApiKey,
+    SetFreeApiKey,
+    SetProApiKey,
     SetDefaultTargetLang,
     SetCacheMaxEntries,
     SetEditor,
@@ -244,9 +245,9 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear } => {
-                if let Some(api_key) = api_key {
-                    arg_struct.execution_mode = ExecutionMode::SetApiKey;
+            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear } => {
+                if let Some(api_key) = api_key_free {
+                    arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
                     arg_struct.api_key = Some(api_key);
                 }
                 if let Some(default_lang) = default_lang {

@@ -2,6 +2,7 @@ pub mod parse;
 pub mod configure;
 pub mod cache;
 use configure::ConfigError;
+pub use configure::ApiKey;
 use cache::CacheError;
 pub use parse::ExecutionMode;
 
@@ -77,7 +78,7 @@ static CACHE_NAME: &str = "cache";
 pub fn get_usage() -> Result<DpTranUsage, RuntimeError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        let dptran = dptran::DpTran::with(&api_key);
+        let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
         dptran.get_usage().map_err(|e| RuntimeError::DeeplApiError(e))
     } else {
         Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
@@ -86,9 +87,9 @@ pub fn get_usage() -> Result<DpTranUsage, RuntimeError> {
 
 /// Set API key (using confy crate).
 /// Set the API key in the configuration file config.json.
-pub fn set_api_key(api_key: String) -> Result<(), RuntimeError> {
+pub fn set_api_key(api_key: ApiKey) -> Result<(), RuntimeError> {
     configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .set_api_key(api_key).map_err(|e| RuntimeError::ConfigError(e))?;
+        .set_api_key(api_key.api_key, api_key.api_key_type).map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(())
 }
 
@@ -99,7 +100,7 @@ pub fn set_default_target_language(arg_default_target_language: &String) -> Resu
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key);
+    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
 
     // Check if the language code is correct
     match dptran.correct_target_language_code(arg_default_target_language) {
@@ -136,13 +137,29 @@ pub fn get_default_target_language_code() -> Result<String, RuntimeError> {
 }
 
 /// Load the API key from the configuration file.
-pub fn get_api_key() -> Result<Option<String>, RuntimeError> {
+pub fn get_api_key() -> Result<Option<ApiKey>, RuntimeError> {
     let api_key = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_api_key().map_err(|e| RuntimeError::ConfigError(e))?;
-    // If the API key is not set, check environment variables
+        .get_api_key();
+    // If the API key is not set, check environment variables.
+    // If there is a pro key, return it.
+    // If there is no pro key, return the free key.
     if api_key.is_none() {
+        let env_api_key = std::env::var("DPTRAN_DEEPL_API_KEY_PRO").ok();
+        if let Some(env_api_key) = env_api_key {
+            let api_key = ApiKey {
+                api_key: env_api_key,
+                api_key_type: dptran::ApiKeyType::Pro,
+            };
+            return Ok(Some(api_key));
+        }
+
         let env_api_key = std::env::var("DPTRAN_DEEPL_API_KEY").ok();
-        return Ok(env_api_key);
+        return Ok(env_api_key.map(|key| {
+            ApiKey {
+                api_key: key,
+                api_key_type: dptran::ApiKeyType::Free,
+            }
+        }));
     }
     Ok(api_key)
 }
@@ -250,10 +267,14 @@ mod tests {
 
     #[test]
     fn backend_get_and_set_api_key_test() {
-        let api_key = "test_api_key".to_string();
-        set_api_key(api_key.clone()).unwrap();
-        let retrieved_api_key = get_api_key().unwrap();
-        assert_eq!(retrieved_api_key, Some(api_key));
+        let api_key = ApiKey {
+            api_key: "test_api_key".to_string(),
+            api_key_type: dptran::ApiKeyType::Free,
+        };
+        set_api_key(api_key).unwrap();
+        let retrieved_api_key = get_api_key().unwrap().unwrap();
+        assert_eq!(retrieved_api_key.api_key, "test_api_key");
+        assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Free);
     }
 
     #[test]

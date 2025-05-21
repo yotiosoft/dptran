@@ -1,5 +1,6 @@
 mod deeplapi;
 
+pub use deeplapi::ApiKeyType;
 pub use deeplapi::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
@@ -60,13 +61,15 @@ pub struct DpTranUsage {
 /// Use the correct_target_language_code() method to convert the target language code to the correct language code.
 pub struct DpTran {
     api_key: String,
+    api_key_type: ApiKeyType,
 }
 impl DpTran {
     /// Create a new instance of DpTran.  
     /// api_key: DeepL API key
-    pub fn with(api_key: &String) -> DpTran {
+    pub fn with(api_key: &str, api_key_type: ApiKeyType) -> DpTran {
         DpTran {
-            api_key: api_key.clone(),
+            api_key: api_key.to_string(),
+            api_key_type,
         }
     }
 
@@ -89,7 +92,7 @@ impl DpTran {
             LangType::Target => "target".to_string(),
             LangType::Source => "source".to_string(),
         };
-        let lang_codes = deeplapi::get_language_codes(&self.api_key, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let lang_codes = deeplapi::get_language_codes(&self.api_key, &self.api_key_type, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
         Ok(lang_codes)
     }
 
@@ -133,7 +136,7 @@ impl DpTran {
     /// Returns an error if acquisition fails.  
     /// api_key: DeepL API key  
     pub fn get_usage(&self) -> Result<DpTranUsage, DpTranError> {
-        let (count, limit) = deeplapi::get_usage(&self.api_key).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let (count, limit) = deeplapi::get_usage(&self.api_key, &self.api_key_type).map_err(|e| DpTranError::DeeplApiError(e))?;
         Ok(DpTranUsage {
             character_count: count,
             character_limit: limit,
@@ -149,7 +152,7 @@ impl DpTran {
     /// target_lang: Target language  
     /// source_lang: Source language (optional)  
     pub fn translate(&self, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
-        deeplapi::translate(&self.api_key, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
+        deeplapi::translate(&self.api_key, &self.api_key_type, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
 
@@ -172,9 +175,8 @@ mod tests {
 
     fn impl_lib_translate_test(times: u8) {
         // create instance test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let dptran = DpTran::with(&api_key, api_key_type);
 
         // translate test
         let text = vec!["Hello, World!".to_string()];
@@ -198,9 +200,8 @@ mod tests {
 
     fn impl_lib_usage_test(times: u8) {
         // usage test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let dptran = DpTran::with(&api_key, api_key_type);
 
         let res = dptran.get_usage();
         if res.is_err() {
@@ -214,9 +215,8 @@ mod tests {
 
     fn impl_lib_get_language_code_test(times: u8) {
         // get_language_codes test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let dptran = DpTran::with(&api_key, api_key_type);
 
         let res = dptran.get_language_codes(LangType::Source);
         match res {
@@ -237,9 +237,8 @@ mod tests {
 
     fn impl_lib_check_language_code_test(times: u8) {
         // check_language_code test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let dptran = DpTran::with(&api_key, api_key_type);
         
         let res = dptran.check_language_code(&"EN-US".to_string(), LangType::Target);
         match res {
@@ -271,9 +270,8 @@ mod tests {
 
     fn impl_correct_source_language_code_test(times: u8) {
         // correct_source_language_code test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let dptran = DpTran::with(&api_key, api_key_type);
         
         let valid_lang_code = "en";
         loop {
@@ -318,9 +316,8 @@ mod tests {
 
     fn impl_correct_target_language_code_test(times: u8) {
         // correct_target_language_code test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let dptran = DpTran::with(&api_key, api_key_type);
         
         let valid_lang_code = "ja";
         loop {
@@ -389,9 +386,8 @@ mod tests {
     #[test]
     fn lib_set_api_key_test() {
         // set_api_key test
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY")
-            .expect("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.");
-        let mut dptran = DpTran::with(&api_key);
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let mut dptran = DpTran::with(&api_key, api_key_type);
         assert_eq!(dptran.get_api_key(), api_key);
         dptran.set_api_key(&"test".to_string());
         assert_eq!(dptran.get_api_key(), "test".to_string());

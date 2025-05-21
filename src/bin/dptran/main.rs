@@ -1,6 +1,7 @@
 use std::io::{self, Write, stdin, stdout};
 
 mod backend;
+use backend::ApiKey;
 use backend::RuntimeError;
 use backend::ExecutionMode;
 
@@ -30,7 +31,12 @@ fn display_settings() -> Result<(), RuntimeError> {
     let cache_enabled = backend::get_cache_enabled()?;
 
     if let Some(api_key) = api_key {
-        println!("API key: {}", api_key);
+        if api_key.api_key_type == dptran::ApiKeyType::Free {
+            println!("API key (free): {}", api_key.api_key);
+        }
+        else {
+            println!("API key (pro): {}", api_key.api_key);
+        }
     }
     else {
         println!("API key: not set");
@@ -71,7 +77,7 @@ fn show_source_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key);
+    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
 
     // List of source language codes.
     let source_lang_codes = dptran.get_language_codes(LangType::Source).map_err(|e| RuntimeError::DeeplApiError(e))?;
@@ -96,7 +102,7 @@ fn show_target_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key);
+    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
 
     // List of Language Codes.
     let target_lang_codes = dptran.get_language_codes(LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
@@ -294,9 +300,23 @@ fn main() -> Result<(), RuntimeError> {
             show_usage()?;
             return Ok(());
         }
-        ExecutionMode::SetApiKey => {
+        ExecutionMode::SetFreeApiKey => {
             if let Some(s) = arg_struct.api_key {
-                backend::set_api_key(s)?;
+                backend::set_api_key(ApiKey {
+                    api_key: s,
+                    api_key_type: dptran::ApiKeyType::Free,
+                })?;
+                return Ok(());
+            } else {
+                return Err(RuntimeError::ApiKeyIsNotSet);
+            }
+        }
+        ExecutionMode::SetProApiKey => {
+            if let Some(s) = arg_struct.api_key {
+                backend::set_api_key(ApiKey {
+                    api_key: s,
+                    api_key_type: dptran::ApiKeyType::Pro,
+                })?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::ApiKeyIsNotSet);
@@ -403,7 +423,7 @@ fn main() -> Result<(), RuntimeError> {
             return Ok(());
         },
     };
-    let dptran = dptran::DpTran::with(&api_key);
+    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
 
     // Language code check and correction
     if let Some(sl) = source_lang {
@@ -485,8 +505,8 @@ mod func_tests {
     }
 
     fn impl_app_process_test(times: u8) {
-        let api_key = backend::get_api_key().unwrap();
-        let dptran = dptran::DpTran::with(&api_key.unwrap());
+        let api_key = backend::get_api_key().unwrap().unwrap();
+        let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
         let mode = ExecutionMode::TranslateNormal;
         let multilines = false;
         let rm_line_breaks = false;

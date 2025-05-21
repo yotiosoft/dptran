@@ -1,4 +1,5 @@
 use std::fmt;
+use dptran::ApiKeyType;
 use serde::{Deserialize, Serialize};
 use confy;
 use confy::ConfyError;
@@ -14,6 +15,7 @@ pub struct ConfigureWrapper {
 pub struct Configure {
     pub settings_version: String,
     pub api_key: String,
+    pub api_key_pro: String,
     pub default_target_language: String,
     pub cache_max_entries: usize,
     pub editor_command: Option<String>,
@@ -24,12 +26,18 @@ impl Default for Configure {
         Self {
             settings_version: env!("CARGO_PKG_VERSION").to_string(),
             api_key: String::new(),
+            api_key_pro: String::new(),
             default_target_language: "EN".to_string(),
             cache_max_entries: 100,
             editor_command: None,
             cache_enabled: true,
         }
     }
+}
+
+pub struct ApiKey {
+    pub api_key: String,
+    pub api_key_type: dptran::ApiKeyType,
 }
 
 /// Configuration error
@@ -80,8 +88,13 @@ impl ConfigureWrapper {
 
     /// Set API key
     /// Set the API key in the configuration file.
-    pub fn set_api_key(&mut self, api_key: String) -> Result<(), ConfigError> {
-        self.configure.api_key = api_key;
+    pub fn set_api_key(&mut self, api_key: String, api_key_type: ApiKeyType) -> Result<(), ConfigError> {
+        if api_key_type == ApiKeyType::Pro {
+            self.configure.api_key_pro = api_key;
+        }
+        else {
+            self.configure.api_key = api_key;
+        }
         confy::store("dptran", self.config_name.clone().as_str(), self.configure.clone()).map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
         Ok(())
     }
@@ -129,11 +142,22 @@ impl ConfigureWrapper {
     }
 
     /// Get API key
-    pub fn get_api_key(&self) -> Result<Option<String>, ConfigError> {
-        if self.configure.api_key.is_empty() {
-            return Ok(None);
+    /// If there is a pro API key, return it.
+    /// Otherwise, return the free API key.
+    pub fn get_api_key(&self) -> Option<ApiKey> {
+        if self.configure.api_key_pro.len() > 0 {
+            return Some(ApiKey {
+                api_key: self.configure.api_key.clone(),
+                api_key_type: dptran::ApiKeyType::Free,
+            });
         }
-        Ok(Some(self.configure.api_key.clone()))
+        else if self.configure.api_key.len() > 0 {
+            return Some(ApiKey {
+                api_key: self.configure.api_key_pro.clone(),
+                api_key_type: dptran::ApiKeyType::Pro,
+            });
+        }
+        None
     }
 
     /// Get cache maximum entries
@@ -181,6 +205,7 @@ fn fix_settings(configure_name: &str) -> Result<Configure, ConfigError> {
         let settings = Configure {
             settings_version: env!("CARGO_PKG_VERSION").to_string(),
             api_key: config.api_key,
+            api_key_pro: String::new(),
             default_target_language: config.default_target_language,
             cache_max_entries: 100,
             editor_command: None,
@@ -200,7 +225,7 @@ mod tests {
     fn configure_set_api_key_test() {
         let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let new_api_key = "new_api_key".to_string();
-        config_wrapper.set_api_key(new_api_key).unwrap();
+        config_wrapper.set_api_key(new_api_key, ApiKeyType::Free).unwrap();
         let updated_config = ConfigureWrapper::get("configure_test").unwrap();
         assert_eq!(updated_config.configure.api_key, "new_api_key");
     }
@@ -264,11 +289,21 @@ mod tests {
 
     #[test]
     fn configure_get_api_key_test() {
+        // for ApiKeyType::Free
         let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
         let api_key_to_set = "configure_api_key".to_string();
-        config_wrapper.set_api_key(api_key_to_set.clone()).unwrap();
+        config_wrapper.set_api_key(api_key_to_set.clone(), ApiKeyType::Free).unwrap();
         let api_key = config_wrapper.get_api_key().unwrap();
-        assert_eq!(api_key, Some(api_key_to_set));
+        assert_eq!(api_key.api_key, api_key_to_set);
+        assert_eq!(api_key.api_key_type, ApiKeyType::Free);
+
+        // for ApiKeyType::Pro
+        let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
+        let api_key_pro_to_set = "configure_api_key_pro".to_string();
+        config_wrapper.set_api_key(api_key_pro_to_set.clone(), ApiKeyType::Pro).unwrap();
+        let api_key_pro = config_wrapper.get_api_key().unwrap();
+        assert_eq!(api_key_pro.api_key, api_key_pro_to_set);
+        assert_eq!(api_key_pro.api_key_type, ApiKeyType::Pro);
     }
 
     #[test]
