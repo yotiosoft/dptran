@@ -67,7 +67,9 @@ $ dptran set --api-key-free [Your API key]
 $ dptran set --api-key-pro [Your API key]
 ```
 
-また、環境変数 ``DPTRAN_DEEPL_API_KEY`` (freeプラン用) または ``DPTRAN_DEEPL_API_KEY_PRO`` (proプラン用) にAPIキーを設定することもできます。
+#### 環境変数でAPIキーを設定
+
+環境変数 ``DPTRAN_DEEPL_API_KEY`` (freeプラン用) または ``DPTRAN_DEEPL_API_KEY_PRO`` (proプラン用) にAPIキーを設定することもできます。
 
 **Linux / macOSの場合:**
 ```bash
