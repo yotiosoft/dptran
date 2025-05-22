@@ -48,6 +48,7 @@ static EXTENDED_LANG_CODES: [(&str, &str, LangType); 2] = [
 pub enum DeeplAPIError {
     ConnectionError(ConnectionError),
     JsonError(String),
+    WrongEndPointError(String),
     LimitError,
     GetLanguageCodesError,
 }
@@ -56,6 +57,7 @@ impl fmt::Display for DeeplAPIError {
         match *self {
             DeeplAPIError::ConnectionError(ref e) => write!(f, "Connection error: {}", e),
             DeeplAPIError::JsonError(ref e) => write!(f, "JSON error: {}", e),
+            DeeplAPIError::WrongEndPointError(ref e) => write!(f, "Wrong endpoint error. Please check your API key type such as Free or Pro. {}", e),
             DeeplAPIError::LimitError => write!(f, "The translation limit of your account has been reached. Consider upgrading your subscription."),
             DeeplAPIError::GetLanguageCodesError => write!(f, "Could not get language codes"),
         }
@@ -164,6 +166,9 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
     let mut lang_codes: Vec<LangCodeName> = Vec::new();
     let v_array = v.as_array();
     if let None = v_array {
+        if v.to_string().contains("Wrong endpoint") {
+            return Err(DeeplAPIError::WrongEndPointError(v.to_string()));
+        }
         return Err(DeeplAPIError::JsonError(v.to_string()));
     }
     // Add got language codes
