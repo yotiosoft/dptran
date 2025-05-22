@@ -131,7 +131,7 @@ mod tests {
         let source_lang = Some(String::from("en"));
         let target_lang = String::from("fr");
         let expected_hash = "e19f0a05bb2edd7b53bbc66dd0c8ec5e";
-        let hash = get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
+        let hash = get_cache_data("cache_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .cache_hash(&text, &source_lang, &target_lang);
         assert_eq!(hash.len(), 32);
         assert_eq!(hash, expected_hash);
@@ -146,16 +146,16 @@ mod tests {
         let max_entries = 10;
 
         // Clear cache before test
-        get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
+        get_cache_data("cache_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .clear_cache().unwrap();
 
         // Insert into cache
-        let result = get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
+        let result = get_cache_data("cache_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .into_cache_element(&source_text, &value, &source_lang, &target_lang, max_entries);
         assert!(result.is_ok());
 
         // Search in cache
-        let search_result = get_cache_data("cacge_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
+        let search_result = get_cache_data("cache_test").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap()
             .search_cache(&source_text, &source_lang, &target_lang);
         assert!(search_result.is_ok());
         assert_eq!(search_result.unwrap(), Some(value));

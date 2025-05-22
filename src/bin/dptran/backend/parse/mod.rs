@@ -91,15 +91,15 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear"]),
+            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear"]),
     ))]
     Set {
         /// Set DeepL API key (free).
-        #[arg(short, long)]
+        #[arg(short='f', long)]
         api_key_free: Option<String>,
 
         /// Set DeepL API key (pro).
-        #[arg(short, long)]
+        #[arg(short='p', long)]
         api_key_pro: Option<String>,
     
         /// Set default target language.
