@@ -154,12 +154,13 @@ pub fn get_api_key() -> Result<Option<ApiKey>, RuntimeError> {
         }
 
         let env_api_key = std::env::var("DPTRAN_DEEPL_API_KEY").ok();
-        return Ok(env_api_key.map(|key| {
-            ApiKey {
-                api_key: key,
+        if let Some(env_api_key) = env_api_key {
+            let api_key = ApiKey {
+                api_key: env_api_key,
                 api_key_type: dptran::ApiKeyType::Free,
-            }
-        }));
+            };
+            return Ok(Some(api_key));
+        }
     }
     Ok(api_key)
 }
