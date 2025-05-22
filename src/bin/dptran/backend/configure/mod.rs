@@ -96,11 +96,16 @@ impl ConfigureWrapper {
     /// Set API key
     /// Set the API key in the configuration file.
     pub fn set_api_key(&mut self, api_key: String, api_key_type: ApiKeyType) -> Result<(), ConfigError> {
+        let api_key = if api_key.len() == 0 {
+            None
+        } else {
+            Some(api_key)
+        };
         if api_key_type == ApiKeyType::Pro {
-            self.configure.api_key_pro = Some(api_key);
+            self.configure.api_key_pro = api_key;
         }
         else {
-            self.configure.api_key = Some(api_key);
+            self.configure.api_key = api_key;
         }
         self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
         Ok(())
@@ -222,49 +227,6 @@ mod older_configure {
                 cache_max_entries: 100,
                 editor_command: None,
                 cache_enabled: true,
-            };
-            confy::store("dptran", configure_name, &settings).map_err(|e| ConfigError::FailToGetSettings(e.to_string()))?;
-            return Ok(settings);
-        }
-        Err(ConfigError::FailToFixSettings)
-    }
-
-    #[derive(Serialize, Deserialize, Debug)]
-    pub struct ConfigureBeforeV2_3_0 {
-        pub settings_version: String,
-        pub api_key: String,
-        pub default_target_language: String,
-        pub cache_max_entries: usize,
-        pub editor_command: Option<String>,
-        pub cache_enabled: bool,
-    }
-    impl Default for ConfigureBeforeV2_3_0 {
-        fn default() -> Self {
-            Self {
-                settings_version: env!("CARGO_PKG_VERSION").to_string(),
-                api_key: String::new(),
-                default_target_language: "EN".to_string(),
-                cache_max_entries: 100,
-                editor_command: None,
-                cache_enabled: true,
-            }
-        }
-    }
-
-    /// If the configuration file is older, update it.
-    pub fn fix_settings_from_v2_2_2(configure_name: &str) -> Result<Configure, ConfigError> {
-        // from ver.2.3.0
-        let config_v2_2_2 = confy::load::<ConfigureBeforeV2_3_0>("dptran", configure_name);
-        if config_v2_2_2.is_ok() {
-            let config = config_v2_2_2.unwrap();
-            let settings = Configure {
-                settings_version: env!("CARGO_PKG_VERSION").to_string(),
-                api_key: Some(config.api_key),
-                api_key_pro: None,
-                default_target_language: config.default_target_language,
-                cache_max_entries: config.cache_max_entries,
-                editor_command: config.editor_command,
-                cache_enabled: config.cache_enabled,
             };
             confy::store("dptran", configure_name, &settings).map_err(|e| ConfigError::FailToGetSettings(e.to_string()))?;
             return Ok(settings);
@@ -409,21 +371,5 @@ mod tests {
         assert_eq!(fixed_config.cache_max_entries, 100);
         assert_eq!(fixed_config.editor_command, None);
         assert_eq!(fixed_config.cache_enabled, true);
-
-        // for ConfigureBeforeV2_3_0
-        // Create a temporary configuration file with old settings
-        let old_config = older_configure::ConfigureBeforeV2_3_0::default();
-        confy::store("dptran", "configure_test", &old_config).unwrap();
-
-        // Call the fix_settings function
-        let fixed_config = older_configure::fix_settings_from_v2_2_2("configure_test").unwrap();
-
-        // Check if the settings were updated correctly
-        assert_eq!(fixed_config.settings_version, env!("CARGO_PKG_VERSION"));
-        assert_eq!(fixed_config.api_key, Some(old_config.api_key));
-        assert_eq!(fixed_config.default_target_language, old_config.default_target_language);
-        assert_eq!(fixed_config.cache_max_entries, old_config.cache_max_entries);
-        assert_eq!(fixed_config.editor_command, old_config.editor_command);
-        assert_eq!(fixed_config.cache_enabled, old_config.cache_enabled);
     }
 }
