@@ -162,8 +162,12 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
     let lang_type = if type_name == "source" { LangType::Source } else { LangType::Target };
 
     let mut lang_codes: Vec<LangCodeName> = Vec::new();
+    let v_array = v.as_array();
+    if let None = v_array {
+        return Err(DeeplAPIError::JsonError(v.to_string()));
+    }
     // Add got language codes
-    for value in v.as_array().expect("Invalid response at get_language_codes") {
+    for value in v_array.unwrap() {
         value.get("language").ok_or("Invalid response".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
         // Remove quotation marks
         let lang_code_with_quote = value["language"].to_string();
