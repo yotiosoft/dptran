@@ -2,9 +2,10 @@
 
 [English version](README.md) | 日本語
 
+![Crates.io Version](https://img.shields.io/crates/v/dptran)
+[![Rust](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![crates.io](https://img.shields.io/badge/crates.io-v2.2.2-brightgreen.svg)
 
 コマンドラインでDeepL翻訳を実行するツールです。  
 Rustで記述されており、DeepL APIへの接続にはcurlを使用しています。  
