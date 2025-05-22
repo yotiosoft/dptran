@@ -49,43 +49,6 @@ dptran = { version = "2.3.0", default-features = false }
 - DeepL API の言語コード一覧の取得
 - 翻訳結果のキャッシュ (v2.1.0-)
 
-## Language codes
-翻訳先の言語オプションを省略すると、デフォルトでは英語（EN）で翻訳されます。  
-言語コードの一覧を取得するには、以下のコマンドをご利用ください。
-
-```bash
-$ dptran list -s    # for the list of source languages
- AR: Arabic     BG: Bulgarian  CS: Czech     
- DA: Danish     DE: German     EL: Greek     
- EN: English    ES: Spanish    ET: Estonian  
- FI: Finnish    FR: French     HU: Hungarian 
- ID: Indonesian IT: Italian    JA: Japanese  
- KO: Korean     LT: Lithuanian LV: Latvian   
- NB: Norwegian  NL: Dutch      PL: Polish    
- PT: Portuguese RO: Romanian   RU: Russian   
- SK: Slovak     SL: Slovenian  SV: Swedish   
- TR: Turkish    UK: Ukrainian  ZH: Chinese   
-$ dptran list -t    # for the list of target languages
- AR     : Arabic                 BG     : Bulgarian             
- CS     : Czech                  DA     : Danish                
- DE     : German                 EL     : Greek                 
- EN     : English                EN-GB  : English (British)     
- EN-US  : English (American)     ES     : Spanish               
- ET     : Estonian               FI     : Finnish               
- FR     : French                 HU     : Hungarian             
- ID     : Indonesian             IT     : Italian               
- JA     : Japanese               KO     : Korean                
- LT     : Lithuanian             LV     : Latvian               
- NB     : Norwegian              NL     : Dutch                 
- PL     : Polish                 PT     : Portuguese            
- PT-BR  : Portuguese (Brazilian) PT-PT  : Portuguese (European) 
- RO     : Romanian               RU     : Russian               
- SK     : Slovak                 SL     : Slovenian             
- SV     : Swedish                TR     : Turkish               
- UK     : Ukrainian              ZH     : Chinese (simplified)  
- ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (traditional)
-```
-
 ## 利用方法
 
 ### APIキーの設定
@@ -252,6 +215,43 @@ remaining: 499778
 
 現在の月で DeepL API で翻訳可能な残りの文字数を確認できます。  
 無料のDeepL APIプランでは、月間50万文字まで翻訳できます。
+
+## Language codes
+翻訳先の言語オプションを省略すると、デフォルトでは英語（EN）で翻訳されます。  
+言語コードの一覧を取得するには、以下のコマンドをご利用ください。
+
+```bash
+$ dptran list -s    # for the list of source languages
+ AR: Arabic     BG: Bulgarian  CS: Czech     
+ DA: Danish     DE: German     EL: Greek     
+ EN: English    ES: Spanish    ET: Estonian  
+ FI: Finnish    FR: French     HU: Hungarian 
+ ID: Indonesian IT: Italian    JA: Japanese  
+ KO: Korean     LT: Lithuanian LV: Latvian   
+ NB: Norwegian  NL: Dutch      PL: Polish    
+ PT: Portuguese RO: Romanian   RU: Russian   
+ SK: Slovak     SL: Slovenian  SV: Swedish   
+ TR: Turkish    UK: Ukrainian  ZH: Chinese   
+$ dptran list -t    # for the list of target languages
+ AR     : Arabic                 BG     : Bulgarian             
+ CS     : Czech                  DA     : Danish                
+ DE     : German                 EL     : Greek                 
+ EN     : English                EN-GB  : English (British)     
+ EN-US  : English (American)     ES     : Spanish               
+ ET     : Estonian               FI     : Finnish               
+ FR     : French                 HU     : Hungarian             
+ ID     : Indonesian             IT     : Italian               
+ JA     : Japanese               KO     : Korean                
+ LT     : Lithuanian             LV     : Latvian               
+ NB     : Norwegian              NL     : Dutch                 
+ PL     : Polish                 PT     : Portuguese            
+ PT-BR  : Portuguese (Brazilian) PT-PT  : Portuguese (European) 
+ RO     : Romanian               RU     : Russian               
+ SK     : Slovak                 SL     : Slovenian             
+ SV     : Swedish                TR     : Turkish               
+ UK     : Ukrainian              ZH     : Chinese (simplified)  
+ ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (traditional)
+```
 
 ## デフォルトの翻訳先言語を変更する
 

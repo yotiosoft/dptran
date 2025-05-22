@@ -50,43 +50,6 @@ The binary crate provides a command-line tool to translate text using the DeepL 
 - Check valid language codes.
 - Cache the translation results. (v2.1.0-)
 
-## Language codes
-If you omit the destination language option, the translation will be done in English (EN) by default.  
-For more information about language codes, see the language list getting from DeepL API:  
-
-```bash
-$ dptran list -s    # for the list of source languages
- AR: Arabic     BG: Bulgarian  CS: Czech     
- DA: Danish     DE: German     EL: Greek     
- EN: English    ES: Spanish    ET: Estonian  
- FI: Finnish    FR: French     HU: Hungarian 
- ID: Indonesian IT: Italian    JA: Japanese  
- KO: Korean     LT: Lithuanian LV: Latvian   
- NB: Norwegian  NL: Dutch      PL: Polish    
- PT: Portuguese RO: Romanian   RU: Russian   
- SK: Slovak     SL: Slovenian  SV: Swedish   
- TR: Turkish    UK: Ukrainian  ZH: Chinese   
-$ dptran list -t    # for the list of target languages
- AR     : Arabic                 BG     : Bulgarian             
- CS     : Czech                  DA     : Danish                
- DE     : German                 EL     : Greek                 
- EN     : English                EN-GB  : English (British)     
- EN-US  : English (American)     ES     : Spanish               
- ET     : Estonian               FI     : Finnish               
- FR     : French                 HU     : Hungarian             
- ID     : Indonesian             IT     : Italian               
- JA     : Japanese               KO     : Korean                
- LT     : Lithuanian             LV     : Latvian               
- NB     : Norwegian              NL     : Dutch                 
- PL     : Polish                 PT     : Portuguese            
- PT-BR  : Portuguese (Brazilian) PT-PT  : Portuguese (European) 
- RO     : Romanian               RU     : Russian               
- SK     : Slovak                 SL     : Slovenian             
- SV     : Swedish                TR     : Turkish               
- UK     : Ukrainian              ZH     : Chinese (simplified)  
- ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (traditional)
-```
-
 ## Usage
 
 ### Setting API key
@@ -252,6 +215,43 @@ remaining: 499778
 
 You can see the number of remaining characters that can be translated by DeepL API in the current month.  
 The free DeepL API plan lets you translate up to 500,000 characters per month.
+
+## Language codes
+If you omit the destination language option, the translation will be done in English (EN) by default.  
+For more information about language codes, see the language list getting from DeepL API:  
+
+```bash
+$ dptran list -s    # for the list of source languages
+ AR: Arabic     BG: Bulgarian  CS: Czech     
+ DA: Danish     DE: German     EL: Greek     
+ EN: English    ES: Spanish    ET: Estonian  
+ FI: Finnish    FR: French     HU: Hungarian 
+ ID: Indonesian IT: Italian    JA: Japanese  
+ KO: Korean     LT: Lithuanian LV: Latvian   
+ NB: Norwegian  NL: Dutch      PL: Polish    
+ PT: Portuguese RO: Romanian   RU: Russian   
+ SK: Slovak     SL: Slovenian  SV: Swedish   
+ TR: Turkish    UK: Ukrainian  ZH: Chinese   
+$ dptran list -t    # for the list of target languages
+ AR     : Arabic                 BG     : Bulgarian             
+ CS     : Czech                  DA     : Danish                
+ DE     : German                 EL     : Greek                 
+ EN     : English                EN-GB  : English (British)     
+ EN-US  : English (American)     ES     : Spanish               
+ ET     : Estonian               FI     : Finnish               
+ FR     : French                 HU     : Hungarian             
+ ID     : Indonesian             IT     : Italian               
+ JA     : Japanese               KO     : Korean                
+ LT     : Lithuanian             LV     : Latvian               
+ NB     : Norwegian              NL     : Dutch                 
+ PL     : Polish                 PT     : Portuguese            
+ PT-BR  : Portuguese (Brazilian) PT-PT  : Portuguese (European) 
+ RO     : Romanian               RU     : Russian               
+ SK     : Slovak                 SL     : Slovenian             
+ SV     : Swedish                TR     : Turkish               
+ UK     : Ukrainian              ZH     : Chinese (simplified)  
+ ZH-HANS: Chinese (simplified)   ZH-HANT: Chinese (traditional)
+```
 
 ## Change default target language
 
