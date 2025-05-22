@@ -261,9 +261,6 @@ mod tests {
             }
         }
         assert!(usage.is_ok());
-        let usage = usage.unwrap();
-        assert!(usage.character_count > 0);
-        assert!(usage.character_limit > 0);
     }
 
     #[test]

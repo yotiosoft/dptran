@@ -44,11 +44,10 @@ pub enum LangType {
 /// DeepL API usage information  
 /// character_count: Number of characters translated this month  
 /// character_limit: Maximum number of characters that can be translated this month  
-/// If character_limit is 0, it is unlimited  
+/// If the API key is pro, the character_limit is None.
 pub struct DpTranUsage {
     pub character_count: u64,
-    pub character_limit: u64,
-    pub unlimited: bool,
+    pub character_limit: Option<u64>,
 }
 
 /// DeepL translation library.
@@ -140,7 +139,6 @@ impl DpTran {
         Ok(DpTranUsage {
             character_count: count,
             character_limit: limit,
-            unlimited: limit == 0,
         })
     }
 

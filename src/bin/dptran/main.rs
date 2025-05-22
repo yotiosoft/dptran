@@ -131,12 +131,12 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 /// Display the number of characters remaining.
 pub fn show_usage() -> Result<(), RuntimeError> {
     let usage = backend::get_usage()?;
-    if usage.unlimited {
+    if usage.character_limit.is_none() {
         println!("usage: {} / unlimited", usage.character_count);
     }
     else {
-        println!("usage: {} / {} ({}%)", usage.character_count, usage.character_limit, (usage.character_count as f64 / usage.character_limit as f64 * 100.0).round());
-        println!("remaining: {}", usage.character_limit - usage.character_count);
+        println!("usage: {} / {} ({}%)", usage.character_count, usage.character_limit.unwrap(), (usage.character_count as f64 / usage.character_limit.unwrap() as f64 * 100.0).round());
+        println!("remaining: {}", usage.character_limit.unwrap() - usage.character_count);
     }
     Ok(())
 }
