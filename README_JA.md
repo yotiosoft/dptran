@@ -94,9 +94,26 @@ $ dptran list -t    # for the list of target languages
 APIキーは無料で取得可能です（月間50万文字まで）  
 [https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/)
 
+**DeepL API Free プランの場合:**
 ```bash
-$ dptran set --api-key [API key]
+$ dptran set --api-key-free [Your API key]
 ```
+
+**DeepL API Pro プランの場合:**
+```bash
+$ dptran set --api-key-pro [Your API key]
+```
+
+また、環境変数 ``DPTRAN_DEEPL_API_KEY`` (freeプラン用) または ``DPTRAN_DEEPL_API_KEY_PRO`` (proプラン用) にAPIキーを設定することもできます。
+
+**Linux / macOSの場合:**
+```bash
+$ export DPTRAN_DEEPL_API_KEY=[API key]
+```
+永続的に設定するには、上記の行を ``~/.bashrc`` または ``~/.zshrc`` ファイルに追加してください。
+
+**Windowsの場合:**
+システムプロパティで環境変数を設定してください。
 
 ### コマンドライン引数から翻訳
 

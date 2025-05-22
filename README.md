@@ -95,12 +95,18 @@ Please be sure to get your DeepL API key and set it up on dptran before using th
 The API key is available for free (up to 500,000 characters per month).  
 [https://www.deepl.com/en/pro-api/](https://www.deepl.com/en/pro-api/)
 
+**For DeepL API Free plan:**
 ```bash
-$ dptran set --api-key [API key]
+$ dptran set --api-key-free [Your API key]
 ```
 
-Or you can set the API key in the environment variable ``DPTRAN_DEEPL_API_KEY``.  
-**On Linux or MacOS:**
+**For DeepL API Pro plan:**
+```bash
+$ dptran set --api-key-pro [Your API key]
+```
+
+Or you can set the API key in the environment variable ``DPTRAN_DEEPL_API_KEY`` (for free plan) or ``DPTRAN_DEEPL_API_KEY_PRO`` (for pro plan).  
+**On Linux or macOS:**
 ```bash
 $ export DPTRAN_DEEPL_API_KEY=[API key]
 ```
