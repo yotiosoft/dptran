@@ -272,6 +272,7 @@ mod tests {
             api_key: "test_api_key".to_string(),
             api_key_type: dptran::ApiKeyType::Free,
         };
+        clear_settings().unwrap();
         set_api_key(api_key).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_api_key");
