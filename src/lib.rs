@@ -136,6 +136,11 @@ impl DpTran {
     /// api_key: DeepL API key  
     pub fn get_usage(&self) -> Result<DpTranUsage, DpTranError> {
         let (count, limit) = deeplapi::get_usage(&self.api_key, &self.api_key_type).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let limit = if limit == deeplapi::UNLIMITED_CHARACTERS_NUMBER {
+            None
+        } else {
+            Some(limit)
+        };
         Ok(DpTranUsage {
             character_count: count,
             character_limit: limit,

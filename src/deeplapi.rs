@@ -11,6 +11,7 @@ const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
 const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
 const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
 const DEEPL_API_LANGUAGES_PRO: &str = "https://api.deepl.com/v2/languages";
+pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
 /// Language code and language name
 pub type LangCodeName = (String, String);
@@ -131,7 +132,7 @@ pub fn translate(api_key: &String, api_key_type: &ApiKeyType, text: &Vec<String>
 /// Get the number of characters remaining to be translated.
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.
 /// Returns an error if acquisition fails.
-pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, Option<u64>), DeeplAPIError> {
+pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, u64), DeeplAPIError> {
     let url = if *api_key_type == ApiKeyType::Free {
         DEEPL_API_USAGE.to_string()
     } else {
@@ -145,12 +146,7 @@ pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, Op
     v.get("character_limit").ok_or("failed to get character_limit".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
     let character_count = v["character_count"].as_u64().expect("failed to get character_count");
-    let character_limit = v["character_limit"].as_u64();
-    let character_limit = if character_limit.is_some() {
-        Some(character_limit.unwrap())
-    } else {
-        None
-    };
+    let character_limit = v["character_limit"].as_u64().expect("failed to get character_limit");
     Ok((character_count, character_limit))
 }
 
