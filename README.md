@@ -49,6 +49,7 @@ The binary crate provides a command-line tool to translate text using the DeepL 
 - Check the number of characters remaining to be translated.
 - Check valid language codes.
 - Cache the translation results. (v2.1.0-)
+- Support both DeepL API Free and Pro plans. (v2.3.0-)
 
 ## Usage
 
@@ -71,6 +72,7 @@ $ dptran set --api-key-pro [Your API key]
 #### Set API Key by environment variable
 
 Alternatively, you can set the API key in the environment variable ``DPTRAN_DEEPL_API_KEY`` (for free plan) or ``DPTRAN_DEEPL_API_KEY_PRO`` (for pro plan).  
+If you set the API key in the environment variable, ``dptran`` will automatically use it.
 **On Linux or macOS:**
 ```bash
 $ export DPTRAN_DEEPL_API_KEY=[API key]
@@ -282,3 +284,10 @@ $ cargo uninstall dptran
 
 # Library crate (v2.0.0-)
 See the documentation for the library crate [here](https://docs.rs/dptran/).
+
+## Features
+
+- Translate text.
+- Check the number of characters remaining to be translated.
+- Check valid language codes.
+- Support both DeepL API Free and Pro plans. (v2.3.0-)

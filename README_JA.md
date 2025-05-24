@@ -49,6 +49,7 @@ dptran = { version = "2.3.0", default-features = false }
 - 残りの DeepL API の翻訳可能文字数を確認
 - DeepL API の言語コード一覧の取得
 - 翻訳結果のキャッシュ (v2.1.0-)
+- DeepL API Free プランと Pro プランの両方に対応 (v2.3.0-)
 
 ## 利用方法
 
@@ -71,6 +72,7 @@ $ dptran set --api-key-pro [Your API key]
 #### 環境変数でAPIキーを設定
 
 環境変数 ``DPTRAN_DEEPL_API_KEY`` (freeプラン用) または ``DPTRAN_DEEPL_API_KEY_PRO`` (proプラン用) にAPIキーを設定することもできます。
+もし環境変数にAPIキーを設定した場合、``dptran``は自動的に環境変数から API キーを取得します。
 
 **Linux / macOSの場合:**
 ```bash
@@ -283,3 +285,10 @@ $ cargo uninstall dptran
 
 # Library crate (v2.0.0-)
 library crate に関するドキュメントは[こちら](https://docs.rs/dptran/)をご参照ください。
+
+## 機能
+
+- テキスト翻訳
+- 残りの DeepL API の翻訳可能文字数を確認
+- DeepL API の言語コード一覧の取得
+- DeepL API Free プランと Pro プランの両方に対応 (v2.3.0-)
