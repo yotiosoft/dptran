@@ -208,6 +208,8 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 #[cfg(test)]
 pub mod tests {
+    use core::panic;
+
     use super::*;
 
     fn retry_or_panic(e: &DeeplAPIError, times: u8) -> bool {
@@ -340,7 +342,47 @@ pub mod tests {
     }
 
     #[test]
-    fn json_to_vec_test() {
+    fn api_get_api_key_test() {
+        // If the environment variable `DPTRAN_DEEPL_API_KEY` or `DPTRAN_DEEPL_API_KEY_PRO` is not set, panic.
+        let free_api_key = std::env::var("DPTRAN_DEEPL_API_KEY");
+        let pro_api_key = std::env::var("DPTRAN_DEEPL_API_KEY_PRO");
+
+        // First, remove the pro API key from the environment variable to test the free API key.
+        if pro_api_key.is_ok() {
+            std::env::remove_var("DPTRAN_DEEPL_API_KEY_PRO");
+        }
+        // If both environment variables are not set, panic.
+        if free_api_key.is_err() && pro_api_key.is_err() {
+            panic!("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` or `DPTRAN_DEEPL_API_KEY_PRO` to your DeepL API key.");
+        }
+        let (api_key, api_key_type) = get_api_key();
+        if pro_api_key.is_ok() {
+            panic!("Error: API key is set to Pro, but the test is for Free API key. Please remove the environment variable `DPTRAN_DEEPL_API_KEY_PRO`.");
+        } else {
+            assert!(free_api_key.is_ok());
+            assert_eq!(api_key, free_api_key.as_ref().unwrap().clone());
+            assert!(api_key_type == ApiKeyType::Free);
+        }
+
+        // Recover the pro API key to test the Pro API key.
+        if free_api_key.is_ok() {
+            std::env::remove_var("DPTRAN_DEEPL_API_KEY");
+        }
+        if pro_api_key.is_ok() {
+            std::env::set_var("DPTRAN_DEEPL_API_KEY_PRO", pro_api_key.as_ref().unwrap().clone());
+            let (api_key, api_key_type) = get_api_key();
+            assert!(pro_api_key.is_ok());
+            assert_eq!(api_key, pro_api_key.unwrap().clone());
+            assert!(api_key_type == ApiKeyType::Pro);
+        }
+        // Recover the free API key to test the Free API key.
+        if free_api_key.is_ok() {
+            std::env::set_var("DPTRAN_DEEPL_API_KEY", free_api_key.unwrap().clone());
+        }
+    }
+
+    #[test]
+    fn api_json_to_vec_test() {
         let json = r#"{"translations":[{"detected_source_language":"EN","text":"ハロー、ワールド！"}]}"#.to_string();
         let res = json_to_vec(&json);
         match res {

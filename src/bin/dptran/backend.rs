@@ -265,6 +265,7 @@ mod tests {
 
     #[test]
     fn backend_get_and_set_api_key_test() {
+        // Set as a free API key
         let api_key = ApiKey {
             api_key: "test_api_key".to_string(),
             api_key_type: dptran::ApiKeyType::Free,
@@ -274,6 +275,16 @@ mod tests {
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_api_key");
         assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Free);
+
+        // Set as a pro API key
+        let api_key = ApiKey {
+            api_key: "test_pro_api_key".to_string(),
+            api_key_type: dptran::ApiKeyType::Pro,
+        };
+        set_api_key(api_key).unwrap();
+        let retrieved_api_key = get_api_key().unwrap().unwrap();
+        assert_eq!(retrieved_api_key.api_key, "test_pro_api_key");
+        assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Pro);
     }
 
     #[test]
