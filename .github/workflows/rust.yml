@@ -38,6 +38,7 @@ jobs:
     environment: build-and-test
     env:
       DPTRAN_DEEPL_API_KEY: ${{ secrets.DPTRAN_DEEPL_API_TOKEN }}
+      DPTRAN_DEEPL_API_KEY_PRO: ${{ secrets.DPTRAN_DEEPL_API_TOKEN_PRO }}
     steps:
     - uses: actions/checkout@v4
     - name: Build
