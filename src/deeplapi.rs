@@ -356,13 +356,9 @@ pub mod tests {
             panic!("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` or `DPTRAN_DEEPL_API_KEY_PRO` to your DeepL API key.");
         }
         let (api_key, api_key_type) = get_api_key();
-        if pro_api_key.is_ok() {
-            panic!("Error: API key is set to Pro, but the test is for Free API key. Please remove the environment variable `DPTRAN_DEEPL_API_KEY_PRO`.");
-        } else {
-            assert!(free_api_key.is_ok());
-            assert_eq!(api_key, free_api_key.as_ref().unwrap().clone());
-            assert!(api_key_type == ApiKeyType::Free);
-        }
+        assert!(free_api_key.is_ok());
+        assert_eq!(api_key, free_api_key.as_ref().unwrap().clone());
+        assert!(api_key_type == ApiKeyType::Free);
 
         // Recover the pro API key to test the Pro API key.
         if free_api_key.is_ok() {
