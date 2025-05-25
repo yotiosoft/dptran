@@ -73,6 +73,7 @@ $ dptran set --api-key-pro [Your API key]
 
 Alternatively, you can set the API key in the environment variable ``DPTRAN_DEEPL_API_KEY`` (for free plan) or ``DPTRAN_DEEPL_API_KEY_PRO`` (for pro plan).  
 If you set the API key in the environment variable, ``dptran`` will automatically use it.
+
 **On Linux or macOS:**
 ```bash
 $ export DPTRAN_DEEPL_API_KEY=[API key]
