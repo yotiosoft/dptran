@@ -22,17 +22,22 @@ enum LangType {
     Target,
 }
 
+/// DeepL API key type.
+/// DeepL API servers Free and Pro plans, but the endpoints are different.
+/// So we need to distinguish between the two types of API keys.
+/// ``Free``: Free API key, which has a character limit of 500,000 characters per month.
+/// ``Pro``: Pro API key, which has no character limit.
 #[derive(Debug, PartialEq, Clone)]
 pub enum ApiKeyType {
     Free,
     Pro,
 }
 
-/// Extended language codes and names.
+/// Extended language codes and names.  
 /// Because DeepL API's ``/languages`` endpoint returns only the language codes that support document translation,
-/// although only text translation is supported. Additionally, if the language code is unspecified variant, it is not returned.
-/// Therefore, dptran adds the following language codes and names manually.
-/// This constants must be updated when the DeepL API is updated.
+/// although only text translation is supported. Additionally, if the language code is unspecified variant, it is not returned.  
+/// Therefore, dptran adds the following language codes and names manually.  
+/// This constants must be updated when the DeepL API is updated.  
 /// See <https://developers.deepl.com/docs/resources/supported-languages>.
 
 static EXTENDED_LANG_CODES: [(&str, &str, LangType); 2] = [
@@ -65,8 +70,8 @@ impl fmt::Display for DeeplAPIError {
     }
 }
 
-/// Translation
-/// Returns an error if it fails
+/// Translation  
+/// Returns an error if it fails.
 fn request_translate(auth_key: &String, api_key_type: &ApiKeyType, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
     let url = if *api_key_type == ApiKeyType::Free {
         DEEPL_API_TRANSLATE.to_string()
@@ -87,7 +92,7 @@ fn request_translate(auth_key: &String, api_key_type: &ApiKeyType, text: &Vec<St
 }
 
 /// Parses the translation results passed in json format,
-///   stores the translation in a vector, and returns it.
+/// stores the translation in a vector, and returns it.
 fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
     let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
     json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response")).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
@@ -103,8 +108,8 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
     Ok(translated_texts)
 }
 
-/// Return translation results.
-/// Receive translation results in json format and display translation results.
+/// Return translation results.  
+/// Receive translation results in json format and display translation results.  
 /// Return error if json parsing fails.
 pub fn translate(api_key: &String, api_key_type: &ApiKeyType, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
     let auth_key = api_key;
@@ -129,9 +134,9 @@ pub fn translate(api_key: &String, api_key_type: &ApiKeyType, text: &Vec<String>
     }
 }
 
-/// Get the number of characters remaining to be translated.
-/// Retrieved from <https://api-free.deepl.com/v2/usage>.
-/// Returns an error if acquisition fails.
+/// Get the number of characters remaining to be translated.  
+/// Retrieved from <https://api-free.deepl.com/v2/usage>.  
+/// Returns an error if acquisition fails.  
 pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, u64), DeeplAPIError> {
     let url = if *api_key_type == ApiKeyType::Free {
         DEEPL_API_USAGE.to_string()
@@ -150,8 +155,8 @@ pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, u6
     Ok((character_count, character_limit))
 }
 
-/// Get language code list
-/// Retrieved from <https://api-free.deepl.com/v2/languages>.
+/// Get language code list  
+/// Retrieved from <https://api-free.deepl.com/v2/languages>.  
 pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
     let url = if *api_key_type == ApiKeyType::Free {
         DEEPL_API_LANGUAGES.to_string()
@@ -204,7 +209,7 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
     }
 }
 
-/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 #[cfg(test)]
 pub mod tests {

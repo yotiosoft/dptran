@@ -4,7 +4,7 @@ use std::str;
 use std::fmt;
 use curl::easy::Easy;
 
-/// ConnectionError  
+/// ConnectionErrors.  
 /// It is an error that occurs when communicating with the DeepL API.  
 /// ``BadRequest``: 400 Bad Request  
 /// ``Forbidden``: 403 Forbidden  

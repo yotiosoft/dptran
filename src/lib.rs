@@ -72,7 +72,7 @@ impl DpTran {
         }
     }
 
-    /// Set the API key.
+    /// Set the API key.  
     /// api_key: DeepL API key
     pub fn set_api_key(&mut self, api_key: &String) {
         self.api_key = api_key.clone();
@@ -119,9 +119,9 @@ impl DpTran {
         }
     }
 
-    /// Convert to correct language code from input target language code string. Using DeepL API.
-    /// language_code: Language code to convert
-    /// Caution: EN, PT are not automatically converted to EN-US, PT-PT from version 2.1.0.
+    /// Convert to correct language code from input target language code string. Using DeepL API.  
+    /// language_code: Language code to convert  
+    /// Caution: EN, PT are not automatically converted to EN-US, PT-PT from version 2.1.0.  
     pub fn correct_target_language_code(&self, language_code: &str) -> Result<LangCode, DpTranError> {
         let target_language = language_code.to_ascii_uppercase().to_string();
         match self.check_language_code(&target_language, LangType::Target)? {
@@ -159,8 +159,8 @@ impl DpTran {
     }
 }
 
-/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.
-/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
+/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.  
 #[cfg(test)]
 mod tests {
     use super::*;
