@@ -51,7 +51,7 @@ pub struct DpTranUsage {
 }
 
 /// DeepL API URLs
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DeeplApiUrls {
     pub translate_for_free: String,
     pub translate_for_pro: String,
@@ -449,5 +449,29 @@ mod tests {
     fn lib_correct_target_language_code_test() {
         // correct_target_language_code test
         impl_correct_target_language_code_test(0);
+    }
+
+    #[test]
+    fn lib_set_and_get_api_urls_test() {
+        // set_api_urls test
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let mut dptran = DpTran::with(&api_key, api_key_type);
+
+        // Default URLs
+        let api_urls = DeeplApiUrls::default();
+        dptran.set_api_urls(api_urls.clone());
+        assert_eq!(dptran.get_api_urls(), api_urls);
+
+        // Custom URLs
+        let custom_urls = DeeplApiUrls {
+            translate_for_free: "https://example.com/translate-free".to_string(),
+            translate_for_pro: "https://example.com/translate-pro".to_string(),
+            usage_for_free: "https://example.com/usage-free".to_string(),
+            usage_for_pro: "https://example.com/usage-pro".to_string(),
+            languages_for_free: "https://example.com/languages-free".to_string(),
+            languages_for_pro: "https://example.com/languages-pro".to_string(),
+        };
+        dptran.set_api_urls(custom_urls.clone());
+        assert_eq!(dptran.get_api_urls(), custom_urls);
     }
 }
