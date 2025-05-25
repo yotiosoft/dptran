@@ -74,13 +74,19 @@ impl DpTran {
 
     /// Set the API key.  
     /// api_key: DeepL API key
-    pub fn set_api_key(&mut self, api_key: &String) {
+    pub fn set_api_key(&mut self, api_key: &String, api_key_type: ApiKeyType) {
         self.api_key = api_key.clone();
+        self.api_key_type = api_key_type;
     }
 
     /// Get the API key.
     pub fn get_api_key(&self) -> String {
         self.api_key.clone()
+    }
+
+    /// Get the API key type.
+    pub fn get_api_key_type(&self) -> ApiKeyType {
+        self.api_key_type.clone()
     }
 
     /// Get language code list. Using DeepL API.  
@@ -387,13 +393,14 @@ mod tests {
     }
 
     #[test]
-    fn lib_set_api_key_test() {
+    fn lib_set_and_get_api_key_test() {
         // set_api_key test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let mut dptran = DpTran::with(&api_key, api_key_type);
         assert_eq!(dptran.get_api_key(), api_key);
-        dptran.set_api_key(&"test".to_string());
+        dptran.set_api_key(&"test".to_string(), ApiKeyType::Free);
         assert_eq!(dptran.get_api_key(), "test".to_string());
+        assert_eq!(dptran.get_api_key_type(), ApiKeyType::Free);
     }
 
     #[test]
