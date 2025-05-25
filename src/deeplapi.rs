@@ -5,12 +5,12 @@ use serde_json::Value;
 mod connection;
 pub use connection::ConnectionError;
 
-const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
-const DEEPL_API_TRANSLATE_PRO: &str = "https://api.deepl.com/v2/translate";
-const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
-const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
-const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
-const DEEPL_API_LANGUAGES_PRO: &str = "https://api.deepl.com/v2/languages";
+pub const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
+pub const DEEPL_API_TRANSLATE_PRO: &str = "https://api.deepl.com/v2/translate";
+pub const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
+pub const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
+pub const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
+pub const DEEPL_API_LANGUAGES_PRO: &str = "https://api.deepl.com/v2/languages";
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
 /// Language code and language name

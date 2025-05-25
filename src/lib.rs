@@ -50,6 +50,29 @@ pub struct DpTranUsage {
     pub character_limit: Option<u64>,
 }
 
+/// DeepL API URLs
+#[derive(Clone, Debug)]
+pub struct DeeplApiUrls {
+    pub translate_for_free: String,
+    pub translate_for_pro: String,
+    pub usage_for_free: String,
+    pub usage_for_pro: String,
+    pub languages_for_free: String,
+    pub languages_for_pro: String,
+}
+impl Default for DeeplApiUrls {
+    fn default() -> Self {
+        DeeplApiUrls {
+            translate_for_free: deeplapi::DEEPL_API_TRANSLATE.to_string(),
+            translate_for_pro: deeplapi::DEEPL_API_TRANSLATE_PRO.to_string(),
+            usage_for_free: deeplapi::DEEPL_API_USAGE.to_string(),
+            usage_for_pro: deeplapi::DEEPL_API_USAGE_PRO.to_string(),
+            languages_for_free: deeplapi::DEEPL_API_LANGUAGES.to_string(),
+            languages_for_pro: deeplapi::DEEPL_API_LANGUAGES_PRO.to_string(),
+        }
+    }
+}
+
 /// DeepL translation library.
 /// Create a new instance of DpTran with the API key.
 /// Use the translate() method to translate the text.
@@ -61,6 +84,7 @@ pub struct DpTranUsage {
 pub struct DpTran {
     api_key: String,
     api_key_type: ApiKeyType,
+    api_urls: DeeplApiUrls,
 }
 impl DpTran {
     /// Create a new instance of DpTran.  
@@ -69,6 +93,7 @@ impl DpTran {
         DpTran {
             api_key: api_key.to_string(),
             api_key_type,
+            api_urls: DeeplApiUrls::default(),
         }
     }
 
@@ -87,6 +112,17 @@ impl DpTran {
     /// Get the API key type.
     pub fn get_api_key_type(&self) -> ApiKeyType {
         self.api_key_type.clone()
+    }
+
+    /// Get the DeepL API URLs.
+    pub fn get_api_urls(&self) -> DeeplApiUrls {
+        self.api_urls.clone()
+    }
+
+    /// Set the DeepL API URLs.
+    /// api_urls: DeepL API URLs
+    pub fn set_api_urls(&mut self, api_urls: DeeplApiUrls) {
+        self.api_urls = api_urls;
     }
 
     /// Get language code list. Using DeepL API.  
