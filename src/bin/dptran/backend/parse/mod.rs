@@ -91,7 +91,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear"]),
+            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear", "clear_free_api_key", "clear_pro_api_key"])
     ))]
     Set {
         /// Set DeepL API key (free).
@@ -125,6 +125,14 @@ enum SubCommands {
         /// Clear settings.
         #[arg(short, long)]
         clear: bool,
+
+        /// Clear DeeL API key (free)
+        #[arg(long)]
+        clear_free_api_key: bool,
+
+        /// Clear DeeL API key (pro)
+        #[arg(long)]
+        clear_pro_api_key: bool,
     },
 
     /// Show list of supperted languages
@@ -249,7 +257,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear } => {
+            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear, clear_free_api_key, clear_pro_api_key } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -277,6 +285,14 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 if clear == true {
                     arg_struct.execution_mode = ExecutionMode::ClearSettings;
+                }
+                if clear_free_api_key == true {
+                    arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
+                    arg_struct.api_key = None;
+                }
+                if clear_pro_api_key == true {
+                    arg_struct.execution_mode = ExecutionMode::SetProApiKey;
+                    arg_struct.api_key = None;
                 }
                 return Ok(arg_struct);
             }

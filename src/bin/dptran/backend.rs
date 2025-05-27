@@ -93,6 +93,13 @@ pub fn set_api_key(api_key: ApiKey) -> Result<(), RuntimeError> {
     Ok(())
 }
 
+/// Clear the API key.
+pub fn clear_api_key(api_key_type: dptran::ApiKeyType) -> Result<(), RuntimeError> {
+    configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
+        .set_api_key("".to_string(), api_key_type).map_err(|e| RuntimeError::ConfigError(e))?;
+    Ok(())
+}
+
 /// Set default destination language.
 /// Set the default target language for translation in the configuration file config.json.
 pub fn set_default_target_language(arg_default_target_language: &String) -> Result<String, RuntimeError> {

@@ -308,7 +308,8 @@ fn main() -> Result<(), RuntimeError> {
                 })?;
                 return Ok(());
             } else {
-                return Err(RuntimeError::ApiKeyIsNotSet);
+                backend::clear_api_key(dptran::ApiKeyType::Free)?;
+                return Ok(());
             }
         }
         ExecutionMode::SetProApiKey => {
@@ -319,7 +320,8 @@ fn main() -> Result<(), RuntimeError> {
                 })?;
                 return Ok(());
             } else {
-                return Err(RuntimeError::ApiKeyIsNotSet);
+                backend::clear_api_key(dptran::ApiKeyType::Pro)?;
+                return Ok(());
             }
         }
         ExecutionMode::SetDefaultTargetLang => {
