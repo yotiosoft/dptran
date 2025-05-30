@@ -577,6 +577,7 @@ mod func_tests {
     }
 }
 
+#[cfg(test)]
 mod runtime_tests {
     use std::{io::Write, process::Command, process::Stdio};
 
