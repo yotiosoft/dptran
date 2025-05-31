@@ -146,7 +146,7 @@ impl DpTran {
             LangType::Target => "target".to_string(),
             LangType::Source => "source".to_string(),
         };
-        let lang_codes = deeplapi::get_language_codes(&self.api_key, &self.api_key_type, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let lang_codes = deeplapi::get_language_codes(&self, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
         Ok(lang_codes)
     }
 
@@ -190,7 +190,7 @@ impl DpTran {
     /// Returns an error if acquisition fails.  
     /// api_key: DeepL API key  
     pub fn get_usage(&self) -> Result<DpTranUsage, DpTranError> {
-        let (count, limit) = deeplapi::get_usage(&self.api_key, &self.api_key_type).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let (count, limit) = deeplapi::get_usage(&self).map_err(|e| DpTranError::DeeplApiError(e))?;
         let limit = if limit == deeplapi::UNLIMITED_CHARACTERS_NUMBER {
             None
         } else {
@@ -210,12 +210,15 @@ impl DpTran {
     /// target_lang: Target language  
     /// source_lang: Source language (optional)  
     pub fn translate(&self, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
-        deeplapi::translate(&self.api_key, &self.api_key_type, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
+        deeplapi::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.  
+/// And also, you need to run the dummy server for the DeepL API to test the API endpoints.
+///   $ pip3 install -r requirements.txt
+///   $ uvicorn dummy-api-server:app --reload
 #[cfg(test)]
 mod tests {
     use super::*;

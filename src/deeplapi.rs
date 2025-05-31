@@ -2,6 +2,8 @@ use std::io;
 use std::fmt;
 use serde_json::Value;
 
+use super::DpTran;
+
 mod connection;
 pub use connection::ConnectionError;
 
@@ -92,16 +94,16 @@ impl fmt::Display for DeeplAPIError {
 
 /// Translation  
 /// Returns an error if it fails.
-fn request_translate(auth_key: &String, api_key_type: &ApiKeyType, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
-    let url = if *api_key_type == ApiKeyType::Free {
-        DEEPL_API_TRANSLATE.to_string()
+fn request_translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, connection::ConnectionError> {
+    let url = if api.api_key_type == ApiKeyType::Free {
+        api.api_urls.translate_for_free.clone()
     } else {
-        DEEPL_API_TRANSLATE_PRO.to_string()
+        api.api_urls.translate_for_pro.clone()
     };
     let mut query = if source_lang.is_none() {
-        format!("auth_key={}&target_lang={}", auth_key, target_lang)
+        format!("auth_key={}&target_lang={}", api.api_key, target_lang)
     } else {
-        format!("auth_key={}&target_lang={}&source_lang={}", auth_key, target_lang, source_lang.as_ref().unwrap())
+        format!("auth_key={}&target_lang={}&source_lang={}", api.api_key, target_lang, source_lang.as_ref().unwrap())
     };
     
     for t in text {
@@ -109,6 +111,30 @@ fn request_translate(auth_key: &String, api_key_type: &ApiKeyType, text: &Vec<St
     }
     
     connection::post(url, query)
+}
+
+/// Return translation results.  
+/// Receive translation results in json format and display translation results.  
+/// Return error if json parsing fails.
+pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
+    // Get json of translation result with request_translate().
+    let res = request_translate(api, text, target_lang, source_lang);
+    match res {
+        Ok(res) => {
+            json_to_vec(&res)
+        },
+        // Error message if translation result is not successful
+        // DeepL If the API is an error code with a specific meaning, detect it here
+        // https://www.deepl.com/en/docs-api/api-access/error-handling/
+        Err(e) => {
+            if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
+                Err(DeeplAPIError::LimitError)
+            }
+            else {
+                Err(DeeplAPIError::ConnectionError(e))
+            }
+        }
+    }
 }
 
 /// Parses the translation results passed in json format,
@@ -128,42 +154,16 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
     Ok(translated_texts)
 }
 
-/// Return translation results.  
-/// Receive translation results in json format and display translation results.  
-/// Return error if json parsing fails.
-pub fn translate(api_key: &String, api_key_type: &ApiKeyType, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
-    let auth_key = api_key;
-
-    // Get json of translation result with request_translate().
-    let res = request_translate(&auth_key, api_key_type, text, target_lang, source_lang);
-    match res {
-        Ok(res) => {
-            json_to_vec(&res)
-        },
-        // Error message if translation result is not successful
-        // DeepL If the API is an error code with a specific meaning, detect it here
-        // https://www.deepl.com/en/docs-api/api-access/error-handling/
-        Err(e) => {
-            if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
-                Err(DeeplAPIError::LimitError)
-            }
-            else {
-                Err(DeeplAPIError::ConnectionError(e))
-            }
-        }
-    }
-}
-
 /// Get the number of characters remaining to be translated.  
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.  
 /// Returns an error if acquisition fails.  
-pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, u64), DeeplAPIError> {
-    let url = if *api_key_type == ApiKeyType::Free {
-        DEEPL_API_USAGE.to_string()
+pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
+    let url = if api.api_key_type == ApiKeyType::Free {
+        api.api_urls.usage_for_free.clone()
     } else {
-        DEEPL_API_USAGE_PRO.to_string()
+        api.api_urls.usage_for_pro.clone()
     };
-    let query = format!("auth_key={}", api_key);
+    let query = format!("auth_key={}", api.api_key);
     let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
@@ -177,13 +177,13 @@ pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, u6
 
 /// Get language code list  
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.  
-pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
-    let url = if *api_key_type == ApiKeyType::Free {
-        DEEPL_API_LANGUAGES.to_string()
+pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
+    let url = if api.api_key_type == ApiKeyType::Free {
+        api.api_urls.languages_for_free.clone()
     } else {
-        DEEPL_API_LANGUAGES_PRO.to_string()
+        api.api_urls.languages_for_pro.clone()
     };
-    let query = format!("type={}&auth_key={}", type_name, api_key);
+    let query = format!("type={}&auth_key={}", type_name, api.api_key);
     let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
@@ -231,6 +231,9 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+/// And also, you need to run the dummy server for the DeepL API to test the API endpoints.
+///   $ pip3 install -r requirements.txt
+///   $ uvicorn dummy-api-server:app --reload
 #[cfg(test)]
 pub mod tests {
     use core::panic;
@@ -263,10 +266,11 @@ pub mod tests {
     fn impl_api_translate_test(times: u8) {
         // translate test
         let (api_key, api_key_type) = get_api_key();
+        let api = DpTran::with(&api_key, api_key_type);
         let text = vec!["Hello, World!".to_string()];
         let target_lang = "JA".to_string();
         let source_lang = None;
-        let res = translate(&api_key, &api_key_type, &text, &target_lang, &source_lang);
+        let res = translate(&api, &text, &target_lang, &source_lang);
         match res {
             Ok(res) => {
                 assert_eq!(res[0], "ハロー、ワールド！");
@@ -284,7 +288,8 @@ pub mod tests {
     fn impl_api_usage_test(times: u8) {
         // usage test
         let (api_key, api_key_type) = get_api_key();
-        let res = get_usage(&api_key, &api_key_type);
+        let api = DpTran::with(&api_key, api_key_type);
+        let res = get_usage(&api);
         if res.is_err() {
             if retry_or_panic(&res.err().unwrap(), times) {
                 // retry
@@ -297,7 +302,9 @@ pub mod tests {
     fn impl_api_get_language_codes_test(times: u8) {
         // get_language_codes test
         let (api_key, api_key_type) = get_api_key();
-        let res = get_language_codes(&api_key, &api_key_type, "source".to_string());
+        let api = DpTran::with(&api_key, api_key_type);
+        // Get language codes for source languages
+        let res = get_language_codes(&api, "source".to_string());
         match res {
             Ok(res) => {
                 if res.len() == 0 {
