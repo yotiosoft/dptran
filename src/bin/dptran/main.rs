@@ -290,6 +290,87 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
     Ok(())
 }
 
+/// Start translation process.
+fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
+                            multilines: bool, remove_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
+    let mut source_lang = translate_from;
+    let mut target_lang = translate_to;
+
+    if target_lang.is_none() {
+        target_lang = Some(backend::get_default_target_language_code()?);
+    }
+
+    // API Key confirmation
+    let api_key = match backend::get_api_key()? {
+        Some(api_key) => api_key,
+        None => {
+            println!("Welcome to dptran!");
+            println!("First, please set your DeepL API-key:");
+            println!("\t$ dptran set --api-key <API_KEY>");
+            println!();
+        
+            println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");
+            if cfg!(target_os = "windows") {
+                // Windows向け表示
+                println!("\nFor Windows (PowerShell):");
+                println!("\t$env:DPTRAN_DEEPL_API_KEY = \"<API_KEY>\"");
+                println!("To make it persistent, use the System Environment Variables:");
+                println!("\t1. Open 'System Properties' > 'Environment Variables'");
+                println!("\t2. Add a new user or system variable named 'DPTRAN_DEEPL_API_KEY' with your API key.");
+                println!("(Alternatively, for Command Prompt):");
+                println!("\t> set DPTRAN_DEEPL_API_KEY=<API_KEY>");
+                println!("Note: This is temporary and will be lost when the window is closed.");
+            } else {
+                // Unix/macOS/Linux 向け表示
+                println!("\nFor Linux/macOS:");
+                println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
+                println!("To make it persistent, add the above line to your shell config file:");
+                println!("\t~/.bashrc, ~/.zshrc, or ~/.bash_profile (depending on your shell)");
+            }
+            println!();
+
+            println!("If you don't have an API-key, please sign up for a free/pro account at DeepL.");
+            println!("You can get DeepL API-key for free here:");
+            println!("\thttps://www.deepl.com/en/pro-api?cta=header-pro-api/");
+            return Ok(());
+        },
+    };
+    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+
+    // Language code check and correction
+    if let Some(sl) = source_lang {
+        source_lang = Some(dptran.correct_source_language_code(&sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+    }
+    if let Some(tl) = target_lang {
+        target_lang = Some(dptran.correct_target_language_code(&tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+    }
+
+    // Output filepath
+    // If output file is specified, it will be created or overwritten.
+    let ofile = if let Some(output_file) = ofile_path {
+        // is the file exists?
+        if std::path::Path::new(&output_file).exists() {
+            print!("The file {} already exists. Overwrite? (y/N) ", output_file);
+            std::io::stdout().flush().unwrap();
+            let mut input = String::new();
+            io::stdin().read_line(&mut input).unwrap();
+            if input.trim().to_ascii_lowercase() != "y" {
+                return Ok(());  // Do not overwrite
+            }
+        }
+        Some(backend::create_file(&output_file)?)
+    }
+    else {
+        None
+    };
+
+    // (Dialogue &) Translation
+    process(&dptran, mode, source_lang, target_lang.unwrap(), 
+            multilines, remove_line_breaks, source_text, ofile)?;
+
+    Ok(())
+}
+
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
     // Parsing arguments.
@@ -380,85 +461,23 @@ fn main() -> Result<(), RuntimeError> {
             show_target_language_codes()?;
             return Ok(());
         }
-        _ => {}     // ExecutionMode::TranslateNormal, ExecutionMode::TranslateInteractive, ExecutionMode::FileInput
-    };
+        ExecutionMode::TranslateNormal | ExecutionMode::TranslateInteractive => {
+            // Normal or interactive translation mode
+            let source_lang = arg_struct.translate_from;
+            let target_lang = arg_struct.translate_to;
+            let multilines = arg_struct.multilines;
+            let rm_line_breaks = arg_struct.remove_line_breaks;
+            let source_text = arg_struct.source_text;
+            let ofile_path = arg_struct.ofile_path;
 
-    let mut source_lang = arg_struct.translate_from;
-    let mut target_lang = arg_struct.translate_to;
-
-    if target_lang.is_none() {
-        target_lang = Some(backend::get_default_target_language_code()?);
-    }
-
-    // API Key confirmation
-    let api_key = match backend::get_api_key()? {
-        Some(api_key) => api_key,
-        None => {
-            println!("Welcome to dptran!");
-            println!("First, please set your DeepL API-key:");
-            println!("\t$ dptran set --api-key <API_KEY>");
-            println!();
-        
-            println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");
-            if cfg!(target_os = "windows") {
-                // Windows向け表示
-                println!("\nFor Windows (PowerShell):");
-                println!("\t$env:DPTRAN_DEEPL_API_KEY = \"<API_KEY>\"");
-                println!("To make it persistent, use the System Environment Variables:");
-                println!("\t1. Open 'System Properties' > 'Environment Variables'");
-                println!("\t2. Add a new user or system variable named 'DPTRAN_DEEPL_API_KEY' with your API key.");
-                println!("(Alternatively, for Command Prompt):");
-                println!("\t> set DPTRAN_DEEPL_API_KEY=<API_KEY>");
-                println!("Note: This is temporary and will be lost when the window is closed.");
-            } else {
-                // Unix/macOS/Linux 向け表示
-                println!("\nFor Linux/macOS:");
-                println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
-                println!("To make it persistent, add the above line to your shell config file:");
-                println!("\t~/.bashrc, ~/.zshrc, or ~/.bash_profile (depending on your shell)");
-            }
-            println!();
-
-            println!("If you don't have an API-key, please sign up for a free/pro account at DeepL.");
-            println!("You can get DeepL API-key for free here:");
-            println!("\thttps://www.deepl.com/en/pro-api?cta=header-pro-api/");
+            // Start translation process
+            start_translation_process(mode, source_lang, target_lang,
+                                    multilines, rm_line_breaks, source_text, ofile_path)?;
             return Ok(());
-        },
-    };
-    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
-
-    // Language code check and correction
-    if let Some(sl) = source_lang {
-        source_lang = Some(dptran.correct_source_language_code(&sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
-    }
-    if let Some(tl) = target_lang {
-        target_lang = Some(dptran.correct_target_language_code(&tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
-    }
-
-    // Output filepath
-    // If output file is specified, it will be created or overwritten.
-    let ofile = if let Some(output_file) = arg_struct.ofile_path {
-        // is the file exists?
-        if std::path::Path::new(&output_file).exists() {
-            print!("The file {} already exists. Overwrite? (y/N) ", output_file);
-            std::io::stdout().flush().unwrap();
-            let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
-            if input.trim().to_ascii_lowercase() != "y" {
-                return Ok(());  // Do not overwrite
-            }
         }
-        Some(backend::create_file(&output_file)?)
-    }
-    else {
-        None
     };
 
-    // (Dialogue &) Translation
-    process(&dptran, mode, source_lang, target_lang.unwrap(), 
-            arg_struct.multilines, arg_struct.remove_line_breaks, arg_struct.source_text, ofile)?;
-
-    Ok(())
+    
 }
 
 #[cfg(test)]
