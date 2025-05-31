@@ -3,8 +3,10 @@
 # $ pip3 install -r requirements.txt
 # $ uvicorn dummy-api-server:app --reload 
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Form
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import List, Optional
 
 app = FastAPI()
 
@@ -64,63 +66,57 @@ dummy_data = [
 ]
 
 @app.post("/free/v2/translate")
-async def translate_for_free(auth_key: str, target_lang: str, text: list[str], source_lang = Query(None)):
+async def translate_for_free(auth_key: str = Form(...), target_lang: str = Form(...), text: List[str] = Form(...), source_lang: Optional[str] = Form(None)):
     print(f"Received request: auth_key={auth_key}, target_lang={target_lang}, text={text}, source_lang={source_lang}")
-    source_lang = source_lang.lower()
+    source_lang = source_lang.lower() if source_lang else None
     target_lang = target_lang.lower()
     # if source_lang == target_lang, return the text as is
     if source_lang == target_lang:
-        return TranslationResponse(
-            translations=[TranslationResponseText(text=text) for text in text]
-        )
+        return JSONResponse(content={"translations": [TranslationResponseText(text=text) for text in text]})
     # Simulate translation by looking up dummy data
-    for item in dummy_data:
-        if (item.source_lang == source_lang and
-                item.target_lang == target_lang and
-                item.request == text):
-            return TranslationResponse(
-                translations=[TranslationResponseText(text=item.reponse)]
-            )
-    return {"error": "Translation not found"}
+    for text in text:
+        for item in dummy_data:
+            if ((item.source_lang == source_lang or source_lang == None) and
+                    item.target_lang == target_lang and
+                    item.request == text):
+                return JSONResponse(content={"translations": [TranslationResponseText(text=item.reponse)]})
+    return JSONResponse(content={"translations": [TranslationResponseText(text=text) for text in text]})
 
 @app.post("/pro/v2/translate")
-async def translate_for_pro(auth_key: str, target_lang: str, source_lang: str, text: list[str]):
+async def translate_for_pro(auth_key: str = Form(...), target_lang: str = Form(...), text: List[str] = Form(...), source_lang: Optional[str] = Form(None)):
     print(f"Received request: auth_key={auth_key}, target_lang={target_lang}, source_lang={source_lang}, text={text}")
-    source_lang = source_lang.lower()
+    source_lang = source_lang.lower() if source_lang else None
     target_lang = target_lang.lower()
     # if source_lang == target_lang, return the text as is
     if source_lang == target_lang:
-        return TranslationResponse(
-            translations=[TranslationResponseText(text=text) for text in text]
-        )
+        return JSONResponse(content={"translations": [TranslationResponseText(text=text) for text in text]})
     # Simulate translation by looking up dummy data
-    for item in dummy_data:
-        if (item.source_lang == source_lang and
-                item.target_lang == target_lang and
-                item.request == text):
-            return TranslationResponse(
-                translations=[TranslationResponseText(text=item.reponse)]
-            )
-    return {"error": "Translation not found"}
-
-class UsageResponse(BaseModel):
-    charactor_count: int
-    charactor_limit: int
+    for text in text:
+        for item in dummy_data:
+            if ((item.source_lang == source_lang or source_lang == None) and
+                    item.target_lang == target_lang and
+                    item.request == text):
+                return JSONResponse(content={"translations": [TranslationResponseText(text=item.reponse)]})
+    return JSONResponse(content={"translations": [TranslationResponseText(text=text) for text in text]})
 
 @app.post("/free/v2/usage")
-async def usage_for_free(auth_key: str):
+async def usage_for_free(auth_key: str = Form(...)):
     print(f"Received request: auth_key={auth_key}") 
-    return UsageResponse(
-        charactor_count=1000,
-        charactor_limit=500000
+    return JSONResponse(
+        content={
+            "character_count": 1000,
+            "character_limit": 1000000000000
+        }
     )
 
 @app.post("/pro/v2/usage")
-async def usage_for_pro(auth_key: str):
-    print(f"Received request: auth_key={auth_key}") 
-    return UsageResponse(
-        charactor_count=10000,
-        charactor_limit=1000000000000
+async def usage_for_pro(auth_key: str = Form(...)):
+    print(f"Received request: auth_key={auth_key}")
+    return JSONResponse(
+        content={
+            "character_count": 10000,
+            "character_limit": 1000000000000
+        }
     )
 
 class LanguagesResponseElement(BaseModel):
@@ -128,33 +124,99 @@ class LanguagesResponseElement(BaseModel):
     name: str
 
 @app.post("/free/v2/languages")
-async def languages_for_free(type: str, auth_key: str):
+async def languages_for_free(type: str = Form(...), auth_key: str = Form(...)):
     print(f"Received request: type={type}, auth_key={auth_key}")
     if type == "source":
-        return [
-            LanguagesResponseElement(language="EN", name="English"),
-            LanguagesResponseElement(language="JA", name="Japanese"),
-            LanguagesResponseElement(language="FR", name="French"),
-        ]
+        return JSONResponse(
+            content=[
+                {
+                    "language": "EN",
+                    "name": "English"
+                },
+                {
+                    "language": "EN-US",
+                    "name": "English"
+                },
+                {
+                    "language": "JA",
+                    "name": "Japanese"
+                },
+                {
+                    "language": "FR",
+                    "name": "French"
+                }
+            ]
+        )
     elif type == "target":
-        return [
-            LanguagesResponseElement(language="EN", name="English"),
-            LanguagesResponseElement(language="JA", name="Japanese"),
-            LanguagesResponseElement(language="FR", name="French"),
-        ]
-    
+        return JSONResponse(
+            content=[
+                {
+                    "language": "EN",
+                    "name": "English"
+                },
+                {
+                    "language": "EN-US",
+                    "name": "English"
+                },
+                {
+                    "language": "JA",
+                    "name": "Japanese"
+                },
+                {
+                    "language": "FR",
+                    "name": "French"
+                }
+            ]
+        )
+
 @app.post("/pro/v2/languages")
-async def languages_for_pro(type: str, auth_key: str):
+async def languages_for_pro(type: str = Form(...), auth_key: str = Form(...)):
     print(f"Received request: type={type}, auth_key={auth_key}")
     if type == "source":
-        return [
-            LanguagesResponseElement(language="EN", name="English"),
-            LanguagesResponseElement(language="JA", name="Japanese"),
-            LanguagesResponseElement(language="FR", name="French"),
-        ]
+        return JSONResponse(
+            content=[
+                {
+                    "language": "EN",
+                    "name": "English"
+                },
+                {
+                    "language": "EN-US",
+                    "name": "English"
+                },
+                {
+                    "language": "JA",
+                    "name": "Japanese"
+                },
+                {
+                    "language": "FR",
+                    "name": "French"
+                }
+            ]
+        )
     elif type == "target":
-        return [
-            LanguagesResponseElement(language="EN", name="English"),
-            LanguagesResponseElement(language="JA", name="Japanese"),
-            LanguagesResponseElement(language="FR", name="French"),
-        ]
+        return JSONResponse(
+            content=[
+                {
+                    "language": "EN",
+                    "name": "English"
+                },
+                {
+                    "language": "EN-US",
+                    "name": "English"
+                },
+                {
+                    "language": "JA",
+                    "name": "Japanese"
+                },
+                {
+                    "language": "FR",
+                    "name": "French"
+                }
+            ]
+        )
+    return JSONResponse(
+        content={
+            "error": "Invalid type"
+        }
+    )
+    
