@@ -5,12 +5,32 @@ use serde_json::Value;
 mod connection;
 pub use connection::ConnectionError;
 
+#[cfg(not(test))]
 pub const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
+#[cfg(not(test))]
 pub const DEEPL_API_TRANSLATE_PRO: &str = "https://api.deepl.com/v2/translate";
+#[cfg(not(test))]
 pub const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
+#[cfg(not(test))]
 pub const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
+#[cfg(not(test))]
 pub const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
+#[cfg(not(test))]
 pub const DEEPL_API_LANGUAGES_PRO: &str = "https://api.deepl.com/v2/languages";
+
+#[cfg(test)]
+pub const DEEPL_API_TRANSLATE: &str = "http://localhost:8000/free/v2/translate";
+#[cfg(test)]
+pub const DEEPL_API_TRANSLATE_PRO: &str = "http://localhost:8000/pro/v2/translate";
+#[cfg(test)]
+pub const DEEPL_API_USAGE: &str = "http://localhost:8000/free/v2/usage";
+#[cfg(test)]
+pub const DEEPL_API_USAGE_PRO: &str = "http://localhost:8000/pro/v2/usage";
+#[cfg(test)]
+pub const DEEPL_API_LANGUAGES: &str = "http://localhost:8000/free/v2/languages";
+#[cfg(test)]
+pub const DEEPL_API_LANGUAGES_PRO: &str = "http://localhost:8000/pro/v2/languages";
+
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
 /// Language code and language name

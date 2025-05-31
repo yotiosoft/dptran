@@ -1,4 +1,10 @@
+# This is a dummy API server for translation services for testing purposes.
+# To run this server:
+# $ pip3 install -r requirements.txt
+# $ uvicorn dummy-api-server:app --reload 
+
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -6,19 +12,19 @@ app = FastAPI()
 async def root():
     return {"message": "Access Successful"}
 
-class TranslationRequest:
+class TranslationRequest(BaseModel):
     auth_key: str
     target_lang: str
     source_lang: str
     text: list[str]
 
-class TranslationResponseText:
+class TranslationResponseText(BaseModel):
     text: str
 
-class TranslationResponse:
+class TranslationResponse(BaseModel):
     translations: list[TranslationResponseText]
 
-class TranslationDummyData:
+class TranslationDummyData(BaseModel):
     source_lang: str
     target_lang: str
     request: str
@@ -63,7 +69,7 @@ dummy_data = [
     ),
 ]
 
-@app.get("/free/v2/translate")
+@app.post("/free/v2/translate")
 async def translate_for_free(request: TranslationRequest):
     request.source_lang = request.source_lang.lower()
     request.target_lang = request.target_lang.lower()
@@ -82,7 +88,7 @@ async def translate_for_free(request: TranslationRequest):
             )
     return {"error": "Translation not found"}
 
-@app.get("/pro/v2/translate")
+@app.post("/pro/v2/translate")
 async def translate_for_pro(request: TranslationRequest):
     request.source_lang = request.source_lang.lower()
     request.target_lang = request.target_lang.lower()
@@ -101,36 +107,36 @@ async def translate_for_pro(request: TranslationRequest):
             )
     return {"error": "Translation not found"}
 
-class UsageRequest:
+class UsageRequest(BaseModel):
     auth_key: str
 
-class UsageResponse:
+class UsageResponse(BaseModel):
     charactor_count: int
     charactor_limit: int
 
-@app.get("/free/v2/usage")
+@app.post("/free/v2/usage")
 async def usage_for_free(request: UsageRequest):
     return UsageResponse(
         charactor_count=1000,
         charactor_limit=500000
     )
 
-@app.get("/pro/v2/usage")
+@app.post("/pro/v2/usage")
 async def usage_for_pro(request: UsageRequest):
     return UsageResponse(
         charactor_count=10000,
         charactor_limit=1000000000000
     )
 
-class LanguagesRequest:
+class LanguagesRequest(BaseModel):
     type: str
     auth_key: str
 
-class LanguagesResponseElement:
+class LanguagesResponseElement(BaseModel):
     language: str
     name: str
 
-@app.get("/free/v2/languages")
+@app.post("/free/v2/languages")
 async def languages_for_free(request: LanguagesRequest):
     if request.type == "source":
         return [
@@ -145,7 +151,7 @@ async def languages_for_free(request: LanguagesRequest):
             LanguagesResponseElement(language="FR", name="French"),
         ]
     
-@app.get("/pro/v2/languages")
+@app.post("/pro/v2/languages")
 async def languages_for_pro(request: LanguagesRequest):
     if request.type == "source":
         return [
