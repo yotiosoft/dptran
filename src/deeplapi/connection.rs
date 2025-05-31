@@ -20,6 +20,7 @@ pub enum ConnectionError {
     BadRequest,
     Forbidden,
     NotFound,
+    MethodNotAllowed,
     RequestEntityTooLarge,
     TooManyRequests,
     UnprocessableEntity,
@@ -33,6 +34,7 @@ impl fmt::Display for ConnectionError {
             ConnectionError::BadRequest => write!(f, "400 Bad Request"),
             ConnectionError::Forbidden => write!(f, "403 Forbidden"),
             ConnectionError::NotFound => write!(f, "404 Not Found"),
+            ConnectionError::MethodNotAllowed => write!(f, "405 Method Not Allowed"),
             ConnectionError::RequestEntityTooLarge => write!(f, "413 Request Entity Too Large"),
             ConnectionError::TooManyRequests => write!(f, "429 Too Many Requests"),
             ConnectionError::UnprocessableEntity => write!(f, "456 Unprocessable Entity"),
@@ -73,6 +75,7 @@ fn handle_error(response_code: u32) -> ConnectionError {
         400 => ConnectionError::BadRequest,
         403 => ConnectionError::Forbidden,
         404 => ConnectionError::NotFound,
+        405 => ConnectionError::MethodNotAllowed,
         413 => ConnectionError::RequestEntityTooLarge,
         429 => ConnectionError::TooManyRequests,
         456 => ConnectionError::UnprocessableEntity,
@@ -82,7 +85,7 @@ fn handle_error(response_code: u32) -> ConnectionError {
 }
 
 /// Communicate with the DeepL API.
-pub fn send_and_get(url: String, post_data: String) -> Result<String, ConnectionError> {
+pub fn post(url: String, post_data: String) -> Result<String, ConnectionError> {
     let easy = match make_session(url, post_data) {
         Ok(easy) => easy,
         Err(e) => return Err(ConnectionError::CurlError(e)),
@@ -111,7 +114,7 @@ mod tests {
         let post_data = "text=Hello&target_lang=FR&auth_key=".to_string();
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
         let url = format!("{}translate?auth_key={}", url, api_key);
-        let result = send_and_get(url, post_data);
+        let result = post(url, post_data);
         assert!(result.is_ok());
     }
 

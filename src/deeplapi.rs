@@ -108,14 +108,14 @@ fn request_translate(auth_key: &String, api_key_type: &ApiKeyType, text: &Vec<St
         query = format!("{}&text={}", query, t);
     }
     
-    connection::send_and_get(url, query)
+    connection::post(url, query)
 }
 
 /// Parses the translation results passed in json format,
 /// stores the translation in a vector, and returns it.
 fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
     let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, "Invalid response")).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, format!("Invalid response: {}", json))).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
     let translations = &json["translations"];
 
     let mut translated_texts = Vec::new();
@@ -164,11 +164,11 @@ pub fn get_usage(api_key: &String, api_key_type: &ApiKeyType) -> Result<(u64, u6
         DEEPL_API_USAGE_PRO.to_string()
     };
     let query = format!("auth_key={}", api_key);
-    let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
-    v.get("character_count").ok_or("failed to get character_count".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-    v.get("character_limit").ok_or("failed to get character_limit".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+    v.get("character_count").ok_or(format!("failed to get character_count: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+    v.get("character_limit").ok_or(format!("failed to get character_limit: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
     let character_count = v["character_count"].as_u64().expect("failed to get character_count");
     let character_limit = v["character_limit"].as_u64().expect("failed to get character_limit");
@@ -184,7 +184,7 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
         DEEPL_API_LANGUAGES_PRO.to_string()
     };
     let query = format!("type={}&auth_key={}", type_name, api_key);
-    let res = connection::send_and_get(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
     let lang_type = if type_name == "source" { LangType::Source } else { LangType::Target };
@@ -199,7 +199,7 @@ pub fn get_language_codes(api_key: &String, api_key_type: &ApiKeyType, type_name
     }
     // Add got language codes
     for value in v_array.unwrap() {
-        value.get("language").ok_or("Invalid response".to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+        value.get("language").ok_or(format!("Invalid response: {}", value)).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
         // Remove quotation marks
         let lang_code_with_quote = value["language"].to_string();
         let lang_code = &lang_code_with_quote[1..lang_code_with_quote.len()-1];
@@ -341,7 +341,7 @@ pub mod tests {
                     // retry
                     impl_api_error_test(times + 1);
                 }
-                else if e != DeeplAPIError::JsonError("Invalid response".to_string()) {
+                else if e != DeeplAPIError::JsonError(format!("Invalid response: {}", e.to_string())) {
                     panic!("Error: {}", e.to_string());
                 }
             }

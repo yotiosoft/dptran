@@ -3,7 +3,7 @@
 # $ pip3 install -r requirements.txt
 # $ uvicorn dummy-api-server:app --reload 
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -11,12 +11,6 @@ app = FastAPI()
 @app.get("/")
 async def root():
     return {"message": "Access Successful"}
-
-class TranslationRequest(BaseModel):
-    auth_key: str
-    target_lang: str
-    source_lang: str
-    text: list[str]
 
 class TranslationResponseText(BaseModel):
     text: str
@@ -70,81 +64,79 @@ dummy_data = [
 ]
 
 @app.post("/free/v2/translate")
-async def translate_for_free(request: TranslationRequest):
-    request.source_lang = request.source_lang.lower()
-    request.target_lang = request.target_lang.lower()
-    # if request.source_lang == request.target_lang, return the text as is
-    if request.source_lang == request.target_lang:
+async def translate_for_free(auth_key: str, target_lang: str, text: list[str], source_lang = Query(None)):
+    print(f"Received request: auth_key={auth_key}, target_lang={target_lang}, text={text}, source_lang={source_lang}")
+    source_lang = source_lang.lower()
+    target_lang = target_lang.lower()
+    # if source_lang == target_lang, return the text as is
+    if source_lang == target_lang:
         return TranslationResponse(
-            translations=[TranslationResponseText(text=text) for text in request.text]
+            translations=[TranslationResponseText(text=text) for text in text]
         )
     # Simulate translation by looking up dummy data
     for item in dummy_data:
-        if (item.source_lang == request.source_lang and
-                item.target_lang == request.target_lang and
-                item.request == request.text):
+        if (item.source_lang == source_lang and
+                item.target_lang == target_lang and
+                item.request == text):
             return TranslationResponse(
                 translations=[TranslationResponseText(text=item.reponse)]
             )
     return {"error": "Translation not found"}
 
 @app.post("/pro/v2/translate")
-async def translate_for_pro(request: TranslationRequest):
-    request.source_lang = request.source_lang.lower()
-    request.target_lang = request.target_lang.lower()
-    # if request.source_lang == request.target_lang, return the text as is
-    if request.source_lang == request.target_lang:
+async def translate_for_pro(auth_key: str, target_lang: str, source_lang: str, text: list[str]):
+    print(f"Received request: auth_key={auth_key}, target_lang={target_lang}, source_lang={source_lang}, text={text}")
+    source_lang = source_lang.lower()
+    target_lang = target_lang.lower()
+    # if source_lang == target_lang, return the text as is
+    if source_lang == target_lang:
         return TranslationResponse(
-            translations=[TranslationResponseText(text=text) for text in request.text]
+            translations=[TranslationResponseText(text=text) for text in text]
         )
     # Simulate translation by looking up dummy data
     for item in dummy_data:
-        if (item.source_lang == request.source_lang and
-                item.target_lang == request.target_lang and
-                item.request == request.text):
+        if (item.source_lang == source_lang and
+                item.target_lang == target_lang and
+                item.request == text):
             return TranslationResponse(
                 translations=[TranslationResponseText(text=item.reponse)]
             )
     return {"error": "Translation not found"}
-
-class UsageRequest(BaseModel):
-    auth_key: str
 
 class UsageResponse(BaseModel):
     charactor_count: int
     charactor_limit: int
 
 @app.post("/free/v2/usage")
-async def usage_for_free(request: UsageRequest):
+async def usage_for_free(auth_key: str):
+    print(f"Received request: auth_key={auth_key}") 
     return UsageResponse(
         charactor_count=1000,
         charactor_limit=500000
     )
 
 @app.post("/pro/v2/usage")
-async def usage_for_pro(request: UsageRequest):
+async def usage_for_pro(auth_key: str):
+    print(f"Received request: auth_key={auth_key}") 
     return UsageResponse(
         charactor_count=10000,
         charactor_limit=1000000000000
     )
-
-class LanguagesRequest(BaseModel):
-    type: str
-    auth_key: str
 
 class LanguagesResponseElement(BaseModel):
     language: str
     name: str
 
 @app.post("/free/v2/languages")
-async def languages_for_free(request: LanguagesRequest):
-    if request.type == "source":
+async def languages_for_free(type: str, auth_key: str):
+    print(f"Received request: type={type}, auth_key={auth_key}")
+    if type == "source":
         return [
             LanguagesResponseElement(language="EN", name="English"),
             LanguagesResponseElement(language="JA", name="Japanese"),
             LanguagesResponseElement(language="FR", name="French"),
         ]
-    elif request.type == "target":
+    elif type == "target":
         return [
             LanguagesResponseElement(language="EN", name="English"),
             LanguagesResponseElement(language="JA", name="Japanese"),
@@ -152,14 +144,15 @@ async def languages_for_free(request: LanguagesRequest):
         ]
     
 @app.post("/pro/v2/languages")
-async def languages_for_pro(request: LanguagesRequest):
-    if request.type == "source":
+async def languages_for_pro(type: str, auth_key: str):
+    print(f"Received request: type={type}, auth_key={auth_key}")
+    if type == "source":
         return [
             LanguagesResponseElement(language="EN", name="English"),
             LanguagesResponseElement(language="JA", name="Japanese"),
             LanguagesResponseElement(language="FR", name="French"),
         ]
-    elif request.type == "target":
+    elif type == "target":
         return [
             LanguagesResponseElement(language="EN", name="English"),
             LanguagesResponseElement(language="JA", name="Japanese"),
