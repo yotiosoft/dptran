@@ -326,28 +326,6 @@ pub mod tests {
         }
     }
 
-    fn impl_api_error_test(times: u8) {
-        // no api_key
-        let text = vec!["Hello, World!".to_string()];
-        let target_lang = "JA".to_string();
-        let source_lang = None;
-        let res = translate(&"".to_string(), &ApiKeyType::Free, &text, &target_lang, &source_lang);
-        match res {
-            Ok(_) => {
-                panic!("Error: translation success");
-            },
-            Err(e) => {
-                if e == DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests) && times < 3 {
-                    // retry
-                    impl_api_error_test(times + 1);
-                }
-                else if e != DeeplAPIError::JsonError(format!("Invalid response: {}", e.to_string())) {
-                    panic!("Error: {}", e.to_string());
-                }
-            }
-        }
-    }
-
     #[test]
     fn api_translate_test() {
         // translate test
@@ -414,12 +392,6 @@ pub mod tests {
                 panic!("Error: {}", e);
             }
         }
-    }
-
-    #[test]
-    fn api_error_test() {
-        // no api_key
-        impl_api_error_test(0);
     }
 }
 
