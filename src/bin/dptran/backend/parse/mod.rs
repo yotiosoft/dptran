@@ -91,7 +91,8 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", "clear", "clear_free_api_key", "clear_pro_api_key"])
+            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", 
+                    "clear_free_api_key", "clear_pro_api_key", "clear"])
     ))]
     Set {
         /// Set DeepL API key (free).
@@ -121,10 +122,6 @@ enum SubCommands {
         /// Disable cache.
         #[arg(long)]
         disable_cache: bool,
-    
-        /// Clear settings.
-        #[arg(short, long)]
-        clear: bool,
 
         /// Clear DeeL API key (free)
         #[arg(long)]
@@ -133,6 +130,10 @@ enum SubCommands {
         /// Clear DeeL API key (pro)
         #[arg(long)]
         clear_pro_api_key: bool,
+
+        /// Clear settings.
+        #[arg(short, long)]
+        clear_all: bool,
     },
 
     /// Show list of supperted languages
@@ -257,7 +258,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear, clear_free_api_key, clear_pro_api_key } => {
+            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear_free_api_key, clear_pro_api_key, clear_all } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
                     arg_struct.api_key = Some(api_key);
@@ -283,7 +284,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if disable_cache == true {
                     arg_struct.execution_mode = ExecutionMode::DisableCache;
                 }
-                if clear == true {
+                if clear_all == true {
                     arg_struct.execution_mode = ExecutionMode::ClearSettings;
                 }
                 if clear_free_api_key == true {

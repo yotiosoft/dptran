@@ -311,7 +311,7 @@ fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>
         
             println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");
             if cfg!(target_os = "windows") {
-                // Windows向け表示
+                // for Windows
                 println!("\nFor Windows (PowerShell):");
                 println!("\t$env:DPTRAN_DEEPL_API_KEY = \"<API_KEY>\"");
                 println!("To make it persistent, use the System Environment Variables:");
@@ -321,7 +321,7 @@ fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>
                 println!("\t> set DPTRAN_DEEPL_API_KEY=<API_KEY>");
                 println!("Note: This is temporary and will be lost when the window is closed.");
             } else {
-                // Unix/macOS/Linux 向け表示
+                // for macOS/Linux
                 println!("\nFor Linux/macOS:");
                 println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
                 println!("To make it persistent, add the above line to your shell config file:");
@@ -476,8 +476,6 @@ fn main() -> Result<(), RuntimeError> {
             return Ok(());
         }
     };
-
-    
 }
 
 #[cfg(test)]

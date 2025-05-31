@@ -52,7 +52,7 @@ pub struct DpTranUsage {
 
 /// DeepL API URLs
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct DeeplApiUrls {
+pub struct EndpointUrls {
     pub translate_for_free: String,
     pub translate_for_pro: String,
     pub usage_for_free: String,
@@ -60,9 +60,9 @@ pub struct DeeplApiUrls {
     pub languages_for_free: String,
     pub languages_for_pro: String,
 }
-impl Default for DeeplApiUrls {
+impl Default for EndpointUrls {
     fn default() -> Self {
-        DeeplApiUrls {
+        EndpointUrls {
             translate_for_free: deeplapi::DEEPL_API_TRANSLATE.to_string(),
             translate_for_pro: deeplapi::DEEPL_API_TRANSLATE_PRO.to_string(),
             usage_for_free: deeplapi::DEEPL_API_USAGE.to_string(),
@@ -84,16 +84,29 @@ impl Default for DeeplApiUrls {
 pub struct DpTran {
     api_key: String,
     api_key_type: ApiKeyType,
-    api_urls: DeeplApiUrls,
+    api_urls: EndpointUrls,
 }
 impl DpTran {
     /// Create a new instance of DpTran.  
     /// api_key: DeepL API key
+    /// api_key_type: Type of API key (ApiKeyType::Free or ApiKeyType::Pro)
     pub fn with(api_key: &str, api_key_type: ApiKeyType) -> DpTran {
         DpTran {
             api_key: api_key.to_string(),
             api_key_type,
-            api_urls: DeeplApiUrls::default(),
+            api_urls: EndpointUrls::default(),
+        }
+    }
+
+    /// Create a new instance of DpTran with an API endpoint.
+    /// api_key: DeepL API key
+    /// api_key_type: Type of API key (ApiKeyType::Free or ApiKeyType::Pro)
+    /// endpoint_urls: API endpoint URLs
+    pub fn with_endpoint(api_key: &str, api_key_type: ApiKeyType, endpoint_urls: EndpointUrls) -> DpTran {
+        DpTran {
+            api_key: api_key.to_string(),
+            api_key_type,
+            api_urls: endpoint_urls,
         }
     }
 
@@ -115,13 +128,13 @@ impl DpTran {
     }
 
     /// Get the DeepL API URLs.
-    pub fn get_api_urls(&self) -> DeeplApiUrls {
+    pub fn get_api_urls(&self) -> EndpointUrls {
         self.api_urls.clone()
     }
 
     /// Set the DeepL API URLs.
     /// api_urls: DeepL API URLs
-    pub fn set_api_urls(&mut self, api_urls: DeeplApiUrls) {
+    pub fn set_api_urls(&mut self, api_urls: EndpointUrls) {
         self.api_urls = api_urls;
     }
 
@@ -458,12 +471,12 @@ mod tests {
         let mut dptran = DpTran::with(&api_key, api_key_type);
 
         // Default URLs
-        let api_urls = DeeplApiUrls::default();
+        let api_urls = EndpointUrls::default();
         dptran.set_api_urls(api_urls.clone());
         assert_eq!(dptran.get_api_urls(), api_urls);
 
         // Custom URLs
-        let custom_urls = DeeplApiUrls {
+        let custom_urls = EndpointUrls {
             translate_for_free: "https://example.com/translate-free".to_string(),
             translate_for_pro: "https://example.com/translate-pro".to_string(),
             usage_for_free: "https://example.com/usage-free".to_string(),
