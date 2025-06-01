@@ -267,7 +267,7 @@ pub mod tests {
     fn impl_api_translate_test(times: u8) {
         // translate test
         let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with_endpoint(&api_key, api_key_type, get_endpoint());
+        let api = DpTran::with_endpoint(&api_key, &api_key_type, get_endpoint());
         let text = vec!["Hello, World!".to_string()];
         let target_lang = "JA".to_string();
         let source_lang = None;
@@ -289,7 +289,7 @@ pub mod tests {
     fn impl_api_usage_test(times: u8) {
         // usage test
         let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with_endpoint(&api_key, api_key_type, get_endpoint());
+        let api = DpTran::with_endpoint(&api_key, &api_key_type, get_endpoint());
         let res = get_usage(&api);
         if res.is_err() {
             if retry_or_panic(&res.err().unwrap(), times) {
@@ -303,7 +303,7 @@ pub mod tests {
     fn impl_api_get_language_codes_test(times: u8) {
         // get_language_codes test
         let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with_endpoint(&api_key, api_key_type, get_endpoint());
+        let api = DpTran::with_endpoint(&api_key, &api_key_type, get_endpoint());
         // Get language codes for source languages
         let res = get_language_codes(&api, "source".to_string());
         match res {

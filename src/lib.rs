@@ -103,10 +103,10 @@ impl DpTran {
     /// api_key: DeepL API key
     /// api_key_type: Type of API key (ApiKeyType::Free or ApiKeyType::Pro)
     /// endpoint_urls: API endpoint URLs
-    pub fn with_endpoint(api_key: &str, api_key_type: ApiKeyType, endpoint_urls: EndpointUrls) -> DpTran {
+    pub fn with_endpoint(api_key: &str, api_key_type: &ApiKeyType, endpoint_urls: EndpointUrls) -> DpTran {
         DpTran {
             api_key: api_key.to_string(),
-            api_key_type,
+            api_key_type: api_key_type.clone(),
             api_urls: endpoint_urls,
         }
     }
@@ -238,7 +238,7 @@ mod tests {
     fn impl_lib_translate_test(times: u8) {
         // create instance test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
 
         // translate test
         let text = vec!["Hello, World!".to_string()];
@@ -263,7 +263,7 @@ mod tests {
     fn impl_lib_usage_test(times: u8) {
         // usage test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
 
         let res = dptran.get_usage();
         if res.is_err() {
@@ -278,7 +278,7 @@ mod tests {
     fn impl_lib_get_language_code_test(times: u8) {
         // get_language_codes test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
 
         let res = dptran.get_language_codes(LangType::Source);
         match res {
@@ -300,7 +300,7 @@ mod tests {
     fn impl_lib_check_language_code_test(times: u8) {
         // check_language_code test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
         
         let res = dptran.check_language_code(&"EN-US".to_string(), LangType::Target);
         match res {
@@ -333,7 +333,7 @@ mod tests {
     fn impl_correct_source_language_code_test(times: u8) {
         // correct_source_language_code test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
         
         let valid_lang_code = "en";
         loop {
@@ -379,7 +379,7 @@ mod tests {
     fn impl_correct_target_language_code_test(times: u8) {
         // correct_target_language_code test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
         
         let valid_lang_code = "ja";
         loop {
@@ -449,7 +449,7 @@ mod tests {
     fn lib_set_and_get_api_key_test() {
         // set_api_key test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
-        let mut dptran = DpTran::with_endpoint(&api_key, api_key_type, deeplapi::tests::get_endpoint());
+        let mut dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
         assert_eq!(dptran.get_api_key(), api_key);
         dptran.set_api_key(&"test".to_string(), ApiKeyType::Free);
         assert_eq!(dptran.get_api_key(), "test".to_string());
@@ -492,7 +492,7 @@ mod tests {
         let dptran = DpTran::with(&api_key, &api_key_type);
         let before_urls = dptran.get_api_urls();
         let custom_urls = deeplapi::tests::get_endpoint();
-        let dptran_with_endpoint = DpTran::with_endpoint(&api_key, api_key_type, custom_urls.clone());
+        let dptran_with_endpoint = DpTran::with_endpoint(&api_key, &api_key_type, custom_urls.clone());
         assert_eq!(dptran_with_endpoint.get_api_urls(), custom_urls);
         assert_ne!(dptran_with_endpoint.get_api_urls(), before_urls);
     }
