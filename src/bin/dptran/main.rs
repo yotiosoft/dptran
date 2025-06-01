@@ -77,7 +77,7 @@ fn show_source_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
 
     // List of source language codes.
     let source_lang_codes = dptran.get_language_codes(LangType::Source).map_err(|e| RuntimeError::DeeplApiError(e))?;
@@ -102,7 +102,7 @@ fn show_target_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
 
     // List of Language Codes.
     let target_lang_codes = dptran.get_language_codes(LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
@@ -335,7 +335,7 @@ fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>
             return Ok(());
         },
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
 
     // Language code check and correction
     if let Some(sl) = source_lang {
@@ -530,7 +530,7 @@ mod func_tests {
 
     fn impl_app_process_test(times: u8) {
         let api_key = backend::get_api_key().unwrap().unwrap();
-        let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+        let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
         let mode = ExecutionMode::TranslateNormal;
         let multilines = false;
         let rm_line_breaks = false;

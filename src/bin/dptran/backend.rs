@@ -78,7 +78,7 @@ static CACHE_NAME: &str = "cache";
 pub fn get_usage() -> Result<DpTranUsage, RuntimeError> {
     let api_key = get_api_key()?;
     if let Some(api_key) = api_key {
-        let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+        let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
         dptran.get_usage().map_err(|e| RuntimeError::DeeplApiError(e))
     } else {
         Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
@@ -107,7 +107,7 @@ pub fn set_default_target_language(arg_default_target_language: &String) -> Resu
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, api_key.api_key_type);
+    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
 
     // Check if the language code is correct
     match dptran.correct_target_language_code(arg_default_target_language) {

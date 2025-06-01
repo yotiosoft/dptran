@@ -7,31 +7,12 @@ use super::DpTran;
 mod connection;
 pub use connection::ConnectionError;
 
-#[cfg(not(test))]
 pub const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
-#[cfg(not(test))]
 pub const DEEPL_API_TRANSLATE_PRO: &str = "https://api.deepl.com/v2/translate";
-#[cfg(not(test))]
 pub const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
-#[cfg(not(test))]
 pub const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
-#[cfg(not(test))]
 pub const DEEPL_API_LANGUAGES: &str = "https://api-free.deepl.com/v2/languages";
-#[cfg(not(test))]
 pub const DEEPL_API_LANGUAGES_PRO: &str = "https://api.deepl.com/v2/languages";
-
-#[cfg(test)]
-pub const DEEPL_API_TRANSLATE: &str = "http://localhost:8000/free/v2/translate";
-#[cfg(test)]
-pub const DEEPL_API_TRANSLATE_PRO: &str = "http://localhost:8000/pro/v2/translate";
-#[cfg(test)]
-pub const DEEPL_API_USAGE: &str = "http://localhost:8000/free/v2/usage";
-#[cfg(test)]
-pub const DEEPL_API_USAGE_PRO: &str = "http://localhost:8000/pro/v2/usage";
-#[cfg(test)]
-pub const DEEPL_API_LANGUAGES: &str = "http://localhost:8000/free/v2/languages";
-#[cfg(test)]
-pub const DEEPL_API_LANGUAGES_PRO: &str = "http://localhost:8000/pro/v2/languages";
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
@@ -238,6 +219,8 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
 pub mod tests {
     use core::panic;
 
+    use crate::EndpointUrls;
+
     use super::*;
 
     fn retry_or_panic(e: &DeeplAPIError, times: u8) -> bool {
@@ -263,10 +246,28 @@ pub mod tests {
         panic!("To run this test, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` or `DPTRAN_DEEPL_API_KEY_PRO` to your DeepL API key.");
     }
 
+    pub fn get_endpoint() -> EndpointUrls {
+        pub const TEST_DEEPL_API_TRANSLATE: &str = "http://localhost:8000/free/v2/translate";
+        pub const TEST_DEEPL_API_TRANSLATE_PRO: &str = "http://localhost:8000/pro/v2/translate";
+        pub const TEST_DEEPL_API_USAGE: &str = "http://localhost:8000/free/v2/usage";
+        pub const TEST_DEEPL_API_USAGE_PRO: &str = "http://localhost:8000/pro/v2/usage";
+        pub const TEST_DEEPL_API_LANGUAGES: &str = "http://localhost:8000/free/v2/languages";
+        pub const TEST_DEEPL_API_LANGUAGES_PRO: &str = "http://localhost:8000/pro/v2/languages";
+
+        EndpointUrls {
+            translate_for_free: TEST_DEEPL_API_TRANSLATE.to_string(),
+            translate_for_pro: TEST_DEEPL_API_TRANSLATE_PRO.to_string(),
+            usage_for_free: TEST_DEEPL_API_USAGE.to_string(),
+            usage_for_pro: TEST_DEEPL_API_USAGE_PRO.to_string(),
+            languages_for_free: TEST_DEEPL_API_LANGUAGES.to_string(),
+            languages_for_pro: TEST_DEEPL_API_LANGUAGES_PRO.to_string(),
+        }
+    }
+
     fn impl_api_translate_test(times: u8) {
         // translate test
         let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with(&api_key, api_key_type);
+        let api = DpTran::with_endpoint(&api_key, api_key_type, get_endpoint());
         let text = vec!["Hello, World!".to_string()];
         let target_lang = "JA".to_string();
         let source_lang = None;
@@ -288,7 +289,7 @@ pub mod tests {
     fn impl_api_usage_test(times: u8) {
         // usage test
         let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with(&api_key, api_key_type);
+        let api = DpTran::with_endpoint(&api_key, api_key_type, get_endpoint());
         let res = get_usage(&api);
         if res.is_err() {
             if retry_or_panic(&res.err().unwrap(), times) {
@@ -302,7 +303,7 @@ pub mod tests {
     fn impl_api_get_language_codes_test(times: u8) {
         // get_language_codes test
         let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with(&api_key, api_key_type);
+        let api = DpTran::with_endpoint(&api_key, api_key_type, get_endpoint());
         // Get language codes for source languages
         let res = get_language_codes(&api, "source".to_string());
         match res {
