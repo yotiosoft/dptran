@@ -295,13 +295,15 @@ library crate に関するドキュメントは[こちら](https://docs.rs/dptra
 
 # テストの実行
 
-いくつかのテストでは、ダミーのAPIサーバーを使用しています。
+いくつかのテストでは、ダミー API サーバーを使用しています。
 テストを実行するには、``dummy-api-server.py`` で実装されているダミー API サーバーを起動する必要があります。
 
 ```bash
 $ pip3 install -r requirements.txt
 $ uvicorn dummy-api-server:app --reload
 ```
+
+ダミーAPIサーバーは既定では http://localhost:8000/ で実行されます。
 
 また、一部のユニテストでは、実際の DeepL API キーが必要です。
 テストを実行するには、環境変数 ``DPTRAN_DEEPL_API_KEY`` を設定してください。

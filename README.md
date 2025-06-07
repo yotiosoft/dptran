@@ -295,13 +295,15 @@ See the documentation for the library crate [here](https://docs.rs/dptran/).
 
 # Running tests
 
-Some tests uses the dummy API server.
+Some tests use the dummy API server.
 To run the tests, you need to start the dummy API server implemented in ``dummy-api-server.py``.
 
 ```bash
 $ pip3 install -r requirements.txt
 $ uvicorn dummy-api-server:app --reload
 ```
+
+The dummy API server will run on ``http://localhost:8000/`` by default.
 
 Also, some unittests require a real DeepL API key.
 To run the tests, set the environment variable ``DPTRAN_DEEPL_API_KEY`` (for free plan).
