@@ -312,10 +312,11 @@ $ uvicorn dummy-api-server:app --reload
 $ export DPTRAN_DEEPL_API_KEY=[API KEY]。
 ```
 
-テストを実行するには以下のコマンドを使用します。
+テストを実行するには以下のコマンドを使用します。  
+DeepL API には1秒あたりのリクエスト数に制限があるため、テストは ``--test-threads=1`` オプションを付けて実行してください。
 
 ```bash
-$ cargo test
+$ cargo test -- --test-threads=1
 ```
 
 # ライセンス

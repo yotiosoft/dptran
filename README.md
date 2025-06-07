@@ -312,10 +312,11 @@ To run the tests, set the environment variable ``DPTRAN_DEEPL_API_KEY`` (for fre
 $ export DPTRAN_DEEPL_API_KEY=[API key]
 ```
 
-Then, run the tests with:
+Then, run the tests.  
+You should run the tests with ``--test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 
 ```bash
-$ cargo test
+$ cargo test -- --test-threads=1
 ```
 
 # License
