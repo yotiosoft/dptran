@@ -292,3 +292,29 @@ See the documentation for the library crate [here](https://docs.rs/dptran/).
 - Check the number of characters remaining to be translated.
 - Check valid language codes.
 - Support both DeepL API Free and Pro plans. (v2.3.0-)
+
+# Running tests
+
+Some tests uses the dummy API server.
+To run the tests, you need to start the dummy API server implemented in ``dummy-api-server.py``.
+
+```bash
+$ pip3 install -r requirements.txt
+$ uvicorn dummy-api-server:app --reload
+```
+
+Also, some unittests require a real DeepL API key.
+To run the tests, set the environment variable ``DPTRAN_DEEPL_API_KEY`` (for free plan).
+
+```bash
+$ export DPTRAN_DEEPL_API_KEY=[API key]
+```
+
+Then, run the tests with:
+
+```bash
+$ cargo test
+```
+
+# License
+This project is licensed under the MIT License and Apache License 2.0.

@@ -292,3 +292,29 @@ library crate に関するドキュメントは[こちら](https://docs.rs/dptra
 - 残りの DeepL API の翻訳可能文字数を確認
 - DeepL API の言語コード一覧の取得
 - DeepL API Free プランと Pro プランの両方に対応 (v2.3.0-)
+
+# テストの実行
+
+いくつかのテストでは、ダミーのAPIサーバーを使用しています。
+テストを実行するには、``dummy-api-server.py`` で実装されているダミー API サーバーを起動する必要があります。
+
+```bash
+$ pip3 install -r requirements.txt
+$ uvicorn dummy-api-server:app --reload
+```
+
+また、一部のユニテストでは、実際の DeepL API キーが必要です。
+テストを実行するには、環境変数 ``DPTRAN_DEEPL_API_KEY`` を設定してください。
+
+```bash
+$ export DPTRAN_DEEPL_API_KEY=[API KEY]。
+```
+
+テストを実行するには以下のコマンドを使用します。
+
+```bash
+$ cargo test
+```
+
+# ライセンス
+このプロジェクトは MIT license と Apache license 2.0 でライセンスされています。
