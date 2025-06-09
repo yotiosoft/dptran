@@ -92,7 +92,7 @@ enum SubCommands {
         ArgGroup::new("setting_vers")
             .required(true)
             .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", 
-                    "clear_free_api_key", "clear_pro_api_key", "clear"])
+                    "clear_free_api_key", "clear_pro_api_key", "clear_all"])
     ))]
     Set {
         /// Set DeepL API key (free).
