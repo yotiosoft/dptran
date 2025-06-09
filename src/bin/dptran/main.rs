@@ -6,6 +6,8 @@ use backend::RuntimeError;
 use backend::ExecutionMode;
 
 use dptran::{DpTranError, LangType};
+use crate::backend::parse::CacheTarget;
+use crate::backend::parse::SettingTarget;
 
 /// Initialization of settings.
 fn clear_settings() -> Result<(), RuntimeError> {
@@ -381,84 +383,111 @@ fn main() -> Result<(), RuntimeError> {
             show_usage()?;
             return Ok(());
         }
-        ExecutionMode::SetFreeApiKey => {
-            if let Some(s) = arg_struct.api_key {
-                backend::set_api_key(ApiKey {
-                    api_key: s,
-                    api_key_type: dptran::ApiKeyType::Free,
-                })?;
-                return Ok(());
+        ExecutionMode::Setting => {
+            let setting_target = arg_struct.setting.as_ref().unwrap().setting_target.clone();
+            let setting_struct = arg_struct.setting.as_ref().unwrap().clone();
+            if let Some(target) = setting_target {
+                match target {
+                    SettingTarget::FreeApiKey => {
+                        if let Some(s) = setting_struct.api_key {
+                            backend::set_api_key(ApiKey {
+                                api_key: s,
+                                api_key_type: dptran::ApiKeyType::Free,
+                            })?;
+                            return Ok(());
+                        } else {
+                            backend::clear_api_key(dptran::ApiKeyType::Free)?;
+                            return Ok(());
+                        }
+                    }
+                    SettingTarget::ProApiKey => {
+                        if let Some(s) = setting_struct.api_key {
+                            backend::set_api_key(ApiKey {
+                                api_key: s,
+                                api_key_type: dptran::ApiKeyType::Pro,
+                            })?;
+                            return Ok(());
+                        } else {
+                            backend::clear_api_key(dptran::ApiKeyType::Pro)?;
+                            return Ok(());
+                        }
+                    }
+                    SettingTarget::DefaultTargetLang => {
+                        if let Some(s) = setting_struct.default_target_lang {
+                            set_default_target_language(&s)?;
+                            return Ok(());
+                        } else {
+                            return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
+                        }
+                    }
+                    SettingTarget::EditorCommand => {
+                        if let Some(s) = setting_struct.editor_command {
+                            backend::set_editor_command(s)?;
+                            return Ok(());
+                        } else {
+                            return Err(RuntimeError::EditorCommandIsNotSet);
+                        }
+                    }
+                    SettingTarget::EnableCache => {
+                        backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                            .set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
+                        return Ok(());
+                    }
+                    SettingTarget::DisableCache => {
+                        backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                            .set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
+                        return Ok(());
+                    }
+                    SettingTarget::DisplaySettings => {
+                        display_settings()?;
+                        return Ok(());
+                    }
+                    SettingTarget::ClearSettings => {
+                        clear_settings()?;
+                        return Ok(());
+                    }
+                }
             } else {
-                backend::clear_api_key(dptran::ApiKeyType::Free)?;
-                return Ok(());
+                return Err(RuntimeError::ArgInvalidTarget);
             }
         }
-        ExecutionMode::SetProApiKey => {
-            if let Some(s) = arg_struct.api_key {
-                backend::set_api_key(ApiKey {
-                    api_key: s,
-                    api_key_type: dptran::ApiKeyType::Pro,
-                })?;
-                return Ok(());
+        ExecutionMode::Cache => {
+            if let Some(cache_target) = arg_struct.cache_setting.as_ref().unwrap().cache_target {
+                match cache_target {
+                    CacheTarget::MaxEntries => {
+                        if let Some(s) = arg_struct.cache_setting.as_ref().unwrap().max_entries {
+                            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                                .set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                            return Ok(());
+                        } else {
+                            return Err(RuntimeError::CacheMaxEntriesIsNotSet);
+                        }
+                    }
+                    backend::parse::CacheTarget::Clear => {
+                        // Clear the cache
+                        backend::cache::get_cache_data("cache").map_err(|e| RuntimeError::CacheError(e))?
+                            .clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
+                        println!("Cache has been cleared.");
+                    }
+                }
             } else {
-                backend::clear_api_key(dptran::ApiKeyType::Pro)?;
-                return Ok(());
+                return Err(RuntimeError::ArgInvalidTarget);
             }
+            return Ok(());
         }
-        ExecutionMode::SetDefaultTargetLang => {
-            if let Some(s) = arg_struct.default_target_lang {
-                set_default_target_language(&s)?;
-                return Ok(());
+        ExecutionMode::List => {
+            if let Some(list_target_langs) = arg_struct.list_target_langs {
+                match list_target_langs {
+                    backend::parse::ListTargetLangs::SourceLangs => {
+                        show_source_language_codes()?;
+                    }
+                    backend::parse::ListTargetLangs::TargetLangs => {
+                        show_target_language_codes()?;
+                    }
+                }
             } else {
-                return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
+                return Err(RuntimeError::ArgInvalidTarget);
             }
-        }
-        ExecutionMode::SetCacheMaxEntries => {
-            if let Some(s) = arg_struct.cache_max_entries {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
-                return Ok(());
-            } else {
-                return Err(RuntimeError::CacheMaxEntriesIsNotSet);
-            }
-        }
-        ExecutionMode::ClearCache => {
-            backend::cache::get_cache_data("cache").map_err(|e| RuntimeError::CacheError(e))?
-                .clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
-            return Ok(());
-        }
-        ExecutionMode::SetEditor => {
-            if let Some(s) = arg_struct.editor_command {
-                backend::set_editor_command(s)?;
-                return Ok(());
-            } else {
-                return Err(RuntimeError::EditorCommandIsNotSet);
-            }
-        }
-        ExecutionMode::EnableCache => {
-            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                .set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
-            return Ok(());
-        }
-        ExecutionMode::DisableCache => {
-            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                .set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
-            return Ok(());
-        }
-        ExecutionMode::DisplaySettings => {
-            display_settings()?;
-            return Ok(());
-        }
-        ExecutionMode::ClearSettings => {
-            clear_settings()?;
-            return Ok(());
-        }
-        ExecutionMode::ListSourceLangs => {
-            show_source_language_codes()?;
-            return Ok(());
-        }
-        ExecutionMode::ListTargetLangs => {
-            show_target_language_codes()?;
             return Ok(());
         }
         ExecutionMode::TranslateNormal | ExecutionMode::TranslateInteractive => {

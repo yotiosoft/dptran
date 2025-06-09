@@ -24,6 +24,7 @@ pub enum RuntimeError {
     EditorCommandIsNotSet,
     CacheError(CacheError),
     CacheMaxEntriesIsNotSet,
+    ArgInvalidTarget,
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -53,6 +54,7 @@ impl ToString for RuntimeError {
             RuntimeError::EditorCommandIsNotSet => "Editor command is not specified.".to_string(),
             RuntimeError::CacheError(e) => format!("Cache error: {}", e),
             RuntimeError::CacheMaxEntriesIsNotSet => "Cache max entries is not specified.".to_string(),
+            RuntimeError::ArgInvalidTarget => "An invalid target setting specified.".to_string(),
         }
     }
 }

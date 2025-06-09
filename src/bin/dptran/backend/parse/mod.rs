@@ -9,34 +9,59 @@ use super::configure;
 pub enum ExecutionMode {
     TranslateNormal,
     TranslateInteractive,
-    ListSourceLangs,
-    ListTargetLangs,
-    SetFreeApiKey,
-    SetProApiKey,
-    SetDefaultTargetLang,
-    SetCacheMaxEntries,
-    SetEditor,
-    DisplaySettings,
+    PrintUsage,
+    Setting,
+    List,
+    Cache,
+}
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum SettingTarget {
+    FreeApiKey,
+    ProApiKey,
+    DefaultTargetLang,
+    EditorCommand,
     EnableCache,
     DisableCache,
-    ClearCache,
+    DisplaySettings,
     ClearSettings,
-    PrintUsage,
+}
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum ListTargetLangs {
+    SourceLangs,
+    TargetLangs,
+}
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum CacheTarget {
+    MaxEntries,
+    Clear,
 }
 
 #[derive(Clone, Debug)]
 pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
-    pub api_key: Option<String>,
-    pub default_target_lang: Option<String>,
-    pub cache_max_entries: Option<usize>,
-    pub editor_command: Option<String>,
     pub translate_from: Option<String>,
     pub multilines: bool,
     pub remove_line_breaks: bool,
     pub translate_to: Option<String>,
     pub source_text: Option<String>,
     pub ofile_path: Option<String>,
+    pub setting: Option<ArgSettingStruct>,
+    pub list_target_langs: Option<ListTargetLangs>,
+    pub cache_setting: Option<CacheSettingStruct>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ArgSettingStruct {
+    pub setting_target: Option<SettingTarget>,
+    pub api_key: Option<String>,
+    pub default_target_lang: Option<String>,
+    pub editor_command: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct CacheSettingStruct {
+    pub cache_target: Option<CacheTarget>,
+    pub max_entries: Option<usize>,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -222,16 +247,23 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     let args = Args::parse();
     let mut arg_struct = ArgStruct {
         execution_mode: ExecutionMode::TranslateInteractive,
-        api_key: None,
-        default_target_lang: None,
-        cache_max_entries: None,
-        editor_command: None,
         translate_from: None,
         translate_to: None,
         multilines: false,
         remove_line_breaks: false,
         source_text: None,
         ofile_path: None,
+        setting: Some(ArgSettingStruct {
+            setting_target: None,
+            api_key: None,
+            default_target_lang: None,
+            editor_command: None,
+        }),
+        list_target_langs: None,
+        cache_setting: Some(CacheSettingStruct {
+            cache_target: None,
+            max_entries: None,
+        }),
     };
 
     // Multilines
@@ -260,59 +292,78 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         match subcommands {
             SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear_free_api_key, clear_pro_api_key, clear_all } => {
                 if let Some(api_key) = api_key_free {
-                    arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
-                    arg_struct.api_key = Some(api_key);
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::FreeApiKey);
+                    arg_struct.setting.as_mut().unwrap().api_key = Some(api_key);
                 }
                 if let Some(api_key) = api_key_pro {
-                    arg_struct.execution_mode = ExecutionMode::SetProApiKey;
-                    arg_struct.api_key = Some(api_key);
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::ProApiKey);
+                    arg_struct.setting.as_mut().unwrap().api_key = Some(api_key);
                 }
                 if let Some(default_lang) = default_lang {
-                    arg_struct.execution_mode = ExecutionMode::SetDefaultTargetLang;
-                    arg_struct.default_target_lang = Some(default_lang);
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DefaultTargetLang);
+                    arg_struct.setting.as_mut().unwrap().default_target_lang = Some(default_lang);
                 }
                 if let Some(editor_command) = editor_command {
-                    arg_struct.execution_mode = ExecutionMode::SetEditor;
-                    arg_struct.editor_command = Some(editor_command);
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EditorCommand);
+                    arg_struct.setting.as_mut().unwrap().editor_command = Some(editor_command);
                 }
                 if show == true {
-                    arg_struct.execution_mode = ExecutionMode::DisplaySettings;
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisplaySettings);
                 }
                 if enable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::EnableCache;
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EnableCache);
                 }
                 if disable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::DisableCache;
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisableCache);
                 }
                 if clear_all == true {
-                    arg_struct.execution_mode = ExecutionMode::ClearSettings;
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::ClearSettings);
                 }
                 if clear_free_api_key == true {
-                    arg_struct.execution_mode = ExecutionMode::SetFreeApiKey;
-                    arg_struct.api_key = None;
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::FreeApiKey);
+                    arg_struct.setting.as_mut().unwrap().api_key = None;
                 }
                 if clear_pro_api_key == true {
-                    arg_struct.execution_mode = ExecutionMode::SetProApiKey;
-                    arg_struct.api_key = None;
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::ProApiKey);
+                    arg_struct.setting.as_mut().unwrap().api_key = None;
                 }
                 return Ok(arg_struct);
             }
             SubCommands::List { source_langs, target_langs } => {
                 if source_langs == true {
-                    arg_struct.execution_mode = ExecutionMode::ListSourceLangs;
+                    arg_struct.execution_mode = ExecutionMode::List;
+                    arg_struct.list_target_langs = Some(ListTargetLangs::SourceLangs);
                 }
                 if target_langs == true {
-                    arg_struct.execution_mode = ExecutionMode::ListTargetLangs;
+                    arg_struct.execution_mode = ExecutionMode::List;
+                    arg_struct.list_target_langs = Some(ListTargetLangs::TargetLangs);
                 }
                 return Ok(arg_struct);
             }
             SubCommands::Cache { max_entries, clear } => {
                 if let Some(max_entries) = max_entries {
-                    arg_struct.execution_mode = ExecutionMode::SetCacheMaxEntries;
-                    arg_struct.cache_max_entries = Some(max_entries);
+                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                        cache_target: Some(CacheTarget::MaxEntries),
+                        max_entries: Some(max_entries),
+                    });
                 }
                 if clear == true {
-                    arg_struct.execution_mode = ExecutionMode::ClearCache;
+                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                        cache_target: Some(CacheTarget::Clear),
+                        max_entries: None,
+                    });
                 }
                 return Ok(arg_struct);
             }
