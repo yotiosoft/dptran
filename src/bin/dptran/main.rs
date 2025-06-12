@@ -375,7 +375,7 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Opt
         if input.len() == 0 {
             return Ok(true);    // Continue the interactive mode
         }
-        if input[0].trim_end() == "quit" {
+        if input[0].trim_end() == "quit" || input[0].trim_end() == "exit" {
             return Ok(false);   // Exit the interactive mode
         }
         if input[0].clone().trim_end().is_empty() {
@@ -425,7 +425,7 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Opt
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
-fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
             multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
@@ -440,7 +440,7 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
         if multilines {
             println!("Multiline mode: Enter a blank line to send the input.");
         }
-        println!("Type \"quit\" to exit dptran.");
+        println!("Type \"exit\" or \"quit\" to exit dptran.");
     }
 
     loop {
@@ -454,7 +454,7 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
 }
 
 /// Start translation process.
-fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
+fn prepare_for_translation(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
                             multilines: bool, remove_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
     let mut source_lang = translate_from;
     let mut target_lang = translate_to;
@@ -491,7 +491,7 @@ fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>
     };
 
     // (Dialogue &) Translation
-    process(&dptran, mode, source_lang, target_lang.unwrap(), 
+    translation_loop(&dptran, mode, source_lang, target_lang.unwrap(), 
             multilines, remove_line_breaks, source_text, &ofile)?;
 
     Ok(())
@@ -499,7 +499,7 @@ fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>
 
 fn handle_translation(mode: ExecutionMode, source_lang: Option<String>, target_lang: Option<String>, 
                             multilines: bool, rm_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
-    start_translation_process(mode, source_lang, target_lang, multilines, rm_line_breaks, source_text, ofile_path)
+    prepare_for_translation(mode, source_lang, target_lang, multilines, rm_line_breaks, source_text, ofile_path)
 }
 
 /// Obtaining arguments and calling the translation process
@@ -600,7 +600,7 @@ mod func_tests {
         let target_lang = "fr".to_string();
         let ofile = None;
 
-        let result = process(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
+        let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
                 return impl_app_process_test(times + 1);
