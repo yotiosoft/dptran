@@ -359,11 +359,74 @@ fn create_or_open_file(output_file: &str) -> Result<Option<std::fs::File>, Runti
     Ok(Some(backend::create_file(&output_file)?))
 }
 
+/// Core function to handle the translation process.
+fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+                    multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: &Option<std::fs::File>) -> Result<bool, RuntimeError> {
+    // If in interactive mode, get from standard input
+    // In normal mode, get from argument
+    let input = get_input(&mode, multilines, rm_line_breaks, &text);
+    if input.is_none() {
+        return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
+    }
+    let input = input.unwrap();
+
+    // Interactive mode: "quit" to exit
+    if mode == ExecutionMode::TranslateInteractive {
+        if input.len() == 0 {
+            return Ok(true);    // Continue the interactive mode
+        }
+        if input[0].trim_end() == "quit" {
+            return Ok(false);   // Exit the interactive mode
+        }
+        if input[0].clone().trim_end().is_empty() {
+            return Ok(true);    // Continue the interactive mode
+        }
+    }
+
+    // Check the cache
+    let cache_result = backend::search_cache(&input, &source_lang, &target_lang)?;
+    let translated_texts = if let Some(cached_text) = cache_result {
+        vec![cached_text]
+    // If not in cache, translate and store in cache
+    } else {
+        // translate
+        let result = dptran.translate(&input, &target_lang, &source_lang)
+            .map_err(|e| RuntimeError::DeeplApiError(e))?;
+        // replace \" with "
+        let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
+        // store in cache
+        if backend::get_cache_enabled()? {
+            backend::into_cache(&input, &result, &source_lang, &target_lang)?;
+        }
+        result
+    };
+    for translated_text in translated_texts {
+        let formatted_text = backend::format_translation_result(&translated_text);
+        if let Some(ofile) = &mut ofile {
+            // append to the file
+            backend::append_to_file(ofile, &formatted_text)?;
+            if mode == ExecutionMode::TranslateInteractive {
+                println!("{}", formatted_text);
+            }
+        } else {
+            // print to stdout
+            println!("{}", formatted_text);
+        }
+    }
+
+    // In normal mode, exit the loop once.
+    if mode == ExecutionMode::TranslateNormal {
+        return Ok(false);   // Exit the normal mode
+    }
+    
+    Ok(true)    // Continue the interactive mode
+}
+
 /// Dialogue and Translation.
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
 fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-            multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
+            multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -381,60 +444,9 @@ fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<Str
     }
 
     loop {
-        // If in interactive mode, get from standard input
-        // In normal mode, get from argument
-        let input = get_input(&mode, multilines, rm_line_breaks, &text);
-        if input.is_none() {
-            return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
-        }
-        let input = input.unwrap();
-
-        // Interactive mode: "quit" to exit
-        if mode == ExecutionMode::TranslateInteractive {
-            if input.len() == 0 {
-                continue;
-            }
-            if input[0].trim_end() == "quit" {
-                break;
-            }
-            if input[0].clone().trim_end().is_empty() {
-                continue;
-            }
-        }
-
-        // Check the cache
-        let cache_result = backend::search_cache(&input, &source_lang, &target_lang)?;
-        let translated_texts = if let Some(cached_text) = cache_result {
-            vec![cached_text]
-        // If not in cache, translate and store in cache
-        } else {
-            // translate
-            let result = dptran.translate(&input, &target_lang, &source_lang)
-                .map_err(|e| RuntimeError::DeeplApiError(e))?;
-            // replace \" with "
-            let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
-            // store in cache
-            if backend::get_cache_enabled()? {
-                backend::into_cache(&input, &result, &source_lang, &target_lang)?;
-            }
-            result
-        };
-        for translated_text in translated_texts {
-            let formatted_text = backend::format_translation_result(&translated_text);
-            if let Some(ofile) = &mut ofile {
-                // append to the file
-                backend::append_to_file(ofile, &formatted_text)?;
-                if mode == ExecutionMode::TranslateInteractive {
-                    println!("{}", formatted_text);
-                }
-            } else {
-                // print to stdout
-                println!("{}", formatted_text);
-            }
-        }
-        // In normal mode, exit the loop once.
-        if mode == ExecutionMode::TranslateNormal {
-            break;
+        if let Ok(false) = do_translation(dptran, mode, source_lang.clone(), target_lang.clone(), 
+                                        multilines, rm_line_breaks, text.clone(), &ofile) {
+            break;  // Exit the loop if in normal mode or if "quit" is entered in interactive mode
         }
     }
 
@@ -480,7 +492,7 @@ fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>
 
     // (Dialogue &) Translation
     process(&dptran, mode, source_lang, target_lang.unwrap(), 
-            multilines, remove_line_breaks, source_text, ofile)?;
+            multilines, remove_line_breaks, source_text, &ofile)?;
 
     Ok(())
 }
@@ -588,7 +600,7 @@ mod func_tests {
         let target_lang = "fr".to_string();
         let ofile = None;
 
-        let result = process(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, ofile);
+        let result = process(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
                 return impl_app_process_test(times + 1);
