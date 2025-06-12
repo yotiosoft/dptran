@@ -477,6 +477,11 @@ fn handle_show_list(list_target_langs: backend::parse::ListTargetLangs) -> Resul
     Ok(())
 }
 
+fn handle_translation(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+                            multilines: bool, rm_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
+    start_translation_process(mode, source_lang, Some(target_lang), multilines, rm_line_breaks, source_text, ofile_path)
+}
+
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
     // Parsing arguments.
