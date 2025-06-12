@@ -210,169 +210,6 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
     }
 }
 
-/// Dialogue and Translation.
-/// Repeat input if in interactive mode
-/// In normal mode, it will be finished once
-fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-            multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
-    // Translation
-    // loop if in interactive mode; exit once in normal mode
-
-    // If it is interactive mode, it shows how to exit.
-    if mode == ExecutionMode::TranslateInteractive {
-        if source_lang.is_none() {
-            println!("Now translating from detected language to {}.", target_lang);
-        } else {
-            println!("Now translating from {} to {}.", source_lang.as_ref().unwrap(), target_lang);
-        }
-        if multilines {
-            println!("Multiline mode: Enter a blank line to send the input.");
-        }
-        println!("Type \"quit\" to exit dptran.");
-    }
-
-    loop {
-        // If in interactive mode, get from standard input
-        // In normal mode, get from argument
-        let input = get_input(&mode, multilines, rm_line_breaks, &text);
-        if input.is_none() {
-            return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
-        }
-        let input = input.unwrap();
-
-        // Interactive mode: "quit" to exit
-        if mode == ExecutionMode::TranslateInteractive {
-            if input.len() == 0 {
-                continue;
-            }
-            if input[0].trim_end() == "quit" {
-                break;
-            }
-            if input[0].clone().trim_end().is_empty() {
-                continue;
-            }
-        }
-
-        // Check the cache
-        let cache_result = backend::search_cache(&input, &source_lang, &target_lang)?;
-        let translated_texts = if let Some(cached_text) = cache_result {
-            vec![cached_text]
-        // If not in cache, translate and store in cache
-        } else {
-            // translate
-            let result = dptran.translate(&input, &target_lang, &source_lang)
-                .map_err(|e| RuntimeError::DeeplApiError(e))?;
-            // replace \" with "
-            let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
-            // store in cache
-            if backend::get_cache_enabled()? {
-                backend::into_cache(&input, &result, &source_lang, &target_lang)?;
-            }
-            result
-        };
-        for translated_text in translated_texts {
-            let formatted_text = backend::format_translation_result(&translated_text);
-            if let Some(ofile) = &mut ofile {
-                // append to the file
-                backend::append_to_file(ofile, &formatted_text)?;
-                if mode == ExecutionMode::TranslateInteractive {
-                    println!("{}", formatted_text);
-                }
-            } else {
-                // print to stdout
-                println!("{}", formatted_text);
-            }
-        }
-        // In normal mode, exit the loop once.
-        if mode == ExecutionMode::TranslateNormal {
-            break;
-        }
-    }
-
-    Ok(())
-}
-
-/// Start translation process.
-fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
-                            multilines: bool, remove_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
-    let mut source_lang = translate_from;
-    let mut target_lang = translate_to;
-
-    if target_lang.is_none() {
-        target_lang = Some(backend::get_default_target_language_code()?);
-    }
-
-    // API Key confirmation
-    let api_key = match backend::get_api_key()? {
-        Some(api_key) => api_key,
-        None => {
-            println!("Welcome to dptran!");
-            println!("First, please set your DeepL API-key:");
-            println!("\t$ dptran set --api-key <API_KEY>");
-            println!();
-        
-            println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");
-            if cfg!(target_os = "windows") {
-                // for Windows
-                println!("\nFor Windows (PowerShell):");
-                println!("\t$env:DPTRAN_DEEPL_API_KEY = \"<API_KEY>\"");
-                println!("To make it persistent, use the System Environment Variables:");
-                println!("\t1. Open 'System Properties' > 'Environment Variables'");
-                println!("\t2. Add a new user or system variable named 'DPTRAN_DEEPL_API_KEY' with your API key.");
-                println!("(Alternatively, for Command Prompt):");
-                println!("\t> set DPTRAN_DEEPL_API_KEY=<API_KEY>");
-                println!("Note: This is temporary and will be lost when the window is closed.");
-            } else {
-                // for macOS/Linux
-                println!("\nFor Linux/macOS:");
-                println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
-                println!("To make it persistent, add the above line to your shell config file:");
-                println!("\t~/.bashrc, ~/.zshrc, or ~/.bash_profile (depending on your shell)");
-            }
-            println!();
-
-            println!("If you don't have an API-key, please sign up for a free/pro account at DeepL.");
-            println!("You can get DeepL API-key for free here:");
-            println!("\thttps://www.deepl.com/en/pro-api?cta=header-pro-api/");
-            return Ok(());
-        },
-    };
-    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
-
-    // Language code check and correction
-    if let Some(sl) = source_lang {
-        source_lang = Some(dptran.correct_source_language_code(&sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
-    }
-    if let Some(tl) = target_lang {
-        target_lang = Some(dptran.correct_target_language_code(&tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
-    }
-
-    // Output filepath
-    // If output file is specified, it will be created or overwritten.
-    let ofile = if let Some(output_file) = ofile_path {
-        // is the file exists?
-        if std::path::Path::new(&output_file).exists() {
-            print!("The file {} already exists. Overwrite? (y/N) ", output_file);
-            std::io::stdout().flush().unwrap();
-            let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
-            if input.trim().to_ascii_lowercase() != "y" {
-                return Ok(());  // Do not overwrite
-            }
-        }
-        Some(backend::create_file(&output_file)?)
-    }
-    else {
-        None
-    };
-
-    // (Dialogue &) Translation
-    process(&dptran, mode, source_lang, target_lang.unwrap(), 
-            multilines, remove_line_breaks, source_text, ofile)?;
-
-    Ok(())
-}
-
 fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> Result<(), RuntimeError> {
     let setting_target = setting_struct.setting_target.clone();
     if let None = setting_target {
@@ -477,9 +314,180 @@ fn handle_show_list(list_target_langs: backend::parse::ListTargetLangs) -> Resul
     Ok(())
 }
 
-fn handle_translation(mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+fn print_api_key_error() {
+    println!("Welcome to dptran!");
+    println!("First, please set your DeepL API-key:");
+    println!("\t$ dptran set --api-key <API_KEY>");
+    println!();
+
+    println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");
+    if cfg!(target_os = "windows") {
+        // for Windows
+        println!("\nFor Windows (PowerShell):");
+        println!("\t$env:DPTRAN_DEEPL_API_KEY = \"<API_KEY>\"");
+        println!("To make it persistent, use the System Environment Variables:");
+        println!("\t1. Open 'System Properties' > 'Environment Variables'");
+        println!("\t2. Add a new user or system variable named 'DPTRAN_DEEPL_API_KEY' with your API key.");
+        println!("(Alternatively, for Command Prompt):");
+        println!("\t> set DPTRAN_DEEPL_API_KEY=<API_KEY>");
+        println!("Note: This is temporary and will be lost when the window is closed.");
+    } else {
+        // for macOS/Linux
+        println!("\nFor Linux/macOS:");
+        println!("\t$ export DPTRAN_DEEPL_API_KEY=<API_KEY>");
+        println!("To make it persistent, add the above line to your shell config file:");
+        println!("\t~/.bashrc, ~/.zshrc, or ~/.bash_profile (depending on your shell)");
+    }
+    println!();
+
+    println!("If you don't have an API-key, please sign up for a free/pro account at DeepL.");
+    println!("You can get DeepL API-key for free here:");
+    println!("\thttps://www.deepl.com/en/pro-api?cta=header-pro-api/");
+}
+
+fn create_or_open_file(output_file: &str) -> Result<Option<std::fs::File>, RuntimeError> {
+    // is the file exists?
+    if std::path::Path::new(&output_file).exists() {
+        print!("The file {} already exists. Overwrite? (y/N) ", output_file);
+        std::io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        if input.trim().to_ascii_lowercase() != "y" {
+            return Ok(None);  // Do not overwrite
+        }
+    }
+    Ok(Some(backend::create_file(&output_file)?))
+}
+
+/// Dialogue and Translation.
+/// Repeat input if in interactive mode
+/// In normal mode, it will be finished once
+fn process(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
+            multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: Option<std::fs::File>) -> Result<(), RuntimeError> {
+    // Translation
+    // loop if in interactive mode; exit once in normal mode
+
+    // If it is interactive mode, it shows how to exit.
+    if mode == ExecutionMode::TranslateInteractive {
+        if source_lang.is_none() {
+            println!("Now translating from detected language to {}.", target_lang);
+        } else {
+            println!("Now translating from {} to {}.", source_lang.as_ref().unwrap(), target_lang);
+        }
+        if multilines {
+            println!("Multiline mode: Enter a blank line to send the input.");
+        }
+        println!("Type \"quit\" to exit dptran.");
+    }
+
+    loop {
+        // If in interactive mode, get from standard input
+        // In normal mode, get from argument
+        let input = get_input(&mode, multilines, rm_line_breaks, &text);
+        if input.is_none() {
+            return Err(RuntimeError::DeeplApiError(DpTranError::CouldNotGetInputText));
+        }
+        let input = input.unwrap();
+
+        // Interactive mode: "quit" to exit
+        if mode == ExecutionMode::TranslateInteractive {
+            if input.len() == 0 {
+                continue;
+            }
+            if input[0].trim_end() == "quit" {
+                break;
+            }
+            if input[0].clone().trim_end().is_empty() {
+                continue;
+            }
+        }
+
+        // Check the cache
+        let cache_result = backend::search_cache(&input, &source_lang, &target_lang)?;
+        let translated_texts = if let Some(cached_text) = cache_result {
+            vec![cached_text]
+        // If not in cache, translate and store in cache
+        } else {
+            // translate
+            let result = dptran.translate(&input, &target_lang, &source_lang)
+                .map_err(|e| RuntimeError::DeeplApiError(e))?;
+            // replace \" with "
+            let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
+            // store in cache
+            if backend::get_cache_enabled()? {
+                backend::into_cache(&input, &result, &source_lang, &target_lang)?;
+            }
+            result
+        };
+        for translated_text in translated_texts {
+            let formatted_text = backend::format_translation_result(&translated_text);
+            if let Some(ofile) = &mut ofile {
+                // append to the file
+                backend::append_to_file(ofile, &formatted_text)?;
+                if mode == ExecutionMode::TranslateInteractive {
+                    println!("{}", formatted_text);
+                }
+            } else {
+                // print to stdout
+                println!("{}", formatted_text);
+            }
+        }
+        // In normal mode, exit the loop once.
+        if mode == ExecutionMode::TranslateNormal {
+            break;
+        }
+    }
+
+    Ok(())
+}
+
+/// Start translation process.
+fn start_translation_process(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
+                            multilines: bool, remove_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
+    let mut source_lang = translate_from;
+    let mut target_lang = translate_to;
+
+    if target_lang.is_none() {
+        target_lang = Some(backend::get_default_target_language_code()?);
+    }
+
+    // API Key confirmation
+    let api_key = match backend::get_api_key()? {
+        Some(api_key) => api_key,
+        None => {
+            print_api_key_error();
+            return Ok(());
+        },
+    };
+    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+
+    // Language code check and correction
+    if let Some(sl) = source_lang {
+        source_lang = Some(dptran.correct_source_language_code(&sl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+    }
+    if let Some(tl) = target_lang {
+        target_lang = Some(dptran.correct_target_language_code(&tl.to_string()).map_err(|e| RuntimeError::DeeplApiError(e))?);
+    }
+
+    // Output filepath
+    // If output file is specified, it will be created or overwritten.
+    let ofile = if let Some(output_file) = ofile_path {
+        create_or_open_file(&output_file)?  
+    }
+    else {
+        None
+    };
+
+    // (Dialogue &) Translation
+    process(&dptran, mode, source_lang, target_lang.unwrap(), 
+            multilines, remove_line_breaks, source_text, ofile)?;
+
+    Ok(())
+}
+
+fn handle_translation(mode: ExecutionMode, source_lang: Option<String>, target_lang: Option<String>, 
                             multilines: bool, rm_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
-    start_translation_process(mode, source_lang, Some(target_lang), multilines, rm_line_breaks, source_text, ofile_path)
+    start_translation_process(mode, source_lang, target_lang, multilines, rm_line_breaks, source_text, ofile_path)
 }
 
 /// Obtaining arguments and calling the translation process
@@ -508,17 +516,12 @@ fn main() -> Result<(), RuntimeError> {
             return Ok(());
         }
         ExecutionMode::TranslateNormal | ExecutionMode::TranslateInteractive => {
-            // Normal or interactive translation mode
-            let source_lang = arg_struct.translate_from;
-            let target_lang = arg_struct.translate_to;
-            let multilines = arg_struct.multilines;
-            let rm_line_breaks = arg_struct.remove_line_breaks;
-            let source_text = arg_struct.source_text;
-            let ofile_path = arg_struct.ofile_path;
-
-            // Start translation process
-            start_translation_process(mode, source_lang, target_lang,
-                                    multilines, rm_line_breaks, source_text, ofile_path)?;
+            handle_translation(mode, arg_struct.translate_from, 
+                                arg_struct.translate_to, 
+                                arg_struct.multilines, 
+                                arg_struct.remove_line_breaks, 
+                                arg_struct.source_text, 
+                                arg_struct.ofile_path)?;
             return Ok(());
         }
     };
