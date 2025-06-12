@@ -20,6 +20,9 @@ pub struct Configure {
     pub cache_max_entries: usize,
     pub editor_command: Option<String>,
     pub cache_enabled: bool,
+    pub endpoint_of_translation: Option<String>,
+    pub endpoint_of_usage: Option<String>,
+    pub endpoint_of_languages: Option<String>,
 }
 impl Default for Configure {
     fn default() -> Self {
@@ -31,6 +34,9 @@ impl Default for Configure {
             cache_max_entries: 100,
             editor_command: None,
             cache_enabled: true,
+            endpoint_of_translation: None,
+            endpoint_of_usage: None,
+            endpoint_of_languages: None,
         }
     }
 }
@@ -141,6 +147,48 @@ impl ConfigureWrapper {
         Ok(())
     }
 
+    /// Set endpoint of translation API
+    pub fn set_endpoint_of_translation(&mut self, endpoint: String) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_translation = Some(endpoint);
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Reset endpoint of translation API
+    pub fn reset_endpoint_of_translation(&mut self) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_translation = None;
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Set endpoint of usage API
+    pub fn set_endpoint_of_usage(&mut self, endpoint: String) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_usage = Some(endpoint);
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Reset endpoint of usage API
+    pub fn reset_endpoint_of_usage(&mut self) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_usage = None;
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Set endpoint of languages API
+    pub fn set_endpoint_of_languages(&mut self, endpoint: String) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_languages = Some(endpoint);
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Reset endpoint of languages API
+    pub fn reset_endpoint_of_languages(&mut self) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_languages = None;
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
     /// Initialize settings
     pub fn clear_settings(&self) -> Result<(), ConfigError> {
         let cleared_settings = Configure::default();
@@ -227,6 +275,9 @@ mod older_configure {
                 cache_max_entries: 100,
                 editor_command: None,
                 cache_enabled: true,
+                endpoint_of_translation: None,
+                endpoint_of_usage: None,
+                endpoint_of_languages: None,
             };
             confy::store("dptran", configure_name, &settings).map_err(|e| ConfigError::FailToGetSettings(e.to_string()))?;
             return Ok(settings);

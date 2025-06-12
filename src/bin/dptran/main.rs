@@ -215,7 +215,7 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
     if let None = setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
     }
-    let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+    let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     match setting_target.unwrap() {
         SettingTarget::FreeApiKey => {
             if let Some(s) = setting_struct.api_key {
@@ -285,8 +285,8 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
                 return Ok(());
             }
         }
-        SettingTarget::EndpointOfLanguages => {
-            if let Some(s) = setting_struct.endpoint_of_languages {
+        SettingTarget::EndpointOfLangs => {
+            if let Some(s) = setting_struct.endpoint_of_langs {
                 config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
