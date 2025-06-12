@@ -4,3 +4,5 @@ api_key.txt
 */config.json
 config.json
 *.DS_Store
+__pycache__
+*.pyc
