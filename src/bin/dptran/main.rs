@@ -1,4 +1,4 @@
-use std::io::{self, Write, stdin, stdout};
+use std::io::{Write, stdin, stdout};
 
 mod backend;
 use backend::ApiKey;
@@ -12,9 +12,9 @@ use crate::backend::parse::SettingTarget;
 /// Initialization of settings.
 fn clear_settings() -> Result<(), RuntimeError> {
     print!("Are you sure you want to clear all settings? (y/N) ");
-    io::stdout().flush().unwrap();
+    std::io::stdout().flush().unwrap();
     let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
+    std::io::stdin().read_line(&mut input).unwrap();
     // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
         backend::clear_settings()?;
@@ -156,7 +156,7 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
             let mut input_vec = Vec::<String>::new();
             let mut input = String::new();
             while stdin.read_line(&mut input).unwrap() > 0 {
-                if input.trim_end() == "quit" {
+                if input.trim_end() == "quit" || input.trim_end() == "exit" {
                     input_vec.push(input);
                     break;
                 }
@@ -351,7 +351,7 @@ fn create_or_open_file(output_file: &str) -> Result<Option<std::fs::File>, Runti
         print!("The file {} already exists. Overwrite? (y/N) ", output_file);
         std::io::stdout().flush().unwrap();
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        std::io::stdin().read_line(&mut input).unwrap();
         if input.trim().to_ascii_lowercase() != "y" {
             return Ok(None);  // Do not overwrite
         }
@@ -360,6 +360,9 @@ fn create_or_open_file(output_file: &str) -> Result<Option<std::fs::File>, Runti
 }
 
 /// Core function to handle the translation process.
+/// If in interactive mode, it will loop until "quit" or "exit" is entered.
+/// In normal mode, it will exit once after translation.
+/// Returns true if it continues the interactive mode, false if it exits.
 fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
                     multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: &Option<std::fs::File>) -> Result<bool, RuntimeError> {
     // If in interactive mode, get from standard input
@@ -370,7 +373,7 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Opt
     }
     let input = input.unwrap();
 
-    // Interactive mode: "quit" to exit
+    // Interactive mode: "exit" or "quit" to exit
     if mode == ExecutionMode::TranslateInteractive {
         if input.len() == 0 {
             return Ok(true);    // Continue the interactive mode
@@ -446,7 +449,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
     loop {
         if let Ok(false) = do_translation(dptran, mode, source_lang.clone(), target_lang.clone(), 
                                         multilines, rm_line_breaks, text.clone(), &ofile) {
-            break;  // Exit the loop if in normal mode or if "quit" is entered in interactive mode
+            break;  // Exit the loop if in normal mode or if "quit" or "exit" is entered in interactive mode
         }
     }
 
@@ -454,7 +457,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
 }
 
 /// Start translation process.
-fn prepare_for_translation(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
+fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
                             multilines: bool, remove_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
     let mut source_lang = translate_from;
     let mut target_lang = translate_to;
@@ -495,11 +498,6 @@ fn prepare_for_translation(mode: ExecutionMode, translate_from: Option<String>, 
             multilines, remove_line_breaks, source_text, &ofile)?;
 
     Ok(())
-}
-
-fn handle_translation(mode: ExecutionMode, source_lang: Option<String>, target_lang: Option<String>, 
-                            multilines: bool, rm_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
-    prepare_for_translation(mode, source_lang, target_lang, multilines, rm_line_breaks, source_text, ofile_path)
 }
 
 /// Obtaining arguments and calling the translation process
