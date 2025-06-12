@@ -21,6 +21,9 @@ pub enum SettingTarget {
     DefaultTargetLang,
     EditorCommand,
     EnableCache,
+    EndpointOfTranslation,
+    EndpointOfUsage,
+    EndpointOfLangs,
     DisableCache,
     DisplaySettings,
     ClearSettings,
@@ -56,6 +59,9 @@ pub struct ArgSettingStruct {
     pub api_key: Option<String>,
     pub default_target_lang: Option<String>,
     pub editor_command: Option<String>,
+    pub endpoint_of_translation: Option<String>,
+    pub endpoint_of_usage: Option<String>,
+    pub endpoint_of_langs: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -147,6 +153,18 @@ enum SubCommands {
         /// Disable cache.
         #[arg(long)]
         disable_cache: bool,
+
+        /// Endpoint of translation API. (e.g. `https://api-free.deepl.com/v2/translate`)
+        #[arg(long)]
+        endpoint_of_translation: Option<String>,
+
+        /// Endpoint of usage API. (e.g. `https://api-free.deepl.com/v2/usage`)
+        #[arg(long)]
+        endpoint_of_usage: Option<String>,
+
+        /// Endpoint of languages API. (e.g. `https://api-free.deepl.com/v2/languages`)
+        #[arg(long)]
+        endpoint_of_langs: Option<String>,
 
         /// Clear DeeL API key (free)
         #[arg(long)]
@@ -258,6 +276,9 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             api_key: None,
             default_target_lang: None,
             editor_command: None,
+            endpoint_of_translation: None,
+            endpoint_of_usage: None,
+            endpoint_of_langs: None,
         }),
         list_target_langs: None,
         cache_setting: Some(CacheSettingStruct {
@@ -290,7 +311,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  editor_command, show, enable_cache, disable_cache, clear_free_api_key, clear_pro_api_key, clear_all } => {
+            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  
+                    editor_command, show, enable_cache, disable_cache, 
+                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs, 
+                    clear_free_api_key, clear_pro_api_key, clear_all } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::Setting;
                     arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::FreeApiKey);
@@ -322,6 +346,21 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if disable_cache == true {
                     arg_struct.execution_mode = ExecutionMode::Setting;
                     arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisableCache);
+                }
+                if let Some(endpoint_of_translation) = endpoint_of_translation {
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EndpointOfTranslation);
+                    arg_struct.setting.as_mut().unwrap().endpoint_of_translation = Some(endpoint_of_translation);
+                }
+                if let Some(endpoint_of_usage) = endpoint_of_usage {
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EndpointOfUsage);
+                    arg_struct.setting.as_mut().unwrap().endpoint_of_usage = Some(endpoint_of_usage);
+                }
+                if let Some(endpoint_of_langs) = endpoint_of_langs {
+                    arg_struct.execution_mode = ExecutionMode::Setting;
+                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EndpointOfLangs);
+                    arg_struct.setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
                 }
                 if clear_all == true {
                     arg_struct.execution_mode = ExecutionMode::Setting;

@@ -131,7 +131,7 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// Display the number of characters remaining.
-pub fn show_usage() -> Result<(), RuntimeError> {
+pub fn handle_show_usage() -> Result<(), RuntimeError> {
     let usage = backend::get_usage()?;
     if usage.character_limit.is_none() {
         println!("usage: {} / unlimited", usage.character_count);
@@ -265,6 +265,42 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
             backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
                 .set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
+        }
+        SettingTarget::EndpointOfTranslation => {
+            if let Some(s) = setting_struct.endpoint_of_translation {
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .reset_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                println!("Endpoint of translation has been reset to the default value.");
+                return Ok(());
+            }
+        }
+        SettingTarget::EndpointOfUsage => {
+            if let Some(s) = setting_struct.endpoint_of_usage {
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+                println!("Endpoint of usage has been reset to the default value.");
+                return Ok(());
+            }
+        }
+        SettingTarget::EndpointOfLanguages => {
+            if let Some(s) = setting_struct.endpoint_of_languages {
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+                    .reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+                println!("Endpoint of languages has been reset to the default value.");
+                return Ok(());
+            }
         }
         SettingTarget::DisplaySettings => {
             display_settings()?;
@@ -507,7 +543,7 @@ fn main() -> Result<(), RuntimeError> {
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {
-            show_usage()?;
+            handle_show_usage()?;
             return Ok(());
         }
         ExecutionMode::Setting => {
@@ -578,7 +614,7 @@ mod func_tests {
     }
 
     fn impl_app_show_usage_test(times: u8) {
-        let result = show_usage();
+        let result = handle_show_usage();
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
                 return impl_app_show_usage_test(times + 1);
