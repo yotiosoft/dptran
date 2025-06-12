@@ -215,6 +215,7 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
     if let None = setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
     }
+    let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     match setting_target.unwrap() {
         SettingTarget::FreeApiKey => {
             if let Some(s) = setting_struct.api_key {
@@ -257,47 +258,39 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
             }
         }
         SettingTarget::EnableCache => {
-            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                .set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
+            config.set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         SettingTarget::DisableCache => {
-            backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                .set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
+            config.set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         SettingTarget::EndpointOfTranslation => {
             if let Some(s) = setting_struct.endpoint_of_translation {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .reset_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
                 println!("Endpoint of translation has been reset to the default value.");
                 return Ok(());
             }
         }
         SettingTarget::EndpointOfUsage => {
             if let Some(s) = setting_struct.endpoint_of_usage {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+                config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
                 println!("Endpoint of usage has been reset to the default value.");
                 return Ok(());
             }
         }
         SettingTarget::EndpointOfLanguages => {
             if let Some(s) = setting_struct.endpoint_of_languages {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+                config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
                 println!("Endpoint of languages has been reset to the default value.");
                 return Ok(());
             }
