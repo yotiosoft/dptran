@@ -1,7 +1,6 @@
 use std::io::{Write, stdin, stdout};
 
 mod backend;
-use backend::ApiKey;
 use backend::RuntimeError;
 use backend::ExecutionMode;
 
@@ -17,7 +16,8 @@ fn clear_settings() -> Result<(), RuntimeError> {
     std::io::stdin().read_line(&mut input).unwrap();
     // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
-        backend::clear_settings()?;
+        let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
@@ -26,11 +26,12 @@ fn clear_settings() -> Result<(), RuntimeError> {
 
 /// Display of settings.
 fn display_settings() -> Result<(), RuntimeError> {
+    let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     let api_key = backend::get_api_key()?;
-    let default_target_lang = backend::get_default_target_language_code()?;
-    let cache_max_entries = backend::get_cache_max_entries()?;
-    let editor_command = backend::get_editor_command_str()?;
-    let cache_enabled = backend::get_cache_enabled()?;
+    let default_target_lang = config.get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
+    let cache_max_entries = config.get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
+    let editor_command = config.get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
+    let cache_enabled = config.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
 
     if let Some(api_key) = api_key {
         if api_key.api_key_type == dptran::ApiKeyType::Free {
@@ -61,14 +62,6 @@ fn display_settings() -> Result<(), RuntimeError> {
         .get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
     println!("Configuration file path: {}", config_filepath.to_str().unwrap());
 
-    Ok(())
-}
-
-/// Set default destination language.
-/// Set the default target language for translation in the configuration file config.json.
-fn set_default_target_language(arg_default_target_language: &String) -> Result<(), RuntimeError> {
-    let validated_language_code = backend::set_default_target_language(arg_default_target_language)?;
-    println!("Default target language has been set to {}.", validated_language_code);
     Ok(())
 }
 
@@ -219,10 +212,7 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
     match setting_target.unwrap() {
         SettingTarget::FreeApiKey => {
             if let Some(s) = setting_struct.api_key {
-                backend::set_api_key(ApiKey {
-                    api_key: s,
-                    api_key_type: dptran::ApiKeyType::Free,
-                })?;
+                config.set_api_key(s, dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
                 backend::clear_api_key(dptran::ApiKeyType::Free)?;
@@ -231,10 +221,7 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
         }
         SettingTarget::ProApiKey => {
             if let Some(s) = setting_struct.api_key {
-                backend::set_api_key(ApiKey {
-                    api_key: s,
-                    api_key_type: dptran::ApiKeyType::Pro,
-                })?;
+                config.set_api_key(s, dptran::ApiKeyType::Pro).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
                 backend::clear_api_key(dptran::ApiKeyType::Pro)?;
@@ -243,7 +230,8 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
         }
         SettingTarget::DefaultTargetLang => {
             if let Some(s) = setting_struct.default_target_lang {
-                set_default_target_language(&s)?;
+                let validated_language_code = backend::set_default_target_language(&s)?;
+                println!("Default target language has been set to {}.", validated_language_code);
                 return Ok(());
             } else {
                 return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
@@ -251,7 +239,7 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
         }
         SettingTarget::EditorCommand => {
             if let Some(s) = setting_struct.editor_command {
-                backend::set_editor_command(s)?;
+                config.set_editor_command(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::EditorCommandIsNotSet);
@@ -427,7 +415,7 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Opt
         // replace \" with "
         let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
         // store in cache
-        if backend::get_cache_enabled()? {
+        if backend::get_config()?.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))? {
             backend::into_cache(&input, &result, &source_lang, &target_lang)?;
         }
         result
@@ -492,7 +480,8 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
     let mut target_lang = translate_to;
 
     if target_lang.is_none() {
-        target_lang = Some(backend::get_default_target_language_code()?);
+        let config = backend::get_config()?;
+        target_lang = Some(config.get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?);
     }
 
     // API Key confirmation

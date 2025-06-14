@@ -74,6 +74,11 @@ static CACHE_NAME: &str = "cache_test";
 #[cfg(not(test))]
 static CACHE_NAME: &str = "cache";
 
+/// Get Configuration settings.
+pub fn get_config() -> Result<configure::ConfigureWrapper, RuntimeError> {
+    configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))
+}
+
 /// Get the number of characters remaining to be translated
 /// Retrieved from <https://api-free.deepl.com/v2/usage>
 /// Returns an error if acquisition fails
@@ -85,21 +90,6 @@ pub fn get_usage() -> Result<DpTranUsage, RuntimeError> {
     } else {
         Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
     }
-}
-
-/// Set API key (using confy crate).
-/// Set the API key in the configuration file config.json.
-pub fn set_api_key(api_key: ApiKey) -> Result<(), RuntimeError> {
-    configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .set_api_key(api_key.api_key, api_key.api_key_type).map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(())
-}
-
-/// Clear the API key.
-pub fn clear_api_key(api_key_type: dptran::ApiKeyType) -> Result<(), RuntimeError> {
-    configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .set_api_key("".to_string(), api_key_type).map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(())
 }
 
 /// Set default destination language.
@@ -114,8 +104,7 @@ pub fn set_default_target_language(arg_default_target_language: &String) -> Resu
     // Check if the language code is correct
     match dptran.correct_target_language_code(arg_default_target_language) {
         Ok(validated_language_code) => {
-            configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-                .set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
+            get_config()?.set_default_target_language(&validated_language_code).map_err(|e| RuntimeError::ConfigError(e))?;
             Ok(validated_language_code)
         }
         Err(e) => {
@@ -124,31 +113,9 @@ pub fn set_default_target_language(arg_default_target_language: &String) -> Resu
     }
 }
 
-/// Set the editor command.
-pub fn set_editor_command(editor_command: String) -> Result<(), RuntimeError> {
-    configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .set_editor_command(editor_command).map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(())
-}
-
-/// Clear the settings.
-pub fn clear_settings() -> Result<(), RuntimeError> {
-    configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(())
-}
-
-/// Get the configured default destination language code.
-pub fn get_default_target_language_code() -> Result<String, RuntimeError> {
-    let default_target_lang = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(default_target_lang)
-}
-
 /// Load the API key from the configuration file.
 pub fn get_api_key() -> Result<Option<ApiKey>, RuntimeError> {
-    let api_key = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_api_key();
+    let api_key = get_config()?.get_api_key();
     // If the API key is not set, check environment variables.
     // If there is a pro key, return it.
     // If there is no pro key, return the free key.
@@ -174,31 +141,15 @@ pub fn get_api_key() -> Result<Option<ApiKey>, RuntimeError> {
     Ok(api_key)
 }
 
-/// Get the maximum number of cache entries.
-pub fn get_cache_max_entries() -> Result<usize, RuntimeError> {
-    let cache_max_entries = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(cache_max_entries)
-}
-
-/// Load the editor command from the configuration file.
-pub fn get_editor_command_str() -> Result<Option<String>, RuntimeError> {
-    let editor_command = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(editor_command)
-}
-
-/// Get the cache enabled status.
-pub fn get_cache_enabled() -> Result<bool, RuntimeError> {
-    let cache_enabled = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
-    Ok(cache_enabled)
+/// Clear the API key.
+pub fn clear_api_key(api_key_type: dptran::ApiKeyType) -> Result<(), RuntimeError> {
+    get_config()?.set_api_key("".to_string(), api_key_type).map_err(|e| RuntimeError::ConfigError(e))?;
+    Ok(())
 }
 
 /// Search the cache
 pub fn search_cache(query: &Vec<String>, source_lang:&Option<String>, target_lang: &String) -> Result<Option<String>, RuntimeError> {
-    let cache_enabled = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))?
-        .get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
+    let cache_enabled = get_config()?.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
     let cache_str = query.join("\n").trim().to_string();
     let cache_result = if cache_enabled {
         cache::get_cache_data(CACHE_NAME).map_err(|e| RuntimeError::CacheError(e))?
@@ -213,7 +164,7 @@ pub fn search_cache(query: &Vec<String>, source_lang:&Option<String>, target_lan
 pub fn into_cache(before_translate_str: &Vec<String>, after_translate_str: &Vec<String>, source_lang:&Option<String>, target_lang: &String) -> Result<(), RuntimeError> {
     let before_translate_str = before_translate_str.clone().join("\n").trim().to_string();
     let after_translate_str = after_translate_str.clone().join("\n").trim().to_string();
-    let max_entries = get_cache_max_entries()?;
+    let max_entries = get_config()?.get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
     cache::get_cache_data(CACHE_NAME).map_err(|e| RuntimeError::CacheError(e))?
             .into_cache_element(&before_translate_str, &after_translate_str, source_lang, target_lang, max_entries).map_err(|e| RuntimeError::CacheError(e))?;
     Ok(())
@@ -279,22 +230,15 @@ mod tests {
     #[test]
     fn backend_get_and_set_api_key_test() {
         // Set as a free API key
-        let api_key = ApiKey {
-            api_key: "test_api_key".to_string(),
-            api_key_type: dptran::ApiKeyType::Free,
-        };
-        clear_settings().unwrap();
-        set_api_key(api_key).unwrap();
+        let mut config = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        get_config().unwrap().clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        config.set_api_key("test_api_key".to_string(), dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_api_key");
         assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Free);
 
         // Set as a pro API key
-        let api_key = ApiKey {
-            api_key: "test_pro_api_key".to_string(),
-            api_key_type: dptran::ApiKeyType::Pro,
-        };
-        set_api_key(api_key).unwrap();
+        config.set_api_key("test_pro_api_key".to_string(), dptran::ApiKeyType::Pro).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_pro_api_key");
         assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Pro);
@@ -303,35 +247,36 @@ mod tests {
     #[test]
     fn backend_get_and_set_editor_command_test() {
         let editor_command = "test_editor".to_string();
-        set_editor_command(editor_command.clone()).unwrap();
-        let retrieved_editor_command = get_editor_command_str().unwrap();
+        let mut config = get_config().unwrap();
+        config.set_editor_command(editor_command.clone()).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let retrieved_editor_command = config.get_editor_command().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_editor_command, Some(editor_command));
-        clear_settings().unwrap();
-        let retrieved_editor_command = get_editor_command_str().unwrap();
+        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let retrieved_editor_command = config.get_editor_command().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_editor_command, None);
     }
 
     #[test]
     fn backend_get_and_set_cache_max_entries_test() {
         let cache_max_entries = 50;
-        configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e)).unwrap()
-            .set_cache_max_entries(cache_max_entries).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
-        let retrieved_cache_max_entries = get_cache_max_entries().unwrap();
+        let mut config = get_config().unwrap();
+        config.set_cache_max_entries(cache_max_entries).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let retrieved_cache_max_entries = config.get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_max_entries, cache_max_entries);
-        clear_settings().unwrap();
-        let retrieved_cache_max_entries = get_cache_max_entries().unwrap();
+        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let retrieved_cache_max_entries = get_config().unwrap().get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_max_entries, 100);
     }
 
     #[test]
     fn backend_get_and_set_cache_enabled_test() {
         let cache_enabled = false;
-        configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e)).unwrap()
-            .set_cache_enabled(cache_enabled).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
-        let retrieved_cache_enabled = get_cache_enabled().unwrap();
+        let mut config = get_config().unwrap();
+        config.set_cache_enabled(cache_enabled).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let retrieved_cache_enabled = config.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_enabled, cache_enabled);
-        clear_settings().unwrap();
-        let retrieved_cache_enabled = get_cache_enabled().unwrap();
+        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let retrieved_cache_enabled = config.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_enabled, true);
     }
 

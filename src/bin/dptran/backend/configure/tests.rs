@@ -67,7 +67,7 @@ fn configure_get_default_target_language_code_test() {
 }
 
 #[test]
-fn configure_get_api_key_test() {
+fn configure_set_and_get_api_key_test() {
     // for ApiKeyType::Free
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     config_wrapper.clear_settings().unwrap();
