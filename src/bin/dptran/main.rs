@@ -769,6 +769,16 @@ mod runtime_tests {
 
     #[test]
     fn runtime_with_cache_test() {
+        // Reset configuration.
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("set")
+            .arg("--clear-all")
+            .output();
+
         // 1st run..
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
