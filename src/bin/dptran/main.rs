@@ -1022,7 +1022,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-translation")
-            .arg("http://localhost:8000/v2/translate")
+            .arg("http://localhost:8000/free/v2/translate")
             .output();
 
         let mut cmd = Command::new("cargo");
@@ -1031,7 +1031,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-usage")
-            .arg("http://localhost:8000/v2/usage")
+            .arg("http://localhost:8000/free/v2/usage")
             .output();
 
         let mut cmd = Command::new("cargo");
@@ -1040,7 +1040,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-langs")
-            .arg("http://localhost:8000/v2/languages")
+            .arg("http://localhost:8000/free/v2/languages")
             .output();
     }
 }
