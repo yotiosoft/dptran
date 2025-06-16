@@ -10,19 +10,15 @@ pub enum ExecutionMode {
     TranslateNormal,
     TranslateInteractive,
     PrintUsage,
-    Setting,
     List,
-    Cache,
+    GeneralSetting,
+    ApiSetting,
+    CacheSetting,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum SettingTarget {
-    FreeApiKey,
-    ProApiKey,
     DefaultTargetLang,
     EditorCommand,
-    EndpointOfTranslation,
-    EndpointOfUsage,
-    EndpointOfLangs,
     DisplaySettings,
     ClearSettings,
 }
@@ -30,6 +26,16 @@ pub enum SettingTarget {
 pub enum ListTargetLangs {
     SourceLangs,
     TargetLangs,
+}
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum ApiSettingTarget {
+    FreeApiKey,
+    ProApiKey,
+    ClearFreeApiKey,
+    ClearProApiKey,
+    EndpointOfTranslation,
+    EndpointOfUsage,
+    EndpointOfLangs,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum CacheTarget {
@@ -48,17 +54,24 @@ pub struct ArgStruct {
     pub translate_to: Option<String>,
     pub source_text: Option<String>,
     pub ofile_path: Option<String>,
-    pub setting: Option<ArgSettingStruct>,
     pub list_target_langs: Option<ListTargetLangs>,
+    pub general_setting: Option<GeneralSettingStruct>,
+    pub api_setting: Option<ApiSettingStruct>,
     pub cache_setting: Option<CacheSettingStruct>,
 }
 
 #[derive(Clone, Debug)]
-pub struct ArgSettingStruct {
+pub struct GeneralSettingStruct {
     pub setting_target: Option<SettingTarget>,
-    pub api_key: Option<String>,
     pub default_target_lang: Option<String>,
     pub editor_command: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ApiSettingStruct {
+    pub setting_target: Option<ApiSettingTarget>,
+    pub api_key_free: Option<String>,
+    pub api_key_pro: Option<String>,
     pub endpoint_of_translation: Option<String>,
     pub endpoint_of_usage: Option<String>,
     pub endpoint_of_langs: Option<String>,
@@ -66,7 +79,7 @@ pub struct ArgSettingStruct {
 
 #[derive(Clone, Debug)]
 pub struct CacheSettingStruct {
-    pub cache_target: Option<CacheTarget>,
+    pub setting_target: Option<CacheTarget>,
     pub max_entries: Option<usize>,
 }
 
@@ -122,18 +135,10 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show", "enable_cache", "disable_cache", 
+            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show",
                     "clear_free_api_key", "clear_pro_api_key", "clear_all"])
     ))]
-    Set {
-        /// Set DeepL API key (free).
-        #[arg(short='f', long)]
-        api_key_free: Option<String>,
-
-        /// Set DeepL API key (pro).
-        #[arg(short='p', long)]
-        api_key_pro: Option<String>,
-    
+    GeneralSet {
         /// Set default target language.
         #[arg(short, long)]
         target_lang: Option<String>,
@@ -145,26 +150,6 @@ enum SubCommands {
         /// Show settings.
         #[arg(short, long)]
         show: bool,
-
-        /// Endpoint of translation API. (e.g. `https://api-free.deepl.com/v2/translate`)
-        #[arg(long)]
-        endpoint_of_translation: Option<String>,
-
-        /// Endpoint of usage API. (e.g. `https://api-free.deepl.com/v2/usage`)
-        #[arg(long)]
-        endpoint_of_usage: Option<String>,
-
-        /// Endpoint of languages API. (e.g. `https://api-free.deepl.com/v2/languages`)
-        #[arg(long)]
-        endpoint_of_langs: Option<String>,
-
-        /// Clear DeeL API key (free)
-        #[arg(long)]
-        clear_free_api_key: bool,
-
-        /// Clear DeeL API key (pro)
-        #[arg(long)]
-        clear_pro_api_key: bool,
 
         /// Clear settings.
         #[arg(short, long)]
@@ -185,6 +170,43 @@ enum SubCommands {
         /// List target languages
         #[arg(short, long)]
         target_langs: bool,
+    },
+
+    /// Api settings
+    #[command(group(
+        ArgGroup::new("api_vers")
+            .required(true)
+            .args(["api_key_free", "api_key_pro", "clear_free_api_key", "clear_pro_api_key",
+                    "endpoint_of_translation", "endpoint_of_usage", "endpoint_of_langs"]),
+    ))]
+    Api {
+        /// Set DeepL API key (free).
+        #[arg(short='f', long)]
+        api_key_free: Option<String>,
+
+        /// Set DeepL API key (pro).
+        #[arg(short='p', long)]
+        api_key_pro: Option<String>,
+
+        /// Clear DeeL API key (free)
+        #[arg(long)]
+        clear_free_api_key: bool,
+
+        /// Clear DeeL API key (pro)
+        #[arg(long)]
+        clear_pro_api_key: bool,
+    
+        /// Endpoint of translation API. (e.g. `https://api-free.deepl.com/v2/translate`)
+        #[arg(short='t', long)]
+        endpoint_of_translation: Option<String>,
+
+        /// Endpoint of usage API. (e.g. `https://api-free.deepl.com/v2/usage`)
+        #[arg(short='u', long)]
+        endpoint_of_usage: Option<String>,
+
+        /// Endpoint of languages API. (e.g. `https://api-free.deepl.com/v2/languages`)
+        #[arg(short='l', long)]
+        endpoint_of_langs: Option<String>,
     },
 
     /// Cache settings
@@ -271,18 +293,22 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         remove_line_breaks: false,
         source_text: None,
         ofile_path: None,
-        setting: Some(ArgSettingStruct {
+        list_target_langs: None,
+        general_setting: Some(GeneralSettingStruct {
             setting_target: None,
-            api_key: None,
             default_target_lang: None,
             editor_command: None,
+        }),
+        api_setting: Some(ApiSettingStruct {
+            setting_target: None,
+            api_key_free: None,
+            api_key_pro: None,
             endpoint_of_translation: None,
             endpoint_of_usage: None,
             endpoint_of_langs: None,
         }),
-        list_target_langs: None,
         cache_setting: Some(CacheSettingStruct {
-            cache_target: None,
+            setting_target: None,
             max_entries: None,
         }),
     };
@@ -311,62 +337,25 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  
-                    editor_command, show, 
-                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs, 
-                    clear_free_api_key, clear_pro_api_key, clear_all } => {
-                if let Some(api_key) = api_key_free {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::FreeApiKey);
-                    arg_struct.setting.as_mut().unwrap().api_key = Some(api_key);
-                }
-                if let Some(api_key) = api_key_pro {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::ProApiKey);
-                    arg_struct.setting.as_mut().unwrap().api_key = Some(api_key);
-                }
+            SubCommands::GeneralSet { target_lang: default_lang,  
+                    editor_command, show, clear_all } => {
                 if let Some(default_lang) = default_lang {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DefaultTargetLang);
-                    arg_struct.setting.as_mut().unwrap().default_target_lang = Some(default_lang);
+                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::DefaultTargetLang);
+                    arg_struct.general_setting.as_mut().unwrap().default_target_lang = Some(default_lang);
                 }
                 if let Some(editor_command) = editor_command {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EditorCommand);
-                    arg_struct.setting.as_mut().unwrap().editor_command = Some(editor_command);
+                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::EditorCommand);
+                    arg_struct.general_setting.as_mut().unwrap().editor_command = Some(editor_command);
                 }
                 if show == true {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisplaySettings);
-                }
-                if let Some(endpoint_of_translation) = endpoint_of_translation {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EndpointOfTranslation);
-                    arg_struct.setting.as_mut().unwrap().endpoint_of_translation = Some(endpoint_of_translation);
-                }
-                if let Some(endpoint_of_usage) = endpoint_of_usage {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EndpointOfUsage);
-                    arg_struct.setting.as_mut().unwrap().endpoint_of_usage = Some(endpoint_of_usage);
-                }
-                if let Some(endpoint_of_langs) = endpoint_of_langs {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EndpointOfLangs);
-                    arg_struct.setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
+                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisplaySettings);
                 }
                 if clear_all == true {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::ClearSettings);
-                }
-                if clear_free_api_key == true {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::FreeApiKey);
-                    arg_struct.setting.as_mut().unwrap().api_key = None;
-                }
-                if clear_pro_api_key == true {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::ProApiKey);
-                    arg_struct.setting.as_mut().unwrap().api_key = None;
+                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::ClearSettings);
                 }
                 return Ok(arg_struct);
             }
@@ -381,32 +370,71 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 return Ok(arg_struct);
             }
+            SubCommands::Api { api_key_free, api_key_pro, clear_free_api_key, clear_pro_api_key,
+                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs } => {
+                if let Some(api_key) = api_key_free {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::FreeApiKey);
+                    arg_struct.api_setting.as_mut().unwrap().api_key_free = Some(api_key);
+                }
+                if let Some(api_key) = api_key_pro {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::ProApiKey);
+                    arg_struct.api_setting.as_mut().unwrap().api_key_pro = Some(api_key);
+                }
+                if clear_free_api_key == true {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::ClearFreeApiKey);
+                    arg_struct.api_setting.as_mut().unwrap().api_key_free = None;
+                }
+                if clear_pro_api_key == true {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::ClearProApiKey);
+                    arg_struct.api_setting.as_mut().unwrap().api_key_pro = None;
+                }
+                if let Some(endpoint_of_translation) = endpoint_of_translation {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::EndpointOfTranslation);
+                    arg_struct.api_setting.as_mut().unwrap().endpoint_of_translation = Some(endpoint_of_translation);
+                }
+                if let Some(endpoint_of_usage) = endpoint_of_usage {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::EndpointOfUsage);
+                    arg_struct.api_setting.as_mut().unwrap().endpoint_of_usage = Some(endpoint_of_usage);
+                }
+                if let Some(endpoint_of_langs) = endpoint_of_langs {
+                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::EndpointOfLangs);
+                    arg_struct.api_setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
+                }
+                return Ok(arg_struct);
+            }
             SubCommands::Cache { enable_cache, disable_cache, max_entries, clear } => {
                 if enable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
                     arg_struct.cache_setting = Some(CacheSettingStruct {
-                        cache_target: Some(CacheTarget::EnableCache),
+                        setting_target: Some(CacheTarget::EnableCache),
                         max_entries: None,
                     });
                 }
                 if disable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
                     arg_struct.cache_setting = Some(CacheSettingStruct {
-                        cache_target: Some(CacheTarget::DisableCache),
+                        setting_target: Some(CacheTarget::DisableCache),
                         max_entries: None,
                     });
                 }
                 if let Some(max_entries) = max_entries {
-                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
                     arg_struct.cache_setting = Some(CacheSettingStruct {
-                        cache_target: Some(CacheTarget::MaxEntries),
+                        setting_target: Some(CacheTarget::MaxEntries),
                         max_entries: Some(max_entries),
                     });
                 }
                 if clear == true {
-                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
                     arg_struct.cache_setting = Some(CacheSettingStruct {
-                        cache_target: Some(CacheTarget::Clear),
+                        setting_target: Some(CacheTarget::Clear),
                         max_entries: None,
                     });
                 }

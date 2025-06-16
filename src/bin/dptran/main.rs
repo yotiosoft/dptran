@@ -203,31 +203,13 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
     }
 }
 
-fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> Result<(), RuntimeError> {
+fn handle_general_settings(setting_struct: backend::parse::GeneralSettingStruct) -> Result<(), RuntimeError> {
     let setting_target = setting_struct.setting_target.clone();
     if let None = setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
     }
     let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     match setting_target.unwrap() {
-        SettingTarget::FreeApiKey => {
-            if let Some(s) = setting_struct.api_key {
-                config.set_api_key(s, dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e))?;
-                return Ok(());
-            } else {
-                backend::clear_api_key(dptran::ApiKeyType::Free)?;
-                return Ok(());
-            }
-        }
-        SettingTarget::ProApiKey => {
-            if let Some(s) = setting_struct.api_key {
-                config.set_api_key(s, dptran::ApiKeyType::Pro).map_err(|e| RuntimeError::ConfigError(e))?;
-                return Ok(());
-            } else {
-                backend::clear_api_key(dptran::ApiKeyType::Pro)?;
-                return Ok(());
-            }
-        }
         SettingTarget::DefaultTargetLang => {
             if let Some(s) = setting_struct.default_target_lang {
                 let validated_language_code = backend::set_default_target_language(&s)?;
@@ -245,36 +227,6 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
                 return Err(RuntimeError::EditorCommandIsNotSet);
             }
         }
-        SettingTarget::EndpointOfTranslation => {
-            if let Some(s) = setting_struct.endpoint_of_translation {
-                config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
-                return Ok(());
-            } else {
-                config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
-                println!("Endpoint of translation has been reset to the default value.");
-                return Ok(());
-            }
-        }
-        SettingTarget::EndpointOfUsage => {
-            if let Some(s) = setting_struct.endpoint_of_usage {
-                config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
-                return Ok(());
-            } else {
-                config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
-                println!("Endpoint of usage has been reset to the default value.");
-                return Ok(());
-            }
-        }
-        SettingTarget::EndpointOfLangs => {
-            if let Some(s) = setting_struct.endpoint_of_langs {
-                config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
-                return Ok(());
-            } else {
-                config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
-                println!("Endpoint of languages has been reset to the default value.");
-                return Ok(());
-            }
-        }
         SettingTarget::DisplaySettings => {
             display_settings()?;
             return Ok(());
@@ -286,8 +238,71 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
     }
 }
 
+fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> Result<(), RuntimeError> {
+    let api_setting_target = api_setting_struct.setting_target;
+    if let None = api_setting_target {
+        return Err(RuntimeError::ArgInvalidTarget);
+    }
+    let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+    match api_setting_target.unwrap() {
+        backend::parse::ApiSettingTarget::FreeApiKey => {
+            if let Some(s) = api_setting_struct.api_key_free {
+                config.set_api_key(s, dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                backend::clear_api_key(dptran::ApiKeyType::Free)?;
+                return Ok(());
+            }
+        }
+        backend::parse::ApiSettingTarget::ProApiKey => {
+            if let Some(s) = api_setting_struct.api_key_pro {
+                config.set_api_key(s, dptran::ApiKeyType::Pro).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                backend::clear_api_key(dptran::ApiKeyType::Pro)?;
+                return Ok(());
+            }
+        }
+        backend::parse::ApiSettingTarget::ClearFreeApiKey => {
+            backend::clear_api_key(dptran::ApiKeyType::Free)?;
+            return Ok(());
+        }
+        backend::parse::ApiSettingTarget::ClearProApiKey => {
+            backend::clear_api_key(dptran::ApiKeyType::Pro)?;
+            return Ok(());
+        }
+        backend::parse::ApiSettingTarget::EndpointOfTranslation => {
+            if let Some(s) = api_setting_struct.endpoint_of_translation {
+                config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            }
+        }
+        backend::parse::ApiSettingTarget::EndpointOfUsage => {
+            if let Some(s) = api_setting_struct.endpoint_of_usage {
+                config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            }
+        }
+        backend::parse::ApiSettingTarget::EndpointOfLangs => {
+            if let Some(s) = api_setting_struct.endpoint_of_langs {
+                config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            } else {
+                config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            }
+        }
+    }
+}
+
 fn handle_cache_settings(cache_setting_struct: backend::parse::CacheSettingStruct) -> Result<(), RuntimeError> {
-    let cache_target = cache_setting_struct.cache_target;
+    let cache_target = cache_setting_struct.setting_target;
     let mut config = backend::get_config()?;
     if let None = cache_target {
         return Err(RuntimeError::ArgInvalidTarget);
@@ -546,12 +561,17 @@ fn main() -> Result<(), RuntimeError> {
             handle_show_usage()?;
             return Ok(());
         }
-        ExecutionMode::Setting => {
+        ExecutionMode::GeneralSetting => {
             // Handle settings
-            handle_general_settings(arg_struct.setting.unwrap())?;
+            handle_general_settings(arg_struct.general_setting.unwrap())?;
             return Ok(());
         }
-        ExecutionMode::Cache => {
+        ExecutionMode::ApiSetting => {
+            // Handle API settings
+            handle_api_settings(arg_struct.api_setting.unwrap())?;
+            return Ok(());
+        }
+        ExecutionMode::CacheSetting => {
             // Handle cache settings
             handle_cache_settings(arg_struct.cache_setting.unwrap())?;
             return Ok(());
