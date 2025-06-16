@@ -151,8 +151,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
-            .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show",
-                    "clear_free_api_key", "clear_pro_api_key", "clear_all"])
+            .args(["target_lang", "editor_command", "show", "clear_all"])
     ))]
     Config {
         /// Set default target language.
