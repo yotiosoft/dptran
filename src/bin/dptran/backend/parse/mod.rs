@@ -120,7 +120,7 @@ struct Args {
     output_file: Option<String>,
 
     /// Editor mode.
-    /// The editor can be configured by `dptran set -e <editor_command>`
+    /// The editor can be configured by `dptran config -e <editor_command>`
     #[arg(short, long)]
     editor: bool,
 
@@ -166,7 +166,7 @@ enum SubCommands {
         #[arg(short, long)]
         show: bool,
 
-        /// Clear settings.
+        /// Clear settings. This includes not only the general settings but also API keys and cache settings.
         #[arg(short, long)]
         clear_all: bool,
     },
@@ -273,11 +273,11 @@ fn read_from_editor() -> Result<String, RuntimeError> {
         Ok(text)
     }
     else {
-        println!("Editor is not set. Please set the editor command by `dptran set -e`.");
-        println!("\t$ dptran set -e <editor_command>");
-        println!("e.g.,\t\t$ dptran set -e vi");
-        println!("\t..or\t$ dptran set -e vim");
-        println!("\t..or\t$ dptran set -e \"emacs -nw\"");
+        println!("Editor is not set. Please set the editor command by `dptran config -e`.");
+        println!("\t$ dptran config -e <editor_command>");
+        println!("e.g.,\t\t$ dptran config -e vi");
+        println!("\t..or\t$ dptran config -e vim");
+        println!("\t..or\t$ dptran config -e \"emacs -nw\"");
         Err(RuntimeError::EditorError("Editor is not set.".to_string()))
     }
 }

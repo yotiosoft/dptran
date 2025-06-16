@@ -349,7 +349,9 @@ fn handle_show_list(list_target_langs: backend::parse::ListTargetLangs) -> Resul
 fn print_api_key_error() {
     println!("Welcome to dptran!");
     println!("First, please set your DeepL API-key:");
-    println!("\t$ dptran set --api-key <API_KEY>");
+    println!("\t$ dptran api --api-key-free <YOUR-FREE-API-KEY>");
+    println!("or");
+    println!("\t$ dptran api --api-key-pro <YOUR-PRO-API-KEY>");
     println!();
 
     println!("Or, you can set it in the environment variable DPTRAN_DEEPL_API_KEY.");

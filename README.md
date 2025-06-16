@@ -61,12 +61,12 @@ The API key is available for free (up to 500,000 characters per month).
 
 **For DeepL API Free plan:**
 ```bash
-$ dptran set --api-key-free [Your API key]
+$ dptran api --api-key-free [Your API key]
 ```
 
 **For DeepL API Pro plan:**
 ```bash
-$ dptran set --api-key-pro [Your API key]
+$ dptran api --api-key-pro [Your API key]
 ```
 
 #### Set API Key by environment variable
@@ -155,25 +155,25 @@ You can translate the contents from an editor with dptran by using the ``-e`` op
 
 #### Example: vi
 ```bash
-$ dptran set -e vi
+$ dptran config -e vi
 $ dptran -e
 ```
 
 #### Example: vim
 ```bash
-$ dptran set -e vim
+$ dptran config -e vim
 $ dptran -e
 ```
 
 #### Example: nano
 ```bash
-$ dptran set -e nano
+$ dptran config -e nano
 $ dptran -e
 ```
 
 #### Example: emacs
 ```bash
-$ dptran set -e "emacs -nw"
+$ dptran config -e "emacs -nw"
 $ dptran -e
 ```
 
@@ -265,7 +265,7 @@ You can change it with ``set --target-lang``.
 For example, to change it to Japanese (JA), do the following:
 
 ```bash
-$ dptran set --target-lang JA
+$ dptran config --target-lang JA
 ```
 
 ## Reset settings
@@ -274,7 +274,7 @@ You can reset all settings.
 Note: The API key will be reset as well. If you wish to use dptran again, please set the API key again.  
 
 ```bash
-$ dptran set --clear
+$ dptran config --clear-all
 ```
 
 ## Uninstall

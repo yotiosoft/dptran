@@ -61,12 +61,12 @@ APIキーは無料で取得可能です（月間50万文字まで）
 
 **DeepL API Free プランの場合:**
 ```bash
-$ dptran set --api-key-free [Your API key]
+$ dptran api --api-key-free [Your API key]
 ```
 
 **DeepL API Pro プランの場合:**
 ```bash
-$ dptran set --api-key-pro [Your API key]
+$ dptran api --api-key-pro [Your API key]
 ```
 
 #### 環境変数でAPIキーを設定
@@ -155,25 +155,25 @@ $ dptran -i file.txt
 
 #### 例: vi
 ```bash
-$ dptran set -e vi
+$ dptran config -e vi
 $ dptran -e
 ```
 
 #### 例: vim
 ```bash
-$ dptran set -e vim
+$ dptran config -e vim
 $ dptran -e
 ```
 
 #### 例: nano
 ```bash
-$ dptran set -e nano
+$ dptran config -e nano
 $ dptran -e
 ```
 
 #### 例: emacs
 ```bash
-$ dptran set -e "emacs -nw"
+$ dptran config -e "emacs -nw"
 $ dptran -e
 ```
 
@@ -265,7 +265,7 @@ $ dptran list -t    # for the list of target languages
 例えば、日本語 (JA) に変更するには以下のようにします：
 
 ```bash
-$ dptran set --target-lang JA
+$ dptran config --target-lang JA
 ```
 
 ## 設定のリセット
@@ -274,7 +274,7 @@ $ dptran set --target-lang JA
 注意：APIキーもリセットされます。再度dptranを使用する場合は、APIキーを再設定してください。
 
 ```bash
-$ dptran set --clear
+$ dptran config --clear-all
 ```
 
 ## アンインストール
