@@ -16,7 +16,7 @@ fn clear_settings() -> Result<(), RuntimeError> {
     std::io::stdin().read_line(&mut input).unwrap();
     // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
-        let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+        let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
         config.clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");

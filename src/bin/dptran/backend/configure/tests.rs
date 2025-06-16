@@ -47,7 +47,7 @@ fn configure_set_cache_enabled_test() {
 
 #[test]
 fn configure_clear_settings_test() {
-    let config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
+    let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     config_wrapper.clear_settings().unwrap();
     let cleared_config = ConfigureWrapper::get("configure_test").unwrap();
     assert_eq!(cleared_config.configure.api_key, None);
@@ -73,6 +73,8 @@ fn configure_set_and_get_api_key_test() {
     config_wrapper.clear_settings().unwrap();
     let api_key_to_set = "configure_api_key".to_string();
     config_wrapper.set_api_key(api_key_to_set.clone(), ApiKeyType::Free).unwrap();
+    // Reload the configuration to ensure the key is set correctly
+    let config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let api_key = config_wrapper.get_api_key().unwrap();
     assert_eq!(api_key.api_key, api_key_to_set);
     assert_eq!(api_key.api_key_type, ApiKeyType::Free);
@@ -83,6 +85,8 @@ fn configure_set_and_get_api_key_test() {
     config_wrapper.set_api_key(api_key_pro_to_set.clone(), ApiKeyType::Pro).unwrap();
     let api_key_to_set = "configure_api_key".to_string();
     config_wrapper.set_api_key(api_key_to_set.clone(), ApiKeyType::Free).unwrap();
+    // Reload the configuration to ensure the pro key is set correctly
+    let config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let api_key_pro = config_wrapper.get_api_key().unwrap();
     assert_eq!(api_key_pro.api_key, api_key_pro_to_set);
     assert_eq!(api_key_pro.api_key_type, ApiKeyType::Pro);  // If the pro key is set, it will be returned instead of the free key

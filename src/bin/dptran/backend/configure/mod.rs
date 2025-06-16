@@ -190,9 +190,10 @@ impl ConfigureWrapper {
     }
 
     /// Initialize settings
-    pub fn clear_settings(&self) -> Result<(), ConfigError> {
+    pub fn clear_settings(&mut self) -> Result<(), ConfigError> {
         let cleared_settings = Configure::default();
-        confy::store("dptran", self.config_name.clone().as_str(), cleared_settings).map_err(|e| ConfigError::FailToClearSettings(e.to_string()))?;
+        confy::store("dptran", self.config_name.clone().as_str(), &cleared_settings).map_err(|e| ConfigError::FailToClearSettings(e.to_string()))?;
+        self.configure = cleared_settings;
         Ok(())
     }
 
