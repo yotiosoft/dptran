@@ -718,17 +718,21 @@ mod func_tests {
 mod runtime_tests {
     use std::{io::Write, process::Command, process::Stdio};
 
-    #[test]
-    fn runtime_test() {
+    fn reset_settings() {
         // Reset configuration.
         let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
             .arg("config")
             .arg("--clear-all")
             .output();
+    }
+
+    #[test]
+    fn runtime_test() {
+        // Reset configuration.
+        reset_settings();
         
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -768,14 +772,7 @@ mod runtime_tests {
     #[test]
     fn runtime_with_file_test() {
         // Reset configuration.
-        let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("config")
-            .arg("--clear-all")
-            .output();
+        reset_settings();
 
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -810,14 +807,7 @@ mod runtime_tests {
     #[test]
     fn runtime_with_cache_test() {
         // Reset configuration.
-        let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("config")
-            .arg("--clear-all")
-            .output();
+        reset_settings();
 
         // 1st run..
         let mut cmd = Command::new("cargo");
@@ -898,14 +888,7 @@ mod runtime_tests {
     #[test]
     fn runtime_interactive_mode_test() {
         // Reset configuration.
-        let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("config")
-            .arg("--clear-all")
-            .output();
+        reset_settings();
 
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -942,14 +925,7 @@ mod runtime_tests {
     #[cfg(target_os = "linux")]
     fn runtime_from_pipe_test() {
         // Reset configuration.
-        let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("config")
-            .arg("--clear-all")
-            .output();
+        reset_settings();
 
         std::thread::sleep(std::time::Duration::from_secs(2));
         let mut echo_cmd = Command::new("echo")
@@ -981,13 +957,16 @@ mod runtime_tests {
     #[test]
     fn runtime_change_endpoints_test() {
         // Reset configuration.
+        reset_settings();
+
+        // Set the endpoints to the real DeepL API endpoints.
         let mut cmd = Command::new("cargo");
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-translation")
-            .arg("http://localhost:8000/free/v2/translate")
+            .arg(dptran::EndpointUrls::default().translate_for_free)
             .output();
         
         let mut cmd = Command::new("cargo");
@@ -996,7 +975,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-usage")
-            .arg("http://localhost:8000/free/v2/usage")
+            .arg(dptran::EndpointUrls::default().usage_for_free)
             .output();
 
         let mut cmd = Command::new("cargo");
@@ -1005,7 +984,18 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-langs")
-            .arg("http://localhost:8000/free/v2/languages")
+            .arg(dptran::EndpointUrls::default().languages_for_free)
+            .output();
+
+        // Set API key from environment variable.
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").expect("DPTRAN_DEEPL_API_KEY is not set");
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--api-key-free")
+            .arg(api_key)
             .output();
 
         // Now, test the translation with the changed endpoints.
