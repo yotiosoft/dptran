@@ -1014,5 +1014,33 @@ mod runtime_tests {
         if text.status.success() != true {
             panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
         }
+
+        // Set the endpoints to the dummy API server for next tests.
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-translation")
+            .arg("http://localhost:8000/v2/translate")
+            .output();
+
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-usage")
+            .arg("http://localhost:8000/v2/usage")
+            .output();
+
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-langs")
+            .arg("http://localhost:8000/v2/languages")
+            .output();
     }
 }
