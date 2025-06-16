@@ -709,7 +709,8 @@ mod runtime_tests {
             .arg("set")
             .arg("--clear-all")
             .output();
-
+        
+        let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
             .arg("--release")
@@ -756,6 +757,7 @@ mod runtime_tests {
             .arg("--clear-all")
             .output();
 
+        let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
             .arg("--release")
@@ -884,7 +886,8 @@ mod runtime_tests {
             .arg("set")
             .arg("--clear-all")
             .output();
-        
+
+        let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
             .arg("--release")
