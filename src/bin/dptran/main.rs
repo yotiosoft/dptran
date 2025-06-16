@@ -726,7 +726,7 @@ mod runtime_tests {
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
+            .arg("config")
             .arg("--clear-all")
             .output();
         
@@ -773,7 +773,7 @@ mod runtime_tests {
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
+            .arg("config")
             .arg("--clear-all")
             .output();
 
@@ -815,7 +815,7 @@ mod runtime_tests {
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
+            .arg("config")
             .arg("--clear-all")
             .output();
 
@@ -903,7 +903,7 @@ mod runtime_tests {
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
+            .arg("config")
             .arg("--clear-all")
             .output();
 
@@ -947,7 +947,7 @@ mod runtime_tests {
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
+            .arg("config")
             .arg("--clear-all")
             .output();
 
