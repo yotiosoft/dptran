@@ -979,7 +979,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-translation")
-            .arg(dptran::EndpointUrls::default().translate_for_free)
+            .arg("http://localhost:8000/free/v2/translate")
             .output();
         
         let mut cmd = Command::new("cargo");
@@ -988,7 +988,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-usage")
-            .arg(dptran::EndpointUrls::default().usage_for_free)
+            .arg("http://localhost:8000/free/v2/usage")
             .output();
 
         let mut cmd = Command::new("cargo");
@@ -997,18 +997,7 @@ mod runtime_tests {
             .arg("--")
             .arg("api")
             .arg("--endpoint-of-langs")
-            .arg(dptran::EndpointUrls::default().languages_for_free)
-            .output();
-
-        // Set API key from environment variable.
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").expect("DPTRAN_DEEPL_API_KEY is not set");
-        let mut cmd = Command::new("cargo");
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("api")
-            .arg("--api-key-free")
-            .arg(api_key)
+            .arg("http://localhost:8000/free/v2/languages")
             .output();
 
         // Now, test the translation with the changed endpoints.
