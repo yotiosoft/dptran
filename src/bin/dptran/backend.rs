@@ -230,15 +230,15 @@ mod tests {
     #[test]
     fn backend_get_and_set_api_key_test() {
         // Set as a free API key
-        let mut config = configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         get_config().unwrap().clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        let mut config = get_config().unwrap();
         config.set_api_key("test_api_key".to_string(), dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_api_key");
         assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Free);
 
         // Set as a pro API key
-        config.set_api_key("test_pro_api_key".to_string(), dptran::ApiKeyType::Pro).unwrap();
+        config.set_api_key("test_pro_api_key".to_string(), dptran::ApiKeyType::Pro).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_pro_api_key");
         assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Pro);
