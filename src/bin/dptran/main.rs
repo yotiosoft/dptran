@@ -982,23 +982,41 @@ mod runtime_tests {
     fn runtime_change_endpoints_test() {
         // Reset configuration.
         let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
         let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
-            .arg("--clear-all")
+            .arg("api")
+            .arg("--endpoint-of-translation")
+            .arg("http://localhost:8000/free/v2/translate")
+            .output();
+        
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-usage")
+            .arg("http://localhost:8000/free/v2/usage")
             .output();
 
-        // Change the endpoint of translation
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-langs")
+            .arg("http://localhost:8000/free/v2/languages")
+            .output();
+
+        // Now, test the translation with the changed endpoints.
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
             .arg("--release")
             .arg("--")
-            .arg("set")
-            .arg("--endpoint-of-translation")
-            .arg("https://api-free.deepl.com/v2/translate")
+            .arg("Hello, world!")
+            .arg("-t")
+            .arg("ja")
             .output();
         
         assert!(text.is_ok());
