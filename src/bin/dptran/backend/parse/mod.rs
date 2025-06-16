@@ -20,11 +20,9 @@ pub enum SettingTarget {
     ProApiKey,
     DefaultTargetLang,
     EditorCommand,
-    EnableCache,
     EndpointOfTranslation,
     EndpointOfUsage,
     EndpointOfLangs,
-    DisableCache,
     DisplaySettings,
     ClearSettings,
 }
@@ -35,6 +33,8 @@ pub enum ListTargetLangs {
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum CacheTarget {
+    EnableCache,
+    DisableCache,
     MaxEntries,
     Clear,
 }
@@ -146,14 +146,6 @@ enum SubCommands {
         #[arg(short, long)]
         show: bool,
 
-        /// Enable cache.
-        #[arg(long)]
-        enable_cache: bool,
-
-        /// Disable cache.
-        #[arg(long)]
-        disable_cache: bool,
-
         /// Endpoint of translation API. (e.g. `https://api-free.deepl.com/v2/translate`)
         #[arg(long)]
         endpoint_of_translation: Option<String>,
@@ -202,6 +194,14 @@ enum SubCommands {
             .args(["max_entries", "clear"]),
     ))]
     Cache {
+        /// Enable cache.
+        #[arg(long)]
+        enable_cache: bool,
+
+        /// Disable cache.
+        #[arg(long)]
+        disable_cache: bool,
+
         /// Set cache max entries (default: 100).
         #[arg(short, long)]
         max_entries: Option<usize>,
@@ -312,7 +312,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     if let Some(subcommands) = args.subcommands {
         match subcommands {
             SubCommands::Set { api_key_free, api_key_pro, target_lang: default_lang,  
-                    editor_command, show, enable_cache, disable_cache, 
+                    editor_command, show, 
                     endpoint_of_translation, endpoint_of_usage, endpoint_of_langs, 
                     clear_free_api_key, clear_pro_api_key, clear_all } => {
                 if let Some(api_key) = api_key_free {
@@ -338,14 +338,6 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if show == true {
                     arg_struct.execution_mode = ExecutionMode::Setting;
                     arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisplaySettings);
-                }
-                if enable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::EnableCache);
-                }
-                if disable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::Setting;
-                    arg_struct.setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisableCache);
                 }
                 if let Some(endpoint_of_translation) = endpoint_of_translation {
                     arg_struct.execution_mode = ExecutionMode::Setting;
@@ -389,7 +381,21 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 return Ok(arg_struct);
             }
-            SubCommands::Cache { max_entries, clear } => {
+            SubCommands::Cache { enable_cache, disable_cache, max_entries, clear } => {
+                if enable_cache == true {
+                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                        cache_target: Some(CacheTarget::EnableCache),
+                        max_entries: None,
+                    });
+                }
+                if disable_cache == true {
+                    arg_struct.execution_mode = ExecutionMode::Cache;
+                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                        cache_target: Some(CacheTarget::DisableCache),
+                        max_entries: None,
+                    });
+                }
                 if let Some(max_entries) = max_entries {
                     arg_struct.execution_mode = ExecutionMode::Cache;
                     arg_struct.cache_setting = Some(CacheSettingStruct {

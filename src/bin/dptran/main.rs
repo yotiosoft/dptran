@@ -245,14 +245,6 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
                 return Err(RuntimeError::EditorCommandIsNotSet);
             }
         }
-        SettingTarget::EnableCache => {
-            config.set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
-            return Ok(());
-        }
-        SettingTarget::DisableCache => {
-            config.set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
-            return Ok(());
-        }
         SettingTarget::EndpointOfTranslation => {
             if let Some(s) = setting_struct.endpoint_of_translation {
                 config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
@@ -296,14 +288,22 @@ fn handle_general_settings(setting_struct: backend::parse::ArgSettingStruct) -> 
 
 fn handle_cache_settings(cache_setting_struct: backend::parse::CacheSettingStruct) -> Result<(), RuntimeError> {
     let cache_target = cache_setting_struct.cache_target;
+    let mut config = backend::get_config()?;
     if let None = cache_target {
         return Err(RuntimeError::ArgInvalidTarget);
     }
     match cache_target.unwrap() {
+        CacheTarget::EnableCache => {
+            config.set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
+            return Ok(());
+        }
+        CacheTarget::DisableCache => {
+            config.set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
+            return Ok(());
+        }
         CacheTarget::MaxEntries => {
             if let Some(s) = cache_setting_struct.max_entries {
-                backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-                    .set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                config.set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             } else {
                 return Err(RuntimeError::CacheMaxEntriesIsNotSet);
@@ -921,6 +921,17 @@ mod runtime_tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn runtime_from_pipe_test() {
+        // Reset configuration.
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("set")
+            .arg("--clear-all")
+            .output();
+
+        std::thread::sleep(std::time::Duration::from_secs(2));
         let mut echo_cmd = Command::new("echo")
             .arg("Hello, world!")
             .stdout(Stdio::piped())
@@ -945,5 +956,35 @@ mod runtime_tests {
         // Check if the output contains "Hello, world!"
         let output_str = String::from_utf8_lossy(&output.stdout);
         assert!(output_str.contains("Hello, world!"), "Output does not contain the expected text.");
+    }
+
+    #[test]
+    fn runtime_change_endpoints_test() {
+        // Reset configuration.
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("set")
+            .arg("--clear-all")
+            .output();
+
+        // Change the endpoint of translation
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("set")
+            .arg("--endpoint-of-translation")
+            .arg("https://api-free.deepl.com/v2/translate")
+            .output();
+        
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
     }
 }
