@@ -11,9 +11,9 @@ pub enum ExecutionMode {
     TranslateInteractive,
     PrintUsage,
     List,
-    GeneralSetting,
-    ApiSetting,
-    CacheSetting,
+    GeneralSettings,
+    ApiSettings,
+    CacheSettings,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum SettingTarget {
@@ -28,7 +28,7 @@ pub enum ListTargetLangs {
     TargetLangs,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub enum ApiSettingTarget {
+pub enum ApiSettingsTarget {
     FreeApiKey,
     ProApiKey,
     ClearFreeApiKey,
@@ -55,21 +55,21 @@ pub struct ArgStruct {
     pub source_text: Option<String>,
     pub ofile_path: Option<String>,
     pub list_target_langs: Option<ListTargetLangs>,
-    pub general_setting: Option<GeneralSettingStruct>,
-    pub api_setting: Option<ApiSettingStruct>,
-    pub cache_setting: Option<CacheSettingStruct>,
+    pub general_setting: Option<GeneralSettingsStruct>,
+    pub api_setting: Option<ApiSettingsStruct>,
+    pub cache_setting: Option<CacheSettingsStruct>,
 }
 
 #[derive(Clone, Debug)]
-pub struct GeneralSettingStruct {
+pub struct GeneralSettingsStruct {
     pub setting_target: Option<SettingTarget>,
     pub default_target_lang: Option<String>,
     pub editor_command: Option<String>,
 }
 
 #[derive(Clone, Debug)]
-pub struct ApiSettingStruct {
-    pub setting_target: Option<ApiSettingTarget>,
+pub struct ApiSettingsStruct {
+    pub setting_target: Option<ApiSettingsTarget>,
     pub api_key_free: Option<String>,
     pub api_key_pro: Option<String>,
     pub endpoint_of_translation: Option<String>,
@@ -78,7 +78,7 @@ pub struct ApiSettingStruct {
 }
 
 #[derive(Clone, Debug)]
-pub struct CacheSettingStruct {
+pub struct CacheSettingsStruct {
     pub setting_target: Option<CacheTarget>,
     pub max_entries: Option<usize>,
 }
@@ -131,14 +131,30 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum SubCommands {
-    /// Settings
+    /// Show list of supperted languages
+    #[command(group(
+        ArgGroup::new("list_vers")
+            .required(true)
+            .args(["source_langs", "target_langs"]),
+    ))]
+    List {
+        /// List source languages
+        #[arg(short, long)]
+        source_langs: bool,
+    
+        /// List target languages
+        #[arg(short, long)]
+        target_langs: bool,
+    },
+
+    /// General settings such as default target language and editor command.
     #[command(group(
         ArgGroup::new("setting_vers")
             .required(true)
             .args(["api_key_free", "api_key_pro", "target_lang", "editor_command", "show",
                     "clear_free_api_key", "clear_pro_api_key", "clear_all"])
     ))]
-    GeneralSet {
+    Config {
         /// Set default target language.
         #[arg(short, long)]
         target_lang: Option<String>,
@@ -156,23 +172,7 @@ enum SubCommands {
         clear_all: bool,
     },
 
-    /// Show list of supperted languages
-    #[command(group(
-        ArgGroup::new("list_vers")
-            .required(true)
-            .args(["source_langs", "target_langs"]),
-    ))]
-    List {
-        /// List source languages
-        #[arg(short, long)]
-        source_langs: bool,
-    
-        /// List target languages
-        #[arg(short, long)]
-        target_langs: bool,
-    },
-
-    /// Api settings
+    /// Api settings such as API keys and endpoint URLs.
     #[command(group(
         ArgGroup::new("api_vers")
             .required(true)
@@ -209,7 +209,7 @@ enum SubCommands {
         endpoint_of_langs: Option<String>,
     },
 
-    /// Cache settings
+    /// Cache settings such as enabling/disabling cache, setting max entries, and clearing cache.
     #[command(group(
         ArgGroup::new("cache_vers")
             .required(true)
@@ -294,12 +294,12 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         source_text: None,
         ofile_path: None,
         list_target_langs: None,
-        general_setting: Some(GeneralSettingStruct {
+        general_setting: Some(GeneralSettingsStruct {
             setting_target: None,
             default_target_lang: None,
             editor_command: None,
         }),
-        api_setting: Some(ApiSettingStruct {
+        api_setting: Some(ApiSettingsStruct {
             setting_target: None,
             api_key_free: None,
             api_key_pro: None,
@@ -307,7 +307,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             endpoint_of_usage: None,
             endpoint_of_langs: None,
         }),
-        cache_setting: Some(CacheSettingStruct {
+        cache_setting: Some(CacheSettingsStruct {
             setting_target: None,
             max_entries: None,
         }),
@@ -340,21 +340,21 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             SubCommands::GeneralSet { target_lang: default_lang,  
                     editor_command, show, clear_all } => {
                 if let Some(default_lang) = default_lang {
-                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.execution_mode = ExecutionMode::GeneralSettings;
                     arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::DefaultTargetLang);
                     arg_struct.general_setting.as_mut().unwrap().default_target_lang = Some(default_lang);
                 }
                 if let Some(editor_command) = editor_command {
-                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.execution_mode = ExecutionMode::GeneralSettings;
                     arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::EditorCommand);
                     arg_struct.general_setting.as_mut().unwrap().editor_command = Some(editor_command);
                 }
                 if show == true {
-                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.execution_mode = ExecutionMode::GeneralSettings;
                     arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisplaySettings);
                 }
                 if clear_all == true {
-                    arg_struct.execution_mode = ExecutionMode::GeneralSetting;
+                    arg_struct.execution_mode = ExecutionMode::GeneralSettings;
                     arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::ClearSettings);
                 }
                 return Ok(arg_struct);
@@ -373,67 +373,67 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             SubCommands::Api { api_key_free, api_key_pro, clear_free_api_key, clear_pro_api_key,
                     endpoint_of_translation, endpoint_of_usage, endpoint_of_langs } => {
                 if let Some(api_key) = api_key_free {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::FreeApiKey);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::FreeApiKey);
                     arg_struct.api_setting.as_mut().unwrap().api_key_free = Some(api_key);
                 }
                 if let Some(api_key) = api_key_pro {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::ProApiKey);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::ProApiKey);
                     arg_struct.api_setting.as_mut().unwrap().api_key_pro = Some(api_key);
                 }
                 if clear_free_api_key == true {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::ClearFreeApiKey);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::ClearFreeApiKey);
                     arg_struct.api_setting.as_mut().unwrap().api_key_free = None;
                 }
                 if clear_pro_api_key == true {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::ClearProApiKey);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::ClearProApiKey);
                     arg_struct.api_setting.as_mut().unwrap().api_key_pro = None;
                 }
                 if let Some(endpoint_of_translation) = endpoint_of_translation {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::EndpointOfTranslation);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfTranslation);
                     arg_struct.api_setting.as_mut().unwrap().endpoint_of_translation = Some(endpoint_of_translation);
                 }
                 if let Some(endpoint_of_usage) = endpoint_of_usage {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::EndpointOfUsage);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfUsage);
                     arg_struct.api_setting.as_mut().unwrap().endpoint_of_usage = Some(endpoint_of_usage);
                 }
                 if let Some(endpoint_of_langs) = endpoint_of_langs {
-                    arg_struct.execution_mode = ExecutionMode::ApiSetting;
-                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingTarget::EndpointOfLangs);
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfLangs);
                     arg_struct.api_setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
                 }
                 return Ok(arg_struct);
             }
             SubCommands::Cache { enable_cache, disable_cache, max_entries, clear } => {
                 if enable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
-                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                    arg_struct.execution_mode = ExecutionMode::CacheSettings;
+                    arg_struct.cache_setting = Some(CacheSettingsStruct {
                         setting_target: Some(CacheTarget::EnableCache),
                         max_entries: None,
                     });
                 }
                 if disable_cache == true {
-                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
-                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                    arg_struct.execution_mode = ExecutionMode::CacheSettings;
+                    arg_struct.cache_setting = Some(CacheSettingsStruct {
                         setting_target: Some(CacheTarget::DisableCache),
                         max_entries: None,
                     });
                 }
                 if let Some(max_entries) = max_entries {
-                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
-                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                    arg_struct.execution_mode = ExecutionMode::CacheSettings;
+                    arg_struct.cache_setting = Some(CacheSettingsStruct {
                         setting_target: Some(CacheTarget::MaxEntries),
                         max_entries: Some(max_entries),
                     });
                 }
                 if clear == true {
-                    arg_struct.execution_mode = ExecutionMode::CacheSetting;
-                    arg_struct.cache_setting = Some(CacheSettingStruct {
+                    arg_struct.execution_mode = ExecutionMode::CacheSettings;
+                    arg_struct.cache_setting = Some(CacheSettingsStruct {
                         setting_target: Some(CacheTarget::Clear),
                         max_entries: None,
                     });

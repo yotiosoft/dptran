@@ -203,7 +203,7 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
     }
 }
 
-fn handle_general_settings(setting_struct: backend::parse::GeneralSettingStruct) -> Result<(), RuntimeError> {
+fn handle_general_settings(setting_struct: backend::parse::GeneralSettingsStruct) -> Result<(), RuntimeError> {
     let setting_target = setting_struct.setting_target.clone();
     if let None = setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
@@ -238,14 +238,14 @@ fn handle_general_settings(setting_struct: backend::parse::GeneralSettingStruct)
     }
 }
 
-fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> Result<(), RuntimeError> {
+fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) -> Result<(), RuntimeError> {
     let api_setting_target = api_setting_struct.setting_target;
     if let None = api_setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
     }
     let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     match api_setting_target.unwrap() {
-        backend::parse::ApiSettingTarget::FreeApiKey => {
+        backend::parse::ApiSettingsTarget::FreeApiKey => {
             if let Some(s) = api_setting_struct.api_key_free {
                 config.set_api_key(s, dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -254,7 +254,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> 
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingTarget::ProApiKey => {
+        backend::parse::ApiSettingsTarget::ProApiKey => {
             if let Some(s) = api_setting_struct.api_key_pro {
                 config.set_api_key(s, dptran::ApiKeyType::Pro).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -263,15 +263,15 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> 
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingTarget::ClearFreeApiKey => {
+        backend::parse::ApiSettingsTarget::ClearFreeApiKey => {
             backend::clear_api_key(dptran::ApiKeyType::Free)?;
             return Ok(());
         }
-        backend::parse::ApiSettingTarget::ClearProApiKey => {
+        backend::parse::ApiSettingsTarget::ClearProApiKey => {
             backend::clear_api_key(dptran::ApiKeyType::Pro)?;
             return Ok(());
         }
-        backend::parse::ApiSettingTarget::EndpointOfTranslation => {
+        backend::parse::ApiSettingsTarget::EndpointOfTranslation => {
             if let Some(s) = api_setting_struct.endpoint_of_translation {
                 config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -280,7 +280,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> 
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingTarget::EndpointOfUsage => {
+        backend::parse::ApiSettingsTarget::EndpointOfUsage => {
             if let Some(s) = api_setting_struct.endpoint_of_usage {
                 config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -289,7 +289,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> 
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingTarget::EndpointOfLangs => {
+        backend::parse::ApiSettingsTarget::EndpointOfLangs => {
             if let Some(s) = api_setting_struct.endpoint_of_langs {
                 config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -301,7 +301,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingStruct) -> 
     }
 }
 
-fn handle_cache_settings(cache_setting_struct: backend::parse::CacheSettingStruct) -> Result<(), RuntimeError> {
+fn handle_cache_settings(cache_setting_struct: backend::parse::CacheSettingsStruct) -> Result<(), RuntimeError> {
     let cache_target = cache_setting_struct.setting_target;
     let mut config = backend::get_config()?;
     if let None = cache_target {
@@ -561,17 +561,17 @@ fn main() -> Result<(), RuntimeError> {
             handle_show_usage()?;
             return Ok(());
         }
-        ExecutionMode::GeneralSetting => {
+        ExecutionMode::GeneralSettings => {
             // Handle settings
             handle_general_settings(arg_struct.general_setting.unwrap())?;
             return Ok(());
         }
-        ExecutionMode::ApiSetting => {
+        ExecutionMode::ApiSettings => {
             // Handle API settings
             handle_api_settings(arg_struct.api_setting.unwrap())?;
             return Ok(());
         }
-        ExecutionMode::CacheSetting => {
+        ExecutionMode::CacheSettings => {
             // Handle cache settings
             handle_cache_settings(arg_struct.cache_setting.unwrap())?;
             return Ok(());
