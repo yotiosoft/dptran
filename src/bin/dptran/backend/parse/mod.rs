@@ -337,7 +337,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Subcommands
     if let Some(subcommands) = args.subcommands {
         match subcommands {
-            SubCommands::GeneralSet { target_lang: default_lang,  
+            SubCommands::Config { target_lang: default_lang,  
                     editor_command, show, clear_all } => {
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
