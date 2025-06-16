@@ -721,12 +721,25 @@ mod runtime_tests {
     fn reset_settings() {
         // Reset configuration.
         let mut cmd = Command::new("cargo");
-        let _ = cmd.arg("run")
+        let text = cmd.arg("run")
             .arg("--release")
             .arg("--")
             .arg("config")
             .arg("--clear-all")
-            .output();
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn();
+        
+        let mut child = text.unwrap();
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let input = "y\n"; // Confirm clearing settings
+        if let Some(stdin) = child.stdin.as_mut() {
+            stdin.write_all(input.as_bytes()).unwrap();
+        }
+        let output = child.wait_with_output().unwrap();
+        if !output.status.success() {
+            panic!("Failed to reset settings: {}", String::from_utf8_lossy(&output.stderr));
+        }
     }
 
     #[test]
@@ -1014,33 +1027,5 @@ mod runtime_tests {
         if text.status.success() != true {
             panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
         }
-
-        // Set the endpoints to the dummy API server for next tests.
-        let mut cmd = Command::new("cargo");
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("api")
-            .arg("--endpoint-of-translation")
-            .arg("http://localhost:8000/free/v2/translate")
-            .output();
-
-        let mut cmd = Command::new("cargo");
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("api")
-            .arg("--endpoint-of-usage")
-            .arg("http://localhost:8000/free/v2/usage")
-            .output();
-
-        let mut cmd = Command::new("cargo");
-        let _ = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("api")
-            .arg("--endpoint-of-langs")
-            .arg("http://localhost:8000/free/v2/languages")
-            .output();
     }
 }
