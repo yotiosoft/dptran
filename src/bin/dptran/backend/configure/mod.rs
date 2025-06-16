@@ -154,6 +154,11 @@ impl ConfigureWrapper {
         Ok(())
     }
 
+    /// Get endpoint of translation API
+    pub fn get_endpoint_of_translation(&self) -> Result<Option<String>, ConfigError> {
+        Ok(self.configure.endpoint_of_translation.clone())
+    }
+
     /// Reset endpoint of translation API
     pub fn reset_endpoint_of_translation(&mut self) -> Result<(), ConfigError> {
         self.configure.endpoint_of_translation = None;
@@ -168,6 +173,11 @@ impl ConfigureWrapper {
         Ok(())
     }
 
+    /// Get endpoint of usage API
+    pub fn get_endpoint_of_usage(&self) -> Result<Option<String>, ConfigError> {
+        Ok(self.configure.endpoint_of_usage.clone())
+    }
+
     /// Reset endpoint of usage API
     pub fn reset_endpoint_of_usage(&mut self) -> Result<(), ConfigError> {
         self.configure.endpoint_of_usage = None;
@@ -180,6 +190,11 @@ impl ConfigureWrapper {
         self.configure.endpoint_of_languages = Some(endpoint);
         self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
         Ok(())
+    }
+
+    /// Get endpoint of languages API
+    pub fn get_endpoint_of_languages(&self) -> Result<Option<String>, ConfigError> {
+        Ok(self.configure.endpoint_of_languages.clone())
     }
 
     /// Reset endpoint of languages API

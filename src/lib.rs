@@ -5,6 +5,13 @@ pub use deeplapi::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
 
+pub use deeplapi::DEEPL_API_TRANSLATE;
+pub use deeplapi::DEEPL_API_TRANSLATE_PRO;
+pub use deeplapi::DEEPL_API_USAGE;
+pub use deeplapi::DEEPL_API_USAGE_PRO;
+pub use deeplapi::DEEPL_API_LANGUAGES;
+pub use deeplapi::DEEPL_API_LANGUAGES_PRO;
+
 /// string as language code
 pub type LangCode = String;
 

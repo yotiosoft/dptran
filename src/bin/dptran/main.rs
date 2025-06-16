@@ -492,7 +492,25 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
             return Ok(());
         },
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+
+    let mut dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+
+    // Get and set endpoints
+    let config_endpoints = backend::get_endpoints()?;
+    let mut endpoints_to_use = dptran::EndpointUrls::default();
+    if let Some(endpoint_of_translation) = config_endpoints.translate {
+        endpoints_to_use.translate_for_free = endpoint_of_translation.clone();
+        endpoints_to_use.translate_for_pro = endpoint_of_translation.clone();
+    }
+    if let Some(endpoint_of_usage) = config_endpoints.usage {
+        endpoints_to_use.usage_for_free = endpoint_of_usage.clone();
+        endpoints_to_use.usage_for_pro = endpoint_of_usage.clone();
+    }
+    if let Some(endpoint_of_langs) = config_endpoints.languages {
+        endpoints_to_use.languages_for_free = endpoint_of_langs.clone();
+        endpoints_to_use.languages_for_pro = endpoint_of_langs.clone();
+    }
+    dptran.set_api_urls(endpoints_to_use);
 
     // Language code check and correction
     if let Some(sl) = source_lang {

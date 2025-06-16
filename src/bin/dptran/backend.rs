@@ -64,6 +64,12 @@ impl Debug for RuntimeError {
     }
 }
 
+pub struct Endpoints {
+    pub translate: Option<String>,
+    pub usage: Option<String>,
+    pub languages: Option<String>,
+}
+
 #[cfg(test)]
 static CONFIG_NAME: &str = "configure_test";
 #[cfg(not(test))]
@@ -145,6 +151,26 @@ pub fn get_api_key() -> Result<Option<ApiKey>, RuntimeError> {
 pub fn clear_api_key(api_key_type: dptran::ApiKeyType) -> Result<(), RuntimeError> {
     get_config()?.set_api_key("".to_string(), api_key_type).map_err(|e| RuntimeError::ConfigError(e))?;
     Ok(())
+}
+
+/// Get endpoints
+pub fn get_endpoints() -> Result<Endpoints, RuntimeError> {
+    let mut endpoints = Endpoints {
+        translate: None,
+        usage: None,
+        languages: None,
+    };
+    let config = get_config()?;
+    if let Some(endpoint_of_translate) = config.get_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))? {
+        endpoints.translate = Some(endpoint_of_translate);
+    }
+    if let Some(endpoint_of_usage) = config.get_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))? {
+        endpoints.usage = Some(endpoint_of_usage);
+    }
+    if let Some(endpoint_of_languages) = config.get_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))? {
+        endpoints.languages = Some(endpoint_of_languages);
+    }
+    Ok(endpoints)
 }
 
 /// Search the cache
