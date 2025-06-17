@@ -503,4 +503,23 @@ mod tests {
         assert_eq!(dptran_with_endpoint.get_api_urls(), custom_urls);
         assert_ne!(dptran_with_endpoint.get_api_urls(), before_urls);
     }
+
+    #[test]
+    fn lib_change_endpoint_urls_test() {
+        // change_endpoint_urls test
+        let (api_key, api_key_type) = deeplapi::tests::get_api_key();
+        let mut dptran = DpTran::with(&api_key, &api_key_type);
+        let before_urls = dptran.get_api_urls();
+        let custom_urls = EndpointUrls {
+            translate_for_free: "https://api-free.deepl.com/v2/translate".to_string(),
+            translate_for_pro: "https://api.deepl.com/v2/translate".to_string(),
+            usage_for_free: "https://api-free.deepl.com/v2/usage".to_string(),
+            usage_for_pro: "https://api.deepl.com/v2/usage".to_string(),
+            languages_for_free: "https://api-free.deepl.com/v2/languages".to_string(),
+            languages_for_pro: "https://api.deepl.com/v2/languages".to_string(),
+        };
+        dptran.set_api_urls(custom_urls.clone());
+        assert_eq!(dptran.get_api_urls(), custom_urls);
+        assert_ne!(dptran.get_api_urls(), before_urls);
+    }
 }
