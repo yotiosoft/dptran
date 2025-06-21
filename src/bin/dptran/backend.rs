@@ -356,4 +356,21 @@ mod tests {
     fn backend_get_usage_test() {
         impl_backend_get_usage(0);
     }
+
+    #[test]
+    fn backend_set_and_get_endpoints_test() {
+        let mut config = get_config().unwrap();
+        let translate_endpoint = "http://localhost:8000/free/v2/translate".to_string();
+        let usage_endpoint = "http://localhost:8000/free/v2/usage".to_string();
+        let languages_endpoint = "http://localhost:8000/free/v2/languages".to_string();
+        
+        config.set_endpoint_of_translation(translate_endpoint.clone()).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        config.set_endpoint_of_usage(usage_endpoint.clone()).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        config.set_endpoint_of_languages(languages_endpoint.clone()).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        
+        let endpoints = get_endpoints().unwrap();
+        assert_eq!(endpoints.translate.unwrap(), translate_endpoint);
+        assert_eq!(endpoints.usage.unwrap(), usage_endpoint);
+        assert_eq!(endpoints.languages.unwrap(), languages_endpoint);
+    }
 }
