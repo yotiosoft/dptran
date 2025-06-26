@@ -1,104 +1,107 @@
 # dptran
 
-日本語 | [English](README.md)
+[English](README.md) | 日本語版はこちら
 
-![Crates.ioバージョン](https://img.shields.io/crates/v/dptran)
-[[CI](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml)
-[ライセンス: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[[License: Apache-2.0](https://img.shields.io/badge/License-Apache 2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Crates.io Version](https://img.shields.io/crates/v/dptran)
+[![CI](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**dptran**は、Rust で作られた DeepL API を使用するためのコマンドライン・ツールおよびライブラリです。
+**dptran** は、Rust で書かれた DeepL API を使用するためのコマンドラインツールおよびライブラリです。
 
-## 特徴
+## 機能
 
 ### バイナリCLI
 
-- CLI、対話型入力、パイプライン、またはファイル/エディタ入力を介して翻訳
-- 複数行入力、ファイルへの出力、改行の削除
-- DeepL API Free / Pro のサポート
-- 言語コードの検索と文字使用のトラッキング
+- CLI、対話型入力、パイプライン、またはファイル/エディタ入力による翻訳
+- 複数行入力、ファイルへの出力、改行の削除をサポート
+- DeepL API Free / Pro をサポート
+- 言語コードの検索と文字使用状況の追跡
 - 結果のキャッシュ
 
-### Library
+### ライブラリ
 
-- DeepL 翻訳用 API クライアント
-- 言語コードと usage（残り翻訳可能文字数）の取得
+- DeepL 翻訳用の API クライアント
+- 言語コードと使用状況のクエリ
 
 ## インストール
 
-### バイナリー・クレート
+### バイナリクレート
+
 ```bash
 cargo install dptran
 ```
 
 ### ライブラリクレート
+
 ```bash
 cargo add dptran --no-default-features
 ```
 ## 基本的な使い方
 ### APIキーの設定
 ```bash
-dptran api --api-key-free [あなたのAPIキー].
-# or set env: export DPTRAN_DEEPL_API_KEY=[あなたのAPIキー].
+dptran api --api-key-free [APIキー]
+# または環境変数を設定: export DPTRAN_DEEPL_API_KEY=[APIキー]
 ```
 
-### 翻訳する
+### 翻訳
 ```bash
 # 簡単な翻訳
 dptran Hello
-# ターゲット言語で翻訳する
+# ターゲット言語を指定して翻訳
 dptran -t JA Hello
-# ソース言語で翻訳する
+# ソース言語を指定して翻訳
 dptran -f EN -t JA Hello
-# 対話的に翻訳する
-dptran
+# 対話的に翻訳
+dptran -t JA
 > Hello
-# ファイルからの翻訳
-dptran -i text.txt
-# パイプラインで翻訳する
+こんにちは
+# ファイルから翻訳し別のファイルに出力
+dptran -i text.txt -o translated.txt
+# パイプラインで翻訳
 echo "Hello" | dptran -t JA
-# 改行を削除して翻訳する
+# 改行を削除して翻訳
 dptran -r "Hello\nWorld"
-# エディタから翻訳する（vimやemacsなど。事前の設定が必要）
+# エディタから翻訳 (vim, emacs など 設定で指定する必要あり)
 dptran -e
 ```
 
 ### オプション
-- -t 翻訳先言語を指定する
-- -f [LANG] 翻訳元言語を指定する
+- -t [LANG] デフォルトのターゲット言語を設定
+- -f [LANG] デフォルトのソース言語を設定
 - -o [FILE] ファイルに出力
 - -r 改行を削除
-- -u 文字の usage を表示
-- list -s / -t 利用可能な言語コードを表示する。
+- -u 文字使用状況を表示
+- list -s / -t 利用可能な言語コードを表示
 
-より多くのオプションと詳細な使用法については下記を参照してください：
+その他のオプションと詳細な使用法については、以下を実行してください。
 ```bash
 dptran -h
 ```
 
-### 構成
-デフォルトのターゲット言語を変更します：
+### 設定
+デフォルトのターゲット言語を変更:
 
 ```bash
 dptran config --target-lang JA
 ```
-すべての設定をリセットする：
+すべての設定をリセット:
 
 ```bash
 dptran config --clear-all
 ```
 
-## 開発
-ユニットテストを実行します。
-実際の DeepL API キーを必要とするテストを実行するには、環境変数 `DPTRAN_DEEPL_API_KEY` を設定します：
+## 開発とテスト
+単体テストを実行します。
+実際のDeepL APIキーを必要とするテストを実行するには、環境変数 `DPTRAN_DEEPL_API_KEY` を設定します。
 
 ```bash
 export DPTRAN_DEEPL_API_KEY=[APIキー]
 cargo test -- --test-threads=1
 ```
 
-ダミーのAPIサーバーが稼動している必要があるものもあります。  
-ダミーサーバーはデフォルトで`http://localhost:8000/`で実行されます。
+一部のテストでは、ダミー API サーバーが実行されている必要があります。
+ダミーサーバーは既定で `http://localhost:8000/` で実行されます。
 
 ```bash
 pip3 install -r requirements.txt
@@ -106,12 +109,13 @@ uvicorn dummy-api-server:app --reload
 ```
 
 ## ドキュメント
-crate ページ：https://crates.io/crates/dptran
+crate page : https://crates.io/crates/dptran
 
-ライブラリ ドキュメント：https://docs.rs/dptran
+ライブラリドキュメント: https://docs.rs/dptran
 
 ## ライセンス
-下記のライセンスのいずれかで使用できます。
+以下のいずれかのライセンスで提供されます。
 
-- MITライセンス
-- Apacheライセンス2.0
+- MIT License
+- Apache License 2.0
+- 

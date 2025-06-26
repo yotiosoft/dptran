@@ -9,8 +9,6 @@ English | [日本語版はこちら](README_JA.md)
 
 **dptran** is a command-line tool and library for using the DeepL API, written in Rust.
 
----
-
 ## Features
 
 ### Binary CLI
@@ -19,14 +17,12 @@ English | [日本語版はこちら](README_JA.md)
 - Support for multi-line input, output to file, and removing line breaks
 - DeepL API Free / Pro support
 - Language code lookup and character usage tracking
-- Result caching and configuration system
+- Result caching
 
 ### Library
 
 - API client for DeepL translation
 - Language code and usage queries
-
----
 
 ## Installation
 
@@ -68,8 +64,8 @@ dptran -e
 ```
 
 ### Options
-- -t [LANG] Set target language
-- -f [LANG] Set source language
+- -t [LANG] Set the default target language
+- -f [LANG] Set the default source language
 - -o [FILE] Output to file
 - -r Remove line breaks
 - -u Show character usage
