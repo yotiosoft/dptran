@@ -44,24 +44,38 @@ dptran api --api-key-free [APIキー]
 # または環境変数を設定: export DPTRAN_DEEPL_API_KEY=[APIキー]
 ```
 
+DeepL Pro APIキーを使用する場合は、以下のように設定します。
+
+```bash
+dptran api --api-key-pro [APIキー]
+# または環境変数を設定: export DPTRAN_DEEPL_API_KEY_PRO=[APIキー]
+```
+
 ### 翻訳
 ```bash
 # 簡単な翻訳
 dptran Hello
+
 # ターゲット言語を指定して翻訳
 dptran -t JA Hello
+
 # ソース言語を指定して翻訳
 dptran -f EN -t JA Hello
+
 # 対話的に翻訳
 dptran -t JA
 > Hello
 こんにちは
+
 # ファイルから翻訳し別のファイルに出力
 dptran -i text.txt -o translated.txt
+
 # パイプラインで翻訳
 echo "Hello" | dptran -t JA
+
 # 改行を削除して翻訳
 dptran -r "Hello\nWorld"
+
 # エディタから翻訳 (vim, emacs など 設定で指定する必要あり)
 dptran -e
 ```
@@ -69,6 +83,7 @@ dptran -e
 ### オプション
 - -t [LANG] デフォルトのターゲット言語を設定
 - -f [LANG] デフォルトのソース言語を設定
+- -i [FILE] ファイルから入力
 - -o [FILE] ファイルに出力
 - -r 改行を削除
 - -u 文字使用状況を表示
@@ -78,6 +93,14 @@ dptran -e
 ```bash
 dptran -h
 ```
+
+### サブコマンド
+
+- `list`   : サポートされている言語のリストを表示
+- `config` : デフォルトのターゲット言語やエディタコマンドなどの一般設定
+- `api`    : APIキーやエンドポイントURLなどのAPI設定
+- `cache`  : キャッシュの有効/無効、最大エントリ数の設定、キャッシュのクリアなどのキャッシュ設定
+- `help`   : このメッセージまたは指定されたサブコマンドのヘルプを表示
 
 ### 設定
 デフォルトのターゲット言語を変更:

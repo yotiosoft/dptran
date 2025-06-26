@@ -42,23 +42,37 @@ dptran api --api-key-free [Your API key]
 # or set env: export DPTRAN_DEEPL_API_KEY=[Your API key]
 ```
 
+If you want to use DeepL Pro API key, set it like this:
+```bash
+dptran api --api-key-pro [Your API key]
+# or set env: export DPTRAN_DEEPL_API_KEY_PRO=[Your API key]
+```
+
 ### Translate
 ```bash
 # simple translation
 dptran Hello
+
 # translate with target language
 dptran -t JA Hello
+
 # translate with source language
 dptran -f EN -t JA Hello
+
 # translate interactively
-dptran
+dptran -t JA
 > Hello
-# translate from a file
-dptran -i text.txt
+こんにちは
+
+# translate from a file and output to another file
+dptran -i text.txt -o translated.txt
+
 # translate with a pipeline
 echo "Hello" | dptran -t JA
+
 # translate with line breaks removed
 dptran -r "Hello\nWorld"
+
 # translate from an editor (like vim, emacs. must be set in config)
 dptran -e
 ```
@@ -66,6 +80,7 @@ dptran -e
 ### Options
 - -t [LANG] Set the default target language
 - -f [LANG] Set the default source language
+- -i [FILE] Input from file
 - -o [FILE] Output to file
 - -r Remove line breaks
 - -u Show character usage
@@ -75,6 +90,14 @@ For more options and detailed usage, run:
 ```bash
 dptran -h
 ```
+
+### Subcommands
+
+- `list`   : Show list of supported languages
+- `config` : General settings such as default target language and editor command
+- `api`    : API settings such as API keys and endpoint URLs
+- `cache`  : Cache settings such as enabling/disabling cache, setting max entries, and clearing cache
+- `help`   : Print this message or the help of the given subcommand(s)
 
 ### Configuration
 Change default target language:
