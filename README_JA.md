@@ -53,7 +53,7 @@ dptran api --api-key-pro [APIキー]
 
 ### 翻訳
 ```bash
-# 簡単な翻訳
+# 簡単な翻訳 (デフォルトのターゲット言語に翻訳)
 dptran Hello
 
 # ターゲット言語を指定して翻訳

@@ -50,11 +50,11 @@ dptran api --api-key-pro [Your API key]
 
 ### Translate
 ```bash
-# simple translation
+# simple translation (translate to default target language)
 dptran Hello
 
 # translate with target language
-dptran -t JA Hello
+dptran -t FR Hello
 
 # translate with source language
 dptran -f EN -t JA Hello
@@ -68,7 +68,7 @@ dptran -t JA
 dptran -i text.txt -o translated.txt
 
 # translate with a pipeline
-echo "Hello" | dptran -t JA
+echo "Hello" | dptran -t ZH
 
 # translate with line breaks removed
 dptran -r "Hello\nWorld"
