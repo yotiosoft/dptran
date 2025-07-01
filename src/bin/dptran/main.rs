@@ -58,6 +58,24 @@ fn display_settings() -> Result<(), RuntimeError> {
 
     println!("Cache enabled: {}", cache_enabled);
 
+    if let Some(endpoint_of_translation) = config.get_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))? {
+        println!("Endpoint of translation: {}", endpoint_of_translation);
+    } else {
+        println!("Endpoint of translation: not set");
+    }
+
+    if let Some(endpoint_of_usage) = config.get_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))? {
+        println!("Endpoint of usage: {}", endpoint_of_usage);
+    } else {
+        println!("Endpoint of usage: not set");
+    }
+
+    if let Some(endpoint_of_langs) = config.get_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))? {
+        println!("Endpoint of languages: {}", endpoint_of_langs);
+    } else {
+        println!("Endpoint of languages: not set");
+    }
+
     let config_filepath = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
         .get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
     println!("Configuration file path: {}", config_filepath.to_str().unwrap());
