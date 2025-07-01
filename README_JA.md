@@ -53,14 +53,17 @@ dptran api --api-key-pro [APIキー]
 
 ### 翻訳
 ```bash
-# 簡単な翻訳 (デフォルトのターゲット言語に翻訳)
+# 通常の翻訳 (デフォルトのターゲット言語に翻訳)
 dptran Hello
+こんにちは
 
 # ターゲット言語を指定して翻訳
 dptran -t JA Hello
+Bonjour
 
 # ソース言語を指定して翻訳
 dptran -f EN -t JA Hello
+こんにちは
 
 # 対話的に翻訳
 dptran -t JA
@@ -69,15 +72,20 @@ dptran -t JA
 
 # ファイルから翻訳し別のファイルに出力
 dptran -i text.txt -o translated.txt
+# translated.txt ファイルに翻訳結果が保存される
 
 # パイプラインで翻訳
 echo "Hello" | dptran -t JA
+您好
 
 # 改行を削除して翻訳
-dptran -r "Hello\nWorld"
+dptran -r "Hello
+everyone!"
+皆さん、こんにちは！
 
 # エディタから翻訳 (vim, emacs など 設定で指定する必要あり)
 dptran -e
+# エディタが開かれる
 ```
 
 ### オプション
@@ -116,15 +124,15 @@ dptran config --clear-all
 
 ## 開発とテスト
 単体テストを実行します。
-実際のDeepL APIキーを必要とするテストを実行するには、環境変数 `DPTRAN_DEEPL_API_KEY` を設定します。
+実際の DeepL API キーを必要とするテストを実行するには、環境変数 `DPTRAN_DEEPL_API_KEY` を設定します。
 
 ```bash
 export DPTRAN_DEEPL_API_KEY=[APIキー]
 cargo test -- --test-threads=1
 ```
 
-一部のテストでは、ダミー API サーバーが実行されている必要があります。
-ダミーサーバーは既定で `http://localhost:8000/` で実行されます。
+一部のテストでは、ダミー API サーバが実行されている必要があります。
+ダミーサーバは既定で `http://localhost:8000/` で実行されます。
 
 ```bash
 pip3 install -r requirements.txt

@@ -52,12 +52,15 @@ dptran api --api-key-pro [Your API key]
 ```bash
 # simple translation (translate to default target language)
 dptran Hello
+こんにちは
 
 # translate with target language
 dptran -t FR Hello
+Bonjour
 
 # translate with source language
 dptran -f EN -t JA Hello
+こんにちは
 
 # translate interactively
 dptran -t JA
@@ -66,15 +69,20 @@ dptran -t JA
 
 # translate from a file and output to another file
 dptran -i text.txt -o translated.txt
+# The file `translated.txt` will contain the translated text.
 
 # translate with a pipeline
 echo "Hello" | dptran -t ZH
+您好
 
 # translate with line breaks removed
-dptran -r "Hello\nWorld"
+dptran -r "Hello
+everyone!"
+皆さん、こんにちは！
 
 # translate from an editor (like vim, emacs. must be set in config)
 dptran -e
+# Editor will open
 ```
 
 ### Options
