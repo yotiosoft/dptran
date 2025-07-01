@@ -92,7 +92,6 @@ dptran -e
 - -o [FILE] Output to file
 - -r Remove line breaks
 - -u Show character usage
-- -h Show help message
 
 For more options and detailed usage, run:
 ```bash
