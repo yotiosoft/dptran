@@ -273,7 +273,12 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
         }
         backend::parse::ApiSettingsTarget::EndpointOfTranslation => {
             if let Some(s) = api_setting_struct.endpoint_of_translation {
-                config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                if s.len() == 0 {
+                    config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
+                }
+                else {
+                    config.set_endpoint_of_translation(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                }
                 return Ok(());
             } else {
                 config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -282,7 +287,11 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
         }
         backend::parse::ApiSettingsTarget::EndpointOfUsage => {
             if let Some(s) = api_setting_struct.endpoint_of_usage {
-                config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                if s.len() == 0 {
+                    config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+                } else {
+                    config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                }
                 return Ok(());
             } else {
                 config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -291,7 +300,11 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
         }
         backend::parse::ApiSettingsTarget::EndpointOfLangs => {
             if let Some(s) = api_setting_struct.endpoint_of_langs {
-                config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                if s.len() == 0 {
+                    config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+                } else {
+                    config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                }
                 return Ok(());
             } else {
                 config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
