@@ -146,3 +146,10 @@ Licensed under either of:
 
 - MIT License
 - Apache License 2.0
+
+## Release Notes
+
+- v.2.3.1 (2025-07-01)
+  - Binary CLI & Library: Any api endpoint can be used
+  - Binary CLI: Split `set` subcommand into `config`, `api`, and `cache` subcommands
+  - Test: Use the python dummy API server for some tests

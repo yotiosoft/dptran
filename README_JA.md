@@ -149,4 +149,11 @@ crate page : https://crates.io/crates/dptran
 
 - MIT License
 - Apache License 2.0
+
+## リリースノート
+
+- v.2.3.1 (2025-07-01)
+  - バイナリ CLI & ライブラリ: 任意の API エンドポイントを使用可能
+  - バイナリ CLI: `set` サブコマンドを `config`, `api`, `cache` サブコマンドに分割
+  - テスト: 一部のテストで Python ダミー API サーバを使用
   
