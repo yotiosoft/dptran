@@ -289,7 +289,8 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
             if let Some(s) = api_setting_struct.endpoint_of_usage {
                 if s.len() == 0 {
                     config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
-                } else {
+                }
+                else {
                     config.set_endpoint_of_usage(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 }
                 return Ok(());
@@ -302,7 +303,8 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
             if let Some(s) = api_setting_struct.endpoint_of_langs {
                 if s.len() == 0 {
                     config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
-                } else {
+                }
+                else {
                     config.set_endpoint_of_languages(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 }
                 return Ok(());
