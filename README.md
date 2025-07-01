@@ -92,7 +92,7 @@ dptran -e
 - -o [FILE] Output to file
 - -r Remove line breaks
 - -u Show character usage
-- list -s / -t Show available language codes
+- -h Show help message
 
 For more options and detailed usage, run:
 ```bash
@@ -101,7 +101,7 @@ dptran -h
 
 ### Subcommands
 
-- `list`   : Show list of supported languages
+- `list`   : Show list of supported languages (-s for source languages, -t for target languages)
 - `config` : General settings such as default target language and editor command
 - `api`    : API settings such as API keys and endpoint URLs
 - `cache`  : Cache settings such as enabling/disabling cache, setting max entries, and clearing cache
