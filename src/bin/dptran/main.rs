@@ -90,7 +90,10 @@ fn show_source_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+    let mut dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+
+    // Reflect the endpoint settings in the configuration file.
+    backend::reflect_endpoints(&mut dptran)?;
 
     // List of source language codes.
     let source_lang_codes = dptran.get_language_codes(LangType::Source).map_err(|e| RuntimeError::DeeplApiError(e))?;
@@ -115,7 +118,10 @@ fn show_target_language_codes() -> Result<(), RuntimeError> {
         Some(api_key) => api_key,
         None => return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet)),
     };
-    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+    let mut dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+
+    // Reflect the endpoint settings in the configuration file.
+    backend::reflect_endpoints(&mut dptran)?;
 
     // List of Language Codes.
     let target_lang_codes = dptran.get_language_codes(LangType::Target).map_err(|e| RuntimeError::DeeplApiError(e))?;
@@ -142,8 +148,19 @@ fn get_langcodes_maxlen(lang_codes: &Vec<(String, String)>) -> (usize, usize, us
 }
 
 /// Display the number of characters remaining.
+/// Retrieved from <https://api-free.deepl.com/v2/usage>
+/// Returns an error if acquisition fails
 pub fn handle_show_usage() -> Result<(), RuntimeError> {
-    let usage = backend::get_usage()?;
+    let api_key = backend::get_api_key()?;
+    let usage = if let Some(api_key) = api_key {
+        let mut dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+        // Reflect the endpoint settings in the configuration file.
+        backend::reflect_endpoints(&mut dptran)?;
+        dptran.get_usage()
+            .map_err(|e| RuntimeError::DeeplApiError(e))?
+    } else {
+        return Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet));
+    };
     if usage.character_limit.is_none() {
         println!("usage: {} / unlimited", usage.character_count);
     }
@@ -545,22 +562,8 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
 
     let mut dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
 
-    // Get and set endpoints
-    let config_endpoints = backend::get_endpoints()?;
-    let mut endpoints_to_use = dptran::EndpointUrls::default();
-    if let Some(endpoint_of_translation) = config_endpoints.translate {
-        endpoints_to_use.translate_for_free = endpoint_of_translation.clone();
-        endpoints_to_use.translate_for_pro = endpoint_of_translation.clone();
-    }
-    if let Some(endpoint_of_usage) = config_endpoints.usage {
-        endpoints_to_use.usage_for_free = endpoint_of_usage.clone();
-        endpoints_to_use.usage_for_pro = endpoint_of_usage.clone();
-    }
-    if let Some(endpoint_of_langs) = config_endpoints.languages {
-        endpoints_to_use.languages_for_free = endpoint_of_langs.clone();
-        endpoints_to_use.languages_for_pro = endpoint_of_langs.clone();
-    }
-    dptran.set_api_urls(endpoints_to_use);
+    // Reflect the endpoint settings in the configuration file.
+    backend::reflect_endpoints(&mut dptran)?;
 
     // Language code check and correction
     if let Some(sl) = source_lang {

@@ -6,7 +6,7 @@ pub use configure::ApiKey;
 use cache::CacheError;
 pub use parse::ExecutionMode;
 
-use dptran::{DpTranError, DpTranUsage};
+use dptran::DpTranError;
 
 use std::fmt::Debug;
 use std::io::{Write, BufWriter};
@@ -85,19 +85,6 @@ pub fn get_config() -> Result<configure::ConfigureWrapper, RuntimeError> {
     configure::ConfigureWrapper::get(CONFIG_NAME).map_err(|e| RuntimeError::ConfigError(e))
 }
 
-/// Get the number of characters remaining to be translated
-/// Retrieved from <https://api-free.deepl.com/v2/usage>
-/// Returns an error if acquisition fails
-pub fn get_usage() -> Result<DpTranUsage, RuntimeError> {
-    let api_key = get_api_key()?;
-    if let Some(api_key) = api_key {
-        let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
-        dptran.get_usage().map_err(|e| RuntimeError::DeeplApiError(e))
-    } else {
-        Err(RuntimeError::DeeplApiError(DpTranError::ApiKeyIsNotSet))
-    }
-}
-
 /// Set default destination language.
 /// Set the default target language for translation in the configuration file config.json.
 pub fn set_default_target_language(arg_default_target_language: &String) -> Result<String, RuntimeError> {
@@ -154,7 +141,7 @@ pub fn clear_api_key(api_key_type: dptran::ApiKeyType) -> Result<(), RuntimeErro
 }
 
 /// Get endpoints
-pub fn get_endpoints() -> Result<Endpoints, RuntimeError> {
+fn get_endpoints() -> Result<Endpoints, RuntimeError> {
     let mut endpoints = Endpoints {
         translate: None,
         usage: None,
@@ -171,6 +158,27 @@ pub fn get_endpoints() -> Result<Endpoints, RuntimeError> {
         endpoints.languages = Some(endpoint_of_languages);
     }
     Ok(endpoints)
+}
+
+/// Reflect the endpoint settings in the configuration file.
+pub fn reflect_endpoints(dptran: &mut dptran::DpTran) -> Result<(), RuntimeError> {
+    // Get and set endpoints
+    let config_endpoints = get_endpoints()?;
+    let mut endpoints_to_use = dptran::EndpointUrls::default();
+    if let Some(endpoint_of_translation) = config_endpoints.translate {
+        endpoints_to_use.translate_for_free = endpoint_of_translation.clone();
+        endpoints_to_use.translate_for_pro = endpoint_of_translation.clone();
+    }
+    if let Some(endpoint_of_usage) = config_endpoints.usage {
+        endpoints_to_use.usage_for_free = endpoint_of_usage.clone();
+        endpoints_to_use.usage_for_pro = endpoint_of_usage.clone();
+    }
+    if let Some(endpoint_of_langs) = config_endpoints.languages {
+        endpoints_to_use.languages_for_free = endpoint_of_langs.clone();
+        endpoints_to_use.languages_for_pro = endpoint_of_langs.clone();
+    }
+    dptran.set_api_urls(endpoints_to_use);
+    Ok(())
 }
 
 /// Search the cache
@@ -241,16 +249,6 @@ mod tests {
         else {
             panic!("Error: {}", e.to_string());
         }
-    }
-
-    fn impl_backend_get_usage(times: u8) {
-        let usage = get_usage();
-        if let Err(e) = &usage {
-            if retry_or_panic(&e, 1) {
-                return impl_backend_get_usage(times + 1);
-            }
-        }
-        assert!(usage.is_ok());
     }
 
     #[test]
