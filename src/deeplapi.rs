@@ -88,6 +88,7 @@ fn request_translate(api: &DpTran, text: &Vec<String>, target_lang: &String, sou
     };
     
     for t in text {
+        let t =  urlencoding::encode(t);
         query = format!("{}&text={}", query, t);
     }
     
