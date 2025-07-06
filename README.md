@@ -148,7 +148,10 @@ Licensed under either of:
 
 ## Release Notes
 
-- v.2.3.1 (2025-07-01)
+- v2.3.2 (2025-07-07)
+  - Binary CLI: Fix issue where endpoint settings were not reflected in usage and lang commands
+
+- v2.3.1 (2025-07-01)
   - Binary CLI & Library: Any api endpoint can be used
   - Binary CLI: Split `set` subcommand into `config`, `api`, and `cache` subcommands
   - Test: Use the python dummy API server for some tests

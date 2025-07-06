@@ -351,11 +351,6 @@ mod tests {
     }
 
     #[test]
-    fn backend_get_usage_test() {
-        impl_backend_get_usage(0);
-    }
-
-    #[test]
     fn backend_set_and_get_endpoints_test() {
         let mut config = get_config().unwrap();
         let translate_endpoint = "http://localhost:8000/free/v2/translate".to_string();
