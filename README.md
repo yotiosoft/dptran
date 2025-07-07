@@ -125,7 +125,7 @@ You can set the API endpoint URL using the `api` subcommand:
 ```bash
 dptran api --endpoint-of-translation <ENDPOINT_OF_TRANSLATION>
 dptran api --endpoint-of-usage <ENDPOINT_OF_USAGE>
-dptran api --endpoint-of-languages <ENDPOINT_OF_LANGUAGES>
+dptran api --endpoint-of-langs <ENDPOINT_OF_LANGUAGES>
 ```
 
 Then you can use dptran with your own API endpoint, e.g., a local LLM server.  

@@ -128,7 +128,7 @@ API エンドポイント URL を設定するには、`api` サブコマンド�
 ```bash
 dptran api --endpoint-of-translation <ENDPOINT_OF_TRANSLATION>
 dptran api --endpoint-of-usage <ENDPOINT_OF_USAGE>
-dptran api --endpoint-of-languages <ENDPOINT_OF_LANGUAGES>
+dptran api --endpoint-of-langs <ENDPOINT_OF_LANGUAGES>
 ```
 
 以降、お好みの API エンドポイントを使用できます。（例：ローカル LLM サーバ）  
