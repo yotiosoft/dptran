@@ -91,6 +91,7 @@ def translate_texts(source_lang: str, target_lang: str, text: str) -> str:
         ]})
     # Simulate translation by looking up dummy data
     results = []
+    global character_count
     for text in text:
         character_count += len(text)
         for item in dummy_data:
@@ -197,6 +198,7 @@ async def usage_for_free(auth_key: str = Form(...)):
     print(f"Received request: auth_key={auth_key}")
     if auth_key == "":
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+    global character_count
     return usage_response(
         character_count=character_count,
         character_limit=1000000,
@@ -208,6 +210,7 @@ async def usage_for_pro(auth_key: str = Form(...)):
     print(f"Received request: auth_key={auth_key}")
     if auth_key == "":
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+    global character_count
     return usage_response(
         character_count=character_count,
         character_limit=1000000000000,
