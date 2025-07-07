@@ -150,7 +150,7 @@ Licensed under either of:
 
 - v2.3.2 (2025-07-07)
   - Binary CLI: Fix issue where endpoint settings were not reflected in usage and lang commands
-  - Library: Fix query encoding to be explicit when sending requests
+  - Library: Fix query encoding when sending requests
 
 - v2.3.1 (2025-07-01)
   - Binary CLI & Library: Any api endpoint can be used
