@@ -121,6 +121,19 @@ dptran config --target-lang JA
 dptran config --clear-all
 ```
 
+## API エンドポイントの設定
+
+API エンドポイント URL を設定するには、`api` サブコマンドを使用します。
+
+```bash
+dptran api --endpoint-of-translation <ENDPOINT_OF_TRANSLATION>
+dptran api --endpoint-of-usage <ENDPOINT_OF_USAGE>
+dptran api --endpoint-of-languages <ENDPOINT_OF_LANGUAGES>
+```
+
+以降、お好みの API エンドポイントを使用できます。例：ローカル LLM サーバ
+API エンドポイントは DeepL API の仕様との互換性が必要です。
+
 ## 開発とテスト
 単体テストを実行します。
 実際の DeepL API キーを必要とするテストを実行するには、環境変数 `DPTRAN_DEEPL_API_KEY` を設定します。
