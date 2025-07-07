@@ -118,7 +118,7 @@ Reset all settings:
 dptran config --clear-all
 ```
 
-## Setting API Endpoint
+### Setting API Endpoint
 
 You can set the API endpoint URL using the `api` subcommand:
 
@@ -128,7 +128,7 @@ dptran api --endpoint-of-usage <ENDPOINT_OF_USAGE>
 dptran api --endpoint-of-languages <ENDPOINT_OF_LANGUAGES>
 ```
 
-Then you can use dptran with your own API endpoint, e.g., a local LLM server.
+Then you can use dptran with your own API endpoint, e.g., a local LLM server.  
 Note that the API endpoints must be compatible with the DeepL API specification.
 
 ## Development & Testing

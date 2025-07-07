@@ -121,7 +121,7 @@ dptran config --target-lang JA
 dptran config --clear-all
 ```
 
-## API エンドポイントの設定
+### API エンドポイントの設定
 
 API エンドポイント URL を設定するには、`api` サブコマンドを使用します。
 
@@ -131,7 +131,7 @@ dptran api --endpoint-of-usage <ENDPOINT_OF_USAGE>
 dptran api --endpoint-of-languages <ENDPOINT_OF_LANGUAGES>
 ```
 
-以降、お好みの API エンドポイントを使用できます。例：ローカル LLM サーバ
+以降、お好みの API エンドポイントを使用できます。（例：ローカル LLM サーバ）  
 API エンドポイントは DeepL API の仕様との互換性が必要です。
 
 ## 開発とテスト
