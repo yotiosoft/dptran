@@ -77,6 +77,8 @@ dummy_data = [
     ),
 ]
 
+character_count = 0
+
 def translate_texts(source_lang: str, target_lang: str, text: str) -> str:
     source_lang = source_lang.lower() if source_lang else None
     target_lang = target_lang.lower()
@@ -90,6 +92,7 @@ def translate_texts(source_lang: str, target_lang: str, text: str) -> str:
     # Simulate translation by looking up dummy data
     results = []
     for text in text:
+        character_count += len(text)
         for item in dummy_data:
             if ((item.source_lang == source_lang or source_lang == None) and
                     item.target_lang == target_lang and
@@ -195,7 +198,7 @@ async def usage_for_free(auth_key: str = Form(...)):
     if auth_key == "":
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
     return usage_response(
-        character_count=1000,
+        character_count=character_count,
         character_limit=1000000,
         type="free"
     )
@@ -206,7 +209,7 @@ async def usage_for_pro(auth_key: str = Form(...)):
     if auth_key == "":
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
     return usage_response(
-        character_count=10000,
+        character_count=character_count,
         character_limit=1000000000000,
         type="pro"
     )
