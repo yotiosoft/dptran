@@ -1,6 +1,6 @@
 # dptran
 
-[English](README.md) | 日本語版はこちら
+[English](README.md) | 日本語版
 
 ![Crates.io Version](https://img.shields.io/crates/v/dptran)
 [![CI](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/yotiosoft/dptran/actions/workflows/rust.yml)
