@@ -237,19 +237,7 @@ pub fn append_to_file(ofile: &std::fs::File, text: &str) -> Result<(), RuntimeEr
 ///   $ uvicorn dummy-api-server:app --reload
 #[cfg(test)]
 mod tests {
-    use dptran::DeeplAPIError;
     use super::*;
-
-    fn retry_or_panic(e: &RuntimeError, times: u8) -> bool {
-        if e == &RuntimeError::DeeplApiError(DpTranError::DeeplApiError(DeeplAPIError::ConnectionError(dptran::ConnectionError::TooManyRequests))) && times < 3 {
-            // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
-            std::thread::sleep(std::time::Duration::from_secs(2));
-            return true;
-        }
-        else {
-            panic!("Error: {}", e.to_string());
-        }
-    }
 
     #[test]
     fn backend_get_and_set_api_key_test() {
