@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn backend_get_and_set_api_key_test() {
         // Set as a free API key
-        get_config().unwrap().clear_general_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        get_config().unwrap().clear_api_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let mut config = get_config().unwrap();
         config.set_api_key("test_api_key".to_string(), dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();

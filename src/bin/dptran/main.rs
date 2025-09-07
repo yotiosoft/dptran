@@ -569,9 +569,19 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
     }
 
     loop {
-        if let Ok(false) = do_translation(dptran, mode, source_lang.clone(), target_lang.clone(), 
-                                        multilines, rm_line_breaks, text.clone(), &ofile) {
-            break;  // Exit the loop if in normal mode or if "quit" or "exit" is entered in interactive mode
+        match do_translation(dptran, mode, source_lang.clone(), target_lang.clone(), 
+                                multilines, rm_line_breaks, text.clone(), ofile) {
+            Ok(continue_mode) => {
+                if !continue_mode {
+                    break;  // Exit the loop if in normal mode or if "quit" or "exit" is entered in interactive mode
+                }
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e.to_string());
+                if mode == ExecutionMode::TranslateNormal {
+                    break;  // Exit the loop in normal mode on error
+                }
+            }
         }
     }
 
@@ -729,7 +739,7 @@ mod func_tests {
         let source_lang = Some("en".to_string());
         let target_lang = "fr".to_string();
         let ofile = None;
-
+        
         let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
