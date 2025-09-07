@@ -882,7 +882,8 @@ mod runtime_tests {
     #[test]
     fn runtime_with_file_test() {
         // Reset configuration.
-        reset_settings();
+        reset_general_settings();
+        reset_api_settings();
 
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -917,7 +918,8 @@ mod runtime_tests {
     #[test]
     fn runtime_with_cache_test() {
         // Reset configuration.
-        reset_settings();
+        reset_general_settings();
+        reset_api_settings();
 
         // 1st run..
         let mut cmd = Command::new("cargo");
@@ -998,7 +1000,8 @@ mod runtime_tests {
     #[test]
     fn runtime_interactive_mode_test() {
         // Reset configuration.
-        reset_settings();
+        reset_general_settings();
+        reset_api_settings();
 
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -1035,7 +1038,8 @@ mod runtime_tests {
     #[cfg(target_os = "linux")]
     fn runtime_from_pipe_test() {
         // Reset configuration.
-        reset_settings();
+        reset_general_settings();
+        reset_api_settings();
 
         std::thread::sleep(std::time::Duration::from_secs(2));
         let mut echo_cmd = Command::new("echo")
@@ -1067,7 +1071,8 @@ mod runtime_tests {
     #[test]
     fn runtime_change_endpoints_test() {
         // Reset configuration.
-        reset_settings();
+        reset_general_settings();
+        reset_api_settings();
 
         // Set the endpoints to the real DeepL API endpoints.
         let mut cmd = Command::new("cargo");
