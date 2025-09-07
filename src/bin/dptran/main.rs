@@ -54,14 +54,20 @@ fn display_general_settings() -> Result<(), RuntimeError> {
 
 /// Initialization of settings.
 fn clear_api_settings() -> Result<(), RuntimeError> {
-    backend::clear_api_key(dptran::ApiKeyType::Free)?;
-    backend::clear_api_key(dptran::ApiKeyType::Pro)?;
+    print!("Are you sure you want to clear all settings? (y/N) ");
+    std::io::stdout().flush().unwrap();
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).unwrap();
+    // Initialize settings when y is entered.
+    if input.trim().to_ascii_lowercase() == "y" {
+        backend::clear_api_key(dptran::ApiKeyType::Free)?;
+        backend::clear_api_key(dptran::ApiKeyType::Pro)?;
 
-    let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
-    config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
-    config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
-    config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
-
+        let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+        config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
+        config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+        config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+    }
     Ok(())   
 }
 
