@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn backend_get_and_set_api_key_test() {
         // Set as a free API key
-        get_config().unwrap().clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        get_config().unwrap().clear_general_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let mut config = get_config().unwrap();
         config.set_api_key("test_api_key".to_string(), dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_api_key = get_api_key().unwrap().unwrap();
@@ -263,7 +263,7 @@ mod tests {
         config.set_editor_command(editor_command.clone()).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_editor_command = config.get_editor_command().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_editor_command, Some(editor_command));
-        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        config.clear_general_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_editor_command = config.get_editor_command().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_editor_command, None);
     }
@@ -275,7 +275,7 @@ mod tests {
         config.set_cache_max_entries(cache_max_entries).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_cache_max_entries = config.get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_max_entries, cache_max_entries);
-        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        config.clear_general_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_cache_max_entries = get_config().unwrap().get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_max_entries, 100);
     }
@@ -287,7 +287,7 @@ mod tests {
         config.set_cache_enabled(cache_enabled).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_cache_enabled = config.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_enabled, cache_enabled);
-        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
+        config.clear_general_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let retrieved_cache_enabled = config.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         assert_eq!(retrieved_cache_enabled, true);
     }

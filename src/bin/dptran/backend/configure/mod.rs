@@ -204,9 +204,41 @@ impl ConfigureWrapper {
         Ok(())
     }
 
-    /// Initialize settings
-    pub fn clear_settings(&mut self) -> Result<(), ConfigError> {
-        let cleared_settings = Configure::default();
+    /// Initialize general settings (except API keys and endpoints)
+    pub fn clear_general_settings(&mut self) -> Result<(), ConfigError> {
+        let endpoint_of_translation = self.configure.endpoint_of_translation.clone();
+        let endpoint_of_usage = self.configure.endpoint_of_usage.clone();
+        let endpoint_of_languages = self.configure.endpoint_of_languages.clone();
+        let apikey = self.configure.api_key.clone();
+        let apikey_pro = self.configure.api_key_pro.clone();
+
+        // Clear all settings except endpoints and API keys (Api settings)
+        let mut cleared_settings = Configure::default();
+        cleared_settings.endpoint_of_translation = endpoint_of_translation;
+        cleared_settings.endpoint_of_usage = endpoint_of_usage;
+        cleared_settings.endpoint_of_languages = endpoint_of_languages;
+        cleared_settings.api_key = apikey;
+        cleared_settings.api_key_pro = apikey_pro;
+
+        confy::store("dptran", self.config_name.clone().as_str(), &cleared_settings).map_err(|e| ConfigError::FailToClearSettings(e.to_string()))?;
+        self.configure = cleared_settings;
+        Ok(())
+    }
+
+    /// Initialize api settings (API keys and endpoints)
+    pub fn clear_api_settings(&mut self) -> Result<(), ConfigError> {
+        let default_target_language = self.configure.default_target_language.clone();
+        let cache_max_entries = self.configure.cache_max_entries;
+        let editor_command = self.configure.editor_command.clone();
+        let cache_enabled = self.configure.cache_enabled;
+
+        // Clear all api settings except general settings
+        let mut cleared_settings = Configure::default();
+        cleared_settings.default_target_language = default_target_language;
+        cleared_settings.cache_max_entries = cache_max_entries;
+        cleared_settings.editor_command = editor_command;
+        cleared_settings.cache_enabled = cache_enabled;
+
         confy::store("dptran", self.config_name.clone().as_str(), &cleared_settings).map_err(|e| ConfigError::FailToClearSettings(e.to_string()))?;
         self.configure = cleared_settings;
         Ok(())

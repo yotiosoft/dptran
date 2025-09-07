@@ -46,15 +46,26 @@ fn configure_set_cache_enabled_test() {
 }
 
 #[test]
-fn configure_clear_settings_test() {
+fn configure_clear_general_settings_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
-    config_wrapper.clear_settings().unwrap();
+    config_wrapper.clear_general_settings().unwrap();
     let cleared_config = ConfigureWrapper::get("configure_test").unwrap();
-    assert_eq!(cleared_config.configure.api_key, None);
     assert_eq!(cleared_config.configure.default_target_language, "EN");
     assert_eq!(cleared_config.configure.cache_max_entries, 100);
     assert_eq!(cleared_config.configure.editor_command, None);
     assert_eq!(cleared_config.configure.cache_enabled, true);
+}
+
+#[test]
+fn configure_clear_api_settings_test() {
+    let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
+    config_wrapper.clear_api_settings().unwrap();
+    let cleared_config = ConfigureWrapper::get("configure_test").unwrap();
+    assert_eq!(cleared_config.configure.api_key, None);
+    assert_eq!(cleared_config.configure.api_key_pro, None);
+    assert_eq!(cleared_config.configure.endpoint_of_translation, None);
+    assert_eq!(cleared_config.configure.endpoint_of_usage, None);
+    assert_eq!(cleared_config.configure.endpoint_of_languages, None);
 }
 
 #[test]
@@ -70,7 +81,7 @@ fn configure_get_default_target_language_code_test() {
 fn configure_set_and_get_api_key_test() {
     // for ApiKeyType::Free
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
-    config_wrapper.clear_settings().unwrap();
+    config_wrapper.clear_api_settings().unwrap();
     let api_key_to_set = "configure_api_key".to_string();
     config_wrapper.set_api_key(api_key_to_set.clone(), ApiKeyType::Free).unwrap();
     // Reload the configuration to ensure the key is set correctly

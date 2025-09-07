@@ -17,7 +17,7 @@ fn clear_general_settings() -> Result<(), RuntimeError> {
     // Initialize settings when y is entered.
     if input.trim().to_ascii_lowercase() == "y" {
         let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
-        config.clear_settings().map_err(|e| RuntimeError::ConfigError(e))?;
+        config.clear_general_settings().map_err(|e| RuntimeError::ConfigError(e))?;
         println!("All settings have been cleared.");
         println!("Note: You need to set the API key again to use dptran.");
     }
@@ -64,9 +64,7 @@ fn clear_api_settings() -> Result<(), RuntimeError> {
         backend::clear_api_key(dptran::ApiKeyType::Pro)?;
 
         let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
-        config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
-        config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
-        config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+        config.clear_api_settings().map_err(|e| RuntimeError::ConfigError(e))?;
     }
     Ok(())   
 }
