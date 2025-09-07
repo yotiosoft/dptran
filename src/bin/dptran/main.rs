@@ -1,3 +1,4 @@
+use std::f32::consts::E;
 use std::io::{Write, stdin, stdout};
 
 mod backend;
@@ -577,10 +578,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
                 }
             }
             Err(e) => {
-                eprintln!("Error: {}", e.to_string());
-                if mode == ExecutionMode::TranslateNormal {
-                    break;  // Exit the loop in normal mode on error
-                }
+                return Err(e);
             }
         }
     }
@@ -739,7 +737,6 @@ mod func_tests {
         let source_lang = Some("en".to_string());
         let target_lang = "fr".to_string();
         let ofile = None;
-        
         let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
