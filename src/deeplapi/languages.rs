@@ -30,19 +30,16 @@ pub static EXTENDED_LANG_CODES: [(&str, &str, LangType); 2] = [
     ("PT", "Portuguese", LangType::Target),
 ];
 
-/// Get language code list  
-/// Retrieved from <https://api-free.deepl.com/v2/languages>.  
-pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
-    let url = if api.api_key_type == ApiKeyType::Free {
-        api.api_urls.languages_for_free.clone()
-    } else {
-        api.api_urls.languages_for_pro.clone()
-    };
-    let query = format!("type={}&auth_key={}", type_name, api.api_key);
-    let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
-    let v: Value = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+/// Parses the translation results passed in json format,
+/// stores the translation in a vector, and returns it.
+fn json_to_vec(json: &String, type_name: &String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
+    let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
 
-    let lang_type = if type_name == "source" { LangType::Source } else { LangType::Target };
+    let lang_type = if type_name == "source" { 
+        LangType::Source 
+    } else { 
+        LangType::Target 
+    };
 
     let mut lang_codes: Vec<LangCodeName> = Vec::new();
     let v_array = v.as_array();
@@ -74,6 +71,22 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
             lang_codes.push((EXTENDED_LANG_CODES[i].0.to_string(), EXTENDED_LANG_CODES[i].1.to_string()));
         }
     }
+    Ok(lang_codes)
+}
+
+/// Get language code list  
+/// Retrieved from <https://api-free.deepl.com/v2/languages>.  
+pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
+    let url = if api.api_key_type == ApiKeyType::Free {
+        api.api_urls.languages_for_free.clone()
+    } else {
+        api.api_urls.languages_for_pro.clone()
+    };
+    let query = format!("type={}&auth_key={}", type_name, api.api_key);
+    let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+
+    let mut lang_codes = json_to_vec(&res, &type_name)?;    
+
     // Sort by language code
     lang_codes.sort_by(|a, b| a.0.cmp(&b.0));
     // return
@@ -81,5 +94,30 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
         Err(DeeplAPIError::GetLanguageCodesError)
     } else {
         Ok(lang_codes)
+    }
+}
+
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
+/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+/// And also, you need to run the dummy server for the DeepL API to test the API endpoints.
+///   $ pip3 install -r requirements.txt
+///   $ uvicorn dummy-api-server:app --reload
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn api_json_to_vec_test() {
+        let json = r#"[{"language":"EN","name":"English"},{"language":"DE","name":"German"}]"#.to_string();
+        let res = json_to_vec(&json, &"source".to_string());
+        match res {
+            Ok(res) => {
+                assert_eq!(res[0], ("EN".to_string(), "English".to_string()));
+                assert_eq!(res[1], ("DE".to_string(), "German".to_string()));
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
     }
 }
