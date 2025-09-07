@@ -9,7 +9,7 @@ use crate::backend::parse::CacheTarget;
 use crate::backend::parse::SettingTarget;
 
 /// Initialization of settings.
-fn clear_settings() -> Result<(), RuntimeError> {
+fn clear_general_settings() -> Result<(), RuntimeError> {
     print!("Are you sure you want to clear all settings? (y/N) ");
     std::io::stdout().flush().unwrap();
     let mut input = String::new();
@@ -24,26 +24,13 @@ fn clear_settings() -> Result<(), RuntimeError> {
     Ok(())
 }
 
-/// Display of settings.
-fn display_settings() -> Result<(), RuntimeError> {
+/// Display of general settings.
+fn display_general_settings() -> Result<(), RuntimeError> {
     let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
-    let api_key = backend::get_api_key()?;
     let default_target_lang = config.get_default_target_language_code().map_err(|e| RuntimeError::ConfigError(e))?;
     let cache_max_entries = config.get_cache_max_entries().map_err(|e| RuntimeError::ConfigError(e))?;
     let editor_command = config.get_editor_command().map_err(|e| RuntimeError::ConfigError(e))?;
     let cache_enabled = config.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))?;
-
-    if let Some(api_key) = api_key {
-        if api_key.api_key_type == dptran::ApiKeyType::Free {
-            println!("API key (free): {}", api_key.api_key);
-        }
-        else {
-            println!("API key (pro): {}", api_key.api_key);
-        }
-    }
-    else {
-        println!("API key: not set");
-    }
 
     println!("Default target language: {}", default_target_lang);
 
@@ -57,6 +44,43 @@ fn display_settings() -> Result<(), RuntimeError> {
     }
 
     println!("Cache enabled: {}", cache_enabled);
+
+    let config_filepath = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
+        .get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
+    println!("Configuration file path: {}", config_filepath.to_str().unwrap());
+
+    Ok(())
+}
+
+/// Initialization of settings.
+fn clear_api_settings() -> Result<(), RuntimeError> {
+    backend::clear_api_key(dptran::ApiKeyType::Free)?;
+    backend::clear_api_key(dptran::ApiKeyType::Pro)?;
+
+    let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+    config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
+    config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+    config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+
+    Ok(())   
+}
+
+/// Display of API settings.
+fn display_api_settings() -> Result<(), RuntimeError> {
+    let config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
+    let api_key = backend::get_api_key()?;
+
+    if let Some(api_key) = api_key {
+        if api_key.api_key_type == dptran::ApiKeyType::Free {
+            println!("API key (free): {}", api_key.api_key);
+        }
+        else {
+            println!("API key (pro): {}", api_key.api_key);
+        }
+    }
+    else {
+        println!("API key: not set");
+    }
 
     if let Some(endpoint_of_translation) = config.get_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))? {
         println!("Endpoint of translation: {}", endpoint_of_translation);
@@ -75,10 +99,6 @@ fn display_settings() -> Result<(), RuntimeError> {
     } else {
         println!("Endpoint of languages: not set");
     }
-
-    let config_filepath = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?
-        .get_config_file_path().map_err(|e| RuntimeError::ConfigError(e))?;
-    println!("Configuration file path: {}", config_filepath.to_str().unwrap());
 
     Ok(())
 }
@@ -262,12 +282,12 @@ fn handle_general_settings(setting_struct: backend::parse::GeneralSettingsStruct
                 return Err(RuntimeError::EditorCommandIsNotSet);
             }
         }
-        SettingTarget::DisplaySettings => {
-            display_settings()?;
+        SettingTarget::ShowSettings => {
+            display_general_settings()?;
             return Ok(());
         }
         SettingTarget::ClearSettings => {
-            clear_settings()?;
+            clear_general_settings()?;
             return Ok(());
         }
     }
@@ -347,6 +367,14 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
             }
+        }
+        backend::parse::ApiSettingsTarget::ShowSettings => {
+            display_api_settings()?;
+            return Ok(());
+        }
+        backend::parse::ApiSettingsTarget::ClearSettings => {
+            clear_api_settings()?;
+            return Ok(());
         }
     }
 }
@@ -715,8 +743,14 @@ mod func_tests {
     }
 
     #[test]
-    fn app_display_settings_test() {
-        let result = display_settings();
+    fn app_display_general_settings_test() {
+        let result = display_general_settings();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn app_display_api_settings_test() {
+        let result = display_api_settings();
         assert!(result.is_ok());
     }
 
@@ -756,7 +790,7 @@ mod func_tests {
 mod runtime_tests {
     use std::{io::Write, process::Command, process::Stdio};
 
-    fn reset_settings() {
+    fn reset_general_settings() {
         // Reset configuration.
         let mut cmd = Command::new("cargo");
         let text = cmd.arg("run")
@@ -780,10 +814,35 @@ mod runtime_tests {
         }
     }
 
+    fn reset_api_settings() {
+        // Reset configuration.
+        let mut cmd = Command::new("cargo");
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--clear-all")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn();
+        
+        let mut child = text.unwrap();
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let input = "y\n"; // Confirm clearing settings
+        if let Some(stdin) = child.stdin.as_mut() {
+            stdin.write_all(input.as_bytes()).unwrap();
+        }
+        let output = child.wait_with_output().unwrap();
+        if !output.status.success() {
+            panic!("Failed to reset API settings: {}", String::from_utf8_lossy(&output.stderr));
+        }
+    }
+
     #[test]
     fn runtime_test() {
         // Reset configuration.
-        reset_settings();
+        reset_general_settings();
+        reset_api_settings();
         
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));

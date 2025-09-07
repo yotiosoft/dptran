@@ -19,7 +19,7 @@ pub enum ExecutionMode {
 pub enum SettingTarget {
     DefaultTargetLang,
     EditorCommand,
-    DisplaySettings,
+    ShowSettings,
     ClearSettings,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -36,6 +36,8 @@ pub enum ApiSettingsTarget {
     EndpointOfTranslation,
     EndpointOfUsage,
     EndpointOfLangs,
+    ShowSettings,
+    ClearSettings,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum CacheTarget {
@@ -206,6 +208,14 @@ enum SubCommands {
         /// Endpoint of languages API. (e.g. `https://api-free.deepl.com/v2/languages`)
         #[arg(short='l', long)]
         endpoint_of_langs: Option<String>,
+
+        /// Show API settings.
+        #[arg(short, long)]
+        show: bool,
+
+        /// Clear API settings.
+        #[arg(short, long)]
+        clear_all: bool,
     },
 
     /// Cache settings such as enabling/disabling cache, setting max entries, and clearing cache.
@@ -350,7 +360,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 if show == true {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
-                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::DisplaySettings);
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::ShowSettings);
                 }
                 if clear_all == true {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
@@ -370,7 +380,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 return Ok(arg_struct);
             }
             SubCommands::Api { api_key_free, api_key_pro, clear_free_api_key, clear_pro_api_key,
-                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs } => {
+                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs , show, clear_all } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
                     arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::FreeApiKey);
@@ -405,6 +415,14 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
                     arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfLangs);
                     arg_struct.api_setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
+                }
+                if show == true {
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::ShowSettings);
+                }
+                if clear_all == true {
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::ClearSettings);
                 }
                 return Ok(arg_struct);
             }
