@@ -1,4 +1,3 @@
-use std::f32::consts::E;
 use std::io::{Write, stdin, stdout};
 
 mod backend;

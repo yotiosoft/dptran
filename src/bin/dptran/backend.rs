@@ -254,6 +254,9 @@ mod tests {
         let retrieved_api_key = get_api_key().unwrap().unwrap();
         assert_eq!(retrieved_api_key.api_key, "test_pro_api_key");
         assert_eq!(retrieved_api_key.api_key_type, dptran::ApiKeyType::Pro);
+
+        // Reset
+        config.clear_api_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
     }
 
     #[test]
