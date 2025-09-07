@@ -374,6 +374,12 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 return Ok(());
             }
         }
+        backend::parse::ApiSettingsTarget::ClearEndpoints => {
+            config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
+            config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
+            config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+            return Ok(());
+        }
         backend::parse::ApiSettingsTarget::ShowSettings => {
             display_api_settings()?;
             return Ok(());

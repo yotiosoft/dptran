@@ -36,6 +36,7 @@ pub enum ApiSettingsTarget {
     EndpointOfTranslation,
     EndpointOfUsage,
     EndpointOfLangs,
+    ClearEndpoints,
     ShowSettings,
     ClearSettings,
 }
@@ -179,7 +180,7 @@ enum SubCommands {
             .required(true)
             .args(["api_key_free", "api_key_pro", "clear_free_api_key", "clear_pro_api_key",
                     "endpoint_of_translation", "endpoint_of_usage", "endpoint_of_langs",
-                    "show", "clear_all"])
+                    "clear_endpoints", "show", "clear_all"])
     ))]
     Api {
         /// Set DeepL API key (free).
@@ -209,6 +210,10 @@ enum SubCommands {
         /// Endpoint of languages API. (e.g. `https://api-free.deepl.com/v2/languages`)
         #[arg(short='l', long)]
         endpoint_of_langs: Option<String>,
+
+        /// Clear endpoints to default values.
+        #[arg(long)]
+        clear_endpoints: bool,
 
         /// Show API settings.
         #[arg(short, long)]
@@ -381,7 +386,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 return Ok(arg_struct);
             }
             SubCommands::Api { api_key_free, api_key_pro, clear_free_api_key, clear_pro_api_key,
-                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs , show, clear_all } => {
+                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs , clear_endpoints, show, clear_all } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
                     arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::FreeApiKey);
@@ -416,6 +421,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
                     arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfLangs);
                     arg_struct.api_setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
+                }
+                if clear_endpoints == true {
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::ClearEndpoints);
                 }
                 if show == true {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
