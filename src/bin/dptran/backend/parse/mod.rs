@@ -169,7 +169,7 @@ enum SubCommands {
         #[arg(short, long)]
         show: bool,
 
-        /// Clear settings. This includes not only the general settings but also API keys and cache settings.
+        /// Clear settings. This includes only the general settings. API settings are not affected.
         #[arg(short, long)]
         clear_all: bool,
     },
@@ -219,7 +219,7 @@ enum SubCommands {
         #[arg(short, long)]
         show: bool,
 
-        /// Clear API settings.
+        /// Clear API settings. This includes API keys and endpoints. General settings are not affected.
         #[arg(short, long)]
         clear_all: bool,
     },
