@@ -178,7 +178,8 @@ enum SubCommands {
         ArgGroup::new("api_vers")
             .required(true)
             .args(["api_key_free", "api_key_pro", "clear_free_api_key", "clear_pro_api_key",
-                    "endpoint_of_translation", "endpoint_of_usage", "endpoint_of_langs"]),
+                    "endpoint_of_translation", "endpoint_of_usage", "endpoint_of_langs",
+                    "show", "clear_all"])
     ))]
     Api {
         /// Set DeepL API key (free).
