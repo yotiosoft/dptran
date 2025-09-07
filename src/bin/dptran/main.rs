@@ -1133,6 +1133,50 @@ mod runtime_tests {
     }
 
     #[test]
+    fn runtime_change_endpoints_and_clear_test() {
+        // Reset configuration.
+        reset_general_settings();
+        reset_api_settings();
+
+        // Set the endpoints to the real DeepL API endpoints.
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-translation")
+            .arg("http://localhost:8000/free/v2/translate")
+            .output();
+
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--clear-endpoints")
+            .output();
+
+        // Check the settings
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("-s")
+            .output();
+
+        assert!(text.is_ok());
+        // If there is 'http://localhost:8000/free/v2/translate' in the output, the test fails.
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+        let output_str = String::from_utf8_lossy(&text.stdout);
+        assert!(!output_str.contains("http://localhost:8000/free/v2/translate"), "Endpoints were not cleared.");
+    }
+
+    #[test]
     fn runtime_config_helper_test() {
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
