@@ -161,6 +161,11 @@ Licensed under either of:
 
 ## Release Notes
 
+- v2.3.3 (2025-09-07)
+  - Binary CLI: Add clear-all and show options to API settings, change config --clear-all to not reset these API settings
+  - Binary CLI: Improve error handling in ``do_translation()``
+  - Library: Modularize each API implementation in translate, languages, and usage
+
 - v2.3.2 (2025-07-07)
   - Binary CLI: Fix issue where endpoint settings were not reflected in usage and lang commands
   - Library: Fix query encoding when sending requests

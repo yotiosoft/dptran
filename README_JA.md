@@ -164,6 +164,11 @@ crate page : https://crates.io/crates/dptran
 
 ## リリースノート
 
+- v2.3.3 (2025-09-07)
+  - バイナリ CLI: API 設定に clear-all と show オプションを追加し、config --clear-all で API 設定をリセットしないように変更
+  - バイナリ CLI: ``do_translation()`` のエラーハンドリングを改善
+  - ライブラリ: translate, languages, usage で各 API 実装をモジュール化
+
 - v2.3.2 (2025-07-07)
   - バイナリ CLI: usage, lang でエンドポイント設定が反映されない問題を修正
   - ライブラリ: request 送信時のクエリのエンコーディングを修正
