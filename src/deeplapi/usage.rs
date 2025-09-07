@@ -42,7 +42,7 @@ pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
 ///   $ pip3 install -r requirements.txt
 ///   $ uvicorn dummy-api-server:app --reload
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
 
     #[test]

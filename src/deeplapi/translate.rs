@@ -79,7 +79,7 @@ fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
 ///   $ pip3 install -r requirements.txt
 ///   $ uvicorn dummy-api-server:app --reload
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
 
     #[test]
