@@ -1,10 +1,10 @@
-pub mod arg;
+pub mod args;
 pub mod configure;
 pub mod cache;
 use configure::ConfigError;
 pub use configure::ApiKey;
 use cache::CacheError;
-pub use arg::ExecutionMode;
+pub use args::ExecutionMode;
 
 use dptran::DpTranError;
 
