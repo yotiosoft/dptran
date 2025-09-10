@@ -5,8 +5,8 @@ use backend::RuntimeError;
 use backend::ExecutionMode;
 
 use dptran::{DpTranError, LangType};
-use crate::backend::parse::CacheTarget;
-use crate::backend::parse::SettingTarget;
+use crate::backend::arg::CacheTarget;
+use crate::backend::arg::SettingTarget;
 
 /// Initialization of settings.
 fn clear_general_settings() -> Result<(), RuntimeError> {
@@ -262,7 +262,7 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
     }
 }
 
-fn handle_general_settings(setting_struct: backend::parse::GeneralSettingsStruct) -> Result<(), RuntimeError> {
+fn handle_general_settings(setting_struct: backend::arg::GeneralSettingsStruct) -> Result<(), RuntimeError> {
     let setting_target = setting_struct.setting_target.clone();
     if let None = setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
@@ -297,14 +297,14 @@ fn handle_general_settings(setting_struct: backend::parse::GeneralSettingsStruct
     }
 }
 
-fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) -> Result<(), RuntimeError> {
+fn handle_api_settings(api_setting_struct: backend::arg::ApiSettingsStruct) -> Result<(), RuntimeError> {
     let api_setting_target = api_setting_struct.setting_target;
     if let None = api_setting_target {
         return Err(RuntimeError::ArgInvalidTarget);
     }
     let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     match api_setting_target.unwrap() {
-        backend::parse::ApiSettingsTarget::FreeApiKey => {
+        backend::arg::ApiSettingsTarget::FreeApiKey => {
             if let Some(s) = api_setting_struct.api_key_free {
                 config.set_api_key(s, dptran::ApiKeyType::Free).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -313,7 +313,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingsTarget::ProApiKey => {
+        backend::arg::ApiSettingsTarget::ProApiKey => {
             if let Some(s) = api_setting_struct.api_key_pro {
                 config.set_api_key(s, dptran::ApiKeyType::Pro).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -322,15 +322,15 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingsTarget::ClearFreeApiKey => {
+        backend::arg::ApiSettingsTarget::ClearFreeApiKey => {
             backend::clear_api_key(dptran::ApiKeyType::Free)?;
             return Ok(());
         }
-        backend::parse::ApiSettingsTarget::ClearProApiKey => {
+        backend::arg::ApiSettingsTarget::ClearProApiKey => {
             backend::clear_api_key(dptran::ApiKeyType::Pro)?;
             return Ok(());
         }
-        backend::parse::ApiSettingsTarget::EndpointOfTranslation => {
+        backend::arg::ApiSettingsTarget::EndpointOfTranslation => {
             if let Some(s) = api_setting_struct.endpoint_of_translation {
                 if s.len() == 0 {
                     config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -344,7 +344,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingsTarget::EndpointOfUsage => {
+        backend::arg::ApiSettingsTarget::EndpointOfUsage => {
             if let Some(s) = api_setting_struct.endpoint_of_usage {
                 if s.len() == 0 {
                     config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -358,7 +358,7 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingsTarget::EndpointOfLangs => {
+        backend::arg::ApiSettingsTarget::EndpointOfLangs => {
             if let Some(s) = api_setting_struct.endpoint_of_langs {
                 if s.len() == 0 {
                     config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -372,24 +372,24 @@ fn handle_api_settings(api_setting_struct: backend::parse::ApiSettingsStruct) ->
                 return Ok(());
             }
         }
-        backend::parse::ApiSettingsTarget::ClearEndpoints => {
+        backend::arg::ApiSettingsTarget::ClearEndpoints => {
             config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
             config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
             config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
-        backend::parse::ApiSettingsTarget::ShowSettings => {
+        backend::arg::ApiSettingsTarget::ShowSettings => {
             display_api_settings()?;
             return Ok(());
         }
-        backend::parse::ApiSettingsTarget::ClearSettings => {
+        backend::arg::ApiSettingsTarget::ClearSettings => {
             clear_api_settings()?;
             return Ok(());
         }
     }
 }
 
-fn handle_cache_settings(cache_setting_struct: backend::parse::CacheSettingsStruct) -> Result<(), RuntimeError> {
+fn handle_cache_settings(cache_setting_struct: backend::arg::CacheSettingsStruct) -> Result<(), RuntimeError> {
     let cache_target = cache_setting_struct.setting_target;
     let mut config = backend::get_config()?;
     if let None = cache_target {
@@ -422,12 +422,12 @@ fn handle_cache_settings(cache_setting_struct: backend::parse::CacheSettingsStru
     Ok(())
 }
 
-fn handle_show_list(list_target_langs: backend::parse::ListTargetLangs) -> Result<(), RuntimeError> {
+fn handle_show_list(list_target_langs: backend::arg::ListTargetLangs) -> Result<(), RuntimeError> {
     match list_target_langs {
-        backend::parse::ListTargetLangs::SourceLangs => {
+        backend::arg::ListTargetLangs::SourceLangs => {
             show_source_language_codes()?;
         }
-        backend::parse::ListTargetLangs::TargetLangs => {
+        backend::arg::ListTargetLangs::TargetLangs => {
             show_target_language_codes()?;
         }
     }
@@ -637,7 +637,7 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
     // Parsing arguments.
-    let arg_struct = backend::parse::parser()?;
+    let arg_struct = backend::arg::parser()?;
     let mode = arg_struct.execution_mode;
     match mode {
         ExecutionMode::PrintUsage => {

@@ -1,10 +1,10 @@
-pub mod parse;
+pub mod arg;
 pub mod configure;
 pub mod cache;
 use configure::ConfigError;
 pub use configure::ApiKey;
 use cache::CacheError;
-pub use parse::ExecutionMode;
+pub use arg::ExecutionMode;
 
 use dptran::DpTranError;
 
