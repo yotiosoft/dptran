@@ -481,12 +481,123 @@ fn create_or_open_file(output_file: &str) -> Result<Option<std::fs::File>, Runti
     Ok(Some(backend::create_file(&output_file)?))
 }
 
+/// Commands prefixed with "/" in interactive mode.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum InteractiveCommand {
+    Exit,
+    SetSourceLang(String),
+    SetTargetLang(String),
+    GetSourceLangs,
+    GetTargetLangs,
+    Help,
+    Continue,
+}
+/// Handle commands prefixed with "/" in interactive mode.
+/// Returns Some(InteractiveCommand) if a command is recognized, otherwise None.
+fn determine_interactive_commands_in_text(text: &str) -> Option<InteractiveCommand> {
+    let trimmed_text = text.trim();
+    if trimmed_text == "/exit" || trimmed_text == "/quit" {
+        return Some(InteractiveCommand::Exit);
+    }
+    if trimmed_text.starts_with("/from") {
+        let parts: Vec<&str> = trimmed_text.split_whitespace().collect();
+        if parts.len() == 2 {
+            return Some(InteractiveCommand::SetSourceLang(parts[1].to_string()));
+        }
+        else {
+            println!("Invalid command. Usage: /from <language_code>");
+            return None;
+        }
+    }
+    if trimmed_text.starts_with("/to") {
+        let parts: Vec<&str> = trimmed_text.split_whitespace().collect();
+        if parts.len() == 2 {
+            return Some(InteractiveCommand::SetTargetLang(parts[1].to_string()));
+        }
+        else {
+            println!("Invalid command. Usage: /to <language_code>");
+            return None;
+        }
+    }
+    if trimmed_text == "/source-langs" {
+        return Some(InteractiveCommand::GetSourceLangs);
+    }
+    if trimmed_text == "/target-langs" {
+        return Some(InteractiveCommand::GetTargetLangs);
+    }
+    if trimmed_text == "/help" {
+        return Some(InteractiveCommand::Help);
+    }
+    None
+}
+
+fn handle_interactive_commands_in_text(dptran: &dptran::DpTran, text: &str) -> Option<InteractiveCommand> {
+    let cmd = determine_interactive_commands_in_text(text);
+    if cmd.is_none() {
+        return None;
+    }
+    let cmd = cmd.unwrap();
+    match cmd {
+        InteractiveCommand::Exit => {
+            return Some(InteractiveCommand::Exit);
+        }
+        InteractiveCommand::SetSourceLang(lang_code) => {
+            let corrected_lang_code = dptran.correct_source_language_code(&lang_code);
+            if let Err(e) = &corrected_lang_code {
+                println!("Invalid source language code: {}.", e.to_string());
+                return Some(InteractiveCommand::Continue);    // Continue the interactive mode
+            }
+            else if let Ok(corrected_lang_code) = corrected_lang_code {
+                println!("Source language set to {}.", corrected_lang_code);
+                return Some(InteractiveCommand::SetSourceLang(corrected_lang_code)); // Continue the interactive mode
+            }
+        }
+        InteractiveCommand::SetTargetLang(lang_code) => {
+            let corrected_lang_code = dptran.correct_target_language_code(&lang_code);
+            if let Err(e) = &corrected_lang_code {
+                println!("Invalid target language code: {}.", e.to_string());
+                return Some(InteractiveCommand::Continue);    // Continue the interactive mode
+            }
+            else if let Ok(corrected_lang_code) = corrected_lang_code {
+                println!("Target language set to {}.", corrected_lang_code);
+                return Some(InteractiveCommand::SetTargetLang(corrected_lang_code)); // Continue the interactive mode
+            }
+        }
+        InteractiveCommand::GetSourceLangs => {
+            if let Err(e) = show_source_language_codes() {
+                println!("Could not retrieve source language codes: {}.", e.to_string());
+            }
+            return Some(InteractiveCommand::Continue);    // Continue the interactive mode
+        }
+        InteractiveCommand::GetTargetLangs => {
+            if let Err(e) = show_target_language_codes() {
+                println!("Could not retrieve target language codes: {}.", e.to_string());
+            }
+            return Some(InteractiveCommand::Continue);    // Continue the interactive mode
+        }
+        InteractiveCommand::Help => {
+            println!("Available commands:");
+            println!("/exit or /quit               : Exit dptran");
+            println!("/from <language_code>        : Change the source language");
+            println!("/to <language_code>          : Change the target language");
+            println!("/source-langs                : Show available source language codes");
+            println!("/target-langs                : Show available target language codes");
+            println!("/help                        : Show this help message");
+            return Some(InteractiveCommand::Continue);    // Continue the interactive mode
+        }
+        InteractiveCommand::Continue => {
+            return Some(InteractiveCommand::Continue);    // Continue the interactive mode
+        }
+    }
+    None
+}
+
 /// Core function to handle the translation process.
 /// If in interactive mode, it will loop until "quit" or "exit" is entered.
 /// In normal mode, it will exit once after translation.
 /// Returns true if it continues the interactive mode, false if it exits.
-fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-                    multilines: bool, rm_line_breaks: bool, text: Option<String>, mut ofile: &Option<std::fs::File>) -> Result<bool, RuntimeError> {
+fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Option<String>, target_lang: &String, 
+                    multilines: bool, rm_line_breaks: bool, text: &Option<String>, mut ofile: &Option<std::fs::File>) -> Result<InteractiveCommand, RuntimeError> {
     // If in interactive mode, get from standard input
     // In normal mode, get from argument
     let input = get_input(&mode, multilines, rm_line_breaks, &text);
@@ -495,16 +606,21 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Opt
     }
     let input = input.unwrap();
 
-    // Interactive mode: "exit" or "quit" to exit
+    // Interactive mode: "/exit" or "/quit" to exit
     if mode == ExecutionMode::TranslateInteractive {
         if input.len() == 0 {
-            return Ok(true);    // Continue the interactive mode
+            return Ok(InteractiveCommand::Continue);
         }
-        if input[0].trim_end() == "quit" || input[0].trim_end() == "exit" {
-            return Ok(false);   // Exit the interactive mode
+        if input[0].starts_with("/") {
+            if let Some(cmd) = handle_interactive_commands_in_text(dptran, &input[0]) {
+                return Ok(cmd);
+            } else {
+                println!("Invalid command. To check available commands, type \"/help\".");
+                return Ok(InteractiveCommand::Continue);    // Continue the interactive mode
+            }
         }
         if input[0].clone().trim_end().is_empty() {
-            return Ok(true);    // Continue the interactive mode
+            return Ok(InteractiveCommand::Continue);    // Continue the interactive mode
         }
     }
 
@@ -541,10 +657,10 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Opt
 
     // In normal mode, exit the loop once.
     if mode == ExecutionMode::TranslateNormal {
-        return Ok(false);   // Exit the normal mode
+        return Ok(InteractiveCommand::Exit);   // Exit the normal mode
     }
-    
-    Ok(true)    // Continue the interactive mode
+
+    Ok(InteractiveCommand::Continue)    // Continue the interactive mode
 }
 
 /// Dialogue and Translation.
@@ -565,15 +681,36 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
         if multilines {
             println!("Multiline mode: Enter a blank line to send the input.");
         }
-        println!("Type \"exit\" or \"quit\" to exit dptran.");
+        println!("Type \"/exit\" or \"/quit\" to exit dptran.");
+        println!("Type \"/from <language_code>\" to change the source language and \"/to <language_code>\" to change the target language.");
+        println!("To see more commands, type \"/help\".");
     }
 
+    let mut source_lang = source_lang;
+    let mut target_lang = target_lang;
+
     loop {
-        match do_translation(dptran, mode, source_lang.clone(), target_lang.clone(), 
-                                multilines, rm_line_breaks, text.clone(), ofile) {
+        match do_translation(dptran, mode, &source_lang, &target_lang, multilines, rm_line_breaks, &text, ofile) {
             Ok(continue_mode) => {
-                if !continue_mode {
-                    break;  // Exit the loop if in normal mode or if "quit" or "exit" is entered in interactive mode
+                match continue_mode {
+                    InteractiveCommand::Continue => {
+                        // Continue the interactive mode
+                    }
+                    InteractiveCommand::Exit => {
+                        // Exit the interactive mode
+                        break;
+                    }
+                    InteractiveCommand::SetSourceLang(new_source_lang) => {
+                        // Change source language
+                        source_lang = Some(new_source_lang);
+                    }
+                    InteractiveCommand::SetTargetLang(new_target_lang) => {
+                        // Change target language
+                        target_lang = new_target_lang;
+                    }
+                    _ => {
+                        // Should not reach here
+                    }
                 }
             }
             Err(e) => {
