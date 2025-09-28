@@ -32,6 +32,10 @@ cargo install dptran
 ```
 
 ### Library crate
+
+``dptran`` includes dependencies for the binary CLI by default.
+To use only the library, please disable default features.
+
 ```bash
 cargo add dptran --no-default-features
 ```
@@ -66,6 +70,7 @@ dptran -f EN -t JA Hello
 dptran -t JA
 > Hello
 こんにちは
+> /quit    # To exit interactive mode
 
 # translate from a file and output to another file
 dptran -i text.txt -o translated.txt
@@ -160,6 +165,9 @@ Licensed under either of:
 - Apache License 2.0
 
 ## Release Notes
+
+- v2.3.4 (2025-09-28)
+  - Binary CLI: Support inputting commands in interactive mode (`/quit`, `/help`, `/from`, `/to`, etc.)
 
 - v2.3.3 (2025-09-07)
   - Binary CLI: Add clear-all and show options to API settings, change config --clear-all to not reset these API settings

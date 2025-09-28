@@ -208,11 +208,6 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
             let mut input_vec = Vec::<String>::new();
             let mut input = String::new();
             while stdin.read_line(&mut input).unwrap() > 0 {
-                if input.trim_end() == "quit" || input.trim_end() == "exit" {
-                    input_vec.push(input);
-                    break;
-                }
-
                 // If in multiline mode, it accepts input including newlines.
                 if multilines {
                     if input == "\r\n" || input == "\n" {
@@ -593,7 +588,7 @@ fn handle_interactive_commands_in_text(dptran: &dptran::DpTran, text: &str) -> O
 }
 
 /// Core function to handle the translation process.
-/// If in interactive mode, it will loop until "quit" or "exit" is entered.
+/// If in interactive mode, it will loop until "/quit" or "/exit" is entered.
 /// In normal mode, it will exit once after translation.
 /// Returns true if it continues the interactive mode, false if it exits.
 fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Option<String>, target_lang: &String, 

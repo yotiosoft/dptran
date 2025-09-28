@@ -34,6 +34,9 @@ cargo install dptran
 
 ### ライブラリクレート
 
+``dptran`` にはデフォルトでバイナリCLIの依存関係が含まれています。
+ライブラリのみを使用する場合は、デフォルトの機能を無効にしてください。
+
 ```bash
 cargo add dptran --no-default-features
 ```
@@ -69,6 +72,7 @@ dptran -f EN -t JA Hello
 dptran -t JA
 > Hello
 こんにちは
+> /quit    # 対話モードを終了
 
 # ファイルから翻訳し別のファイルに出力
 dptran -i text.txt -o translated.txt
@@ -163,6 +167,9 @@ crate page : https://crates.io/crates/dptran
 - Apache License 2.0
 
 ## リリースノート
+
+- v2.3.4 (2025-09-28)
+  - バイナリ CLI: interactive モードでのコマンド入力をサポート（`/quit`, `/help`, `/from`, `/to`, etc.）
 
 - v2.3.3 (2025-09-07)
   - バイナリ CLI: API 設定に clear-all と show オプションを追加し、config --clear-all で API 設定をリセットしないように変更
