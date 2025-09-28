@@ -66,7 +66,7 @@ Bonjour
 dptran -f EN -t JA Hello
 こんにちは
 
-# translate interactively
+# translate interactively (original text is not given at startup)
 dptran -t JA
 > Hello
 こんにちは

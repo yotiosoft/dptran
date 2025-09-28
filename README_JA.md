@@ -68,7 +68,7 @@ Bonjour
 dptran -f EN -t JA Hello
 こんにちは
 
-# 対話的に翻訳
+# 対話的に翻訳 (原文は入力せずに起動)
 dptran -t JA
 > Hello
 こんにちは
