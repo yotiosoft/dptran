@@ -72,6 +72,9 @@ dptran -f EN -t JA Hello
 dptran -t JA
 > Hello
 こんにちは
+> /to FR   # ターゲット言語をフランス語に変更
+> Hello
+Bonjour
 > /quit    # 対話モードを終了
 
 # ファイルから翻訳し別のファイルに出力

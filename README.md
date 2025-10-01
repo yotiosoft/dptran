@@ -70,6 +70,9 @@ dptran -f EN -t JA Hello
 dptran -t JA
 > Hello
 こんにちは
+> /to FR   # Change target language to French
+> Hello
+Bonjour
 > /quit    # To exit interactive mode
 
 # translate from a file and output to another file
