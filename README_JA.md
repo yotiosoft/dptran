@@ -171,7 +171,7 @@ crate page : https://crates.io/crates/dptran
 
 ## リリースノート
 
-- v2.3.4 (2025-09-28)
+- v2.3.4 (2025-10-04)
   - バイナリ CLI: interactive モードでのコマンド入力をサポート（`/quit`, `/help`, `/from`, `/to`, etc.）
 
 - v2.3.3 (2025-09-07)

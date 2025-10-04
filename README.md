@@ -169,7 +169,7 @@ Licensed under either of:
 
 ## Release Notes
 
-- v2.3.4 (2025-09-28)
+- v2.3.4 (2025-10-04)
   - Binary CLI: Support inputting commands in interactive mode (`/quit`, `/help`, `/from`, `/to`, etc.)
 
 - v2.3.3 (2025-09-07)
