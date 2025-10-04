@@ -1164,7 +1164,7 @@ mod runtime_tests {
 
         let mut child = text.unwrap();
         std::thread::sleep(std::time::Duration::from_secs(2));
-        let input = "Hello, world!\nquit\n";
+        let input = "Hello, world!\n/quit\n";
         let output = child.stdin.as_mut().unwrap().write_all(input.as_bytes());
         if let Err(e) = output {
             panic!("Error: {}", e);
