@@ -1,4 +1,4 @@
-//! curlを用いたDeepL APIとの通信
+//! Connection with DeepL API using curl
 
 use std::str;
 use std::fmt;
