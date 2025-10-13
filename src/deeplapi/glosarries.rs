@@ -54,7 +54,7 @@ struct GlossariesResponseData {
 /// Create a glosarry post data.
 pub fn create_glosarry_post(api: &DpTran, name: &String, glosarries: &Vec<Glosarry>) -> GlossariesPostData {
     // Prepare post data
-    let dictionaries: Vec<DictionaryPostData> = Vec::new();
+    let mut dictionaries: Vec<DictionaryPostData> = Vec::new();
     for g in glosarries {
         // Currently, we use only TSV format.
         let mut entries = String::new();
@@ -63,6 +63,13 @@ pub fn create_glosarry_post(api: &DpTran, name: &String, glosarries: &Vec<Glosar
             let target = target.replace("\t", " ");  // Replace tab characters in the target
             entries = format!("{}\n{}\t{}", entries, source, target);
         }
+        let dict_post_data = DictionaryPostData {
+            source_lang: g.source_lang.clone(),
+            target_lang: g.target_lang.clone(),
+            entries: entries.trim().to_string(),
+            entries_format: "tsv".to_string(),
+        };
+        dictionaries.push(dict_post_data);
     }
     let post_data = GlossariesPostData {
         name: name.clone(),
@@ -72,7 +79,7 @@ pub fn create_glosarry_post(api: &DpTran, name: &String, glosarries: &Vec<Glosar
 }
 
 /// Create a curl session.
-pub fn send_glosarry_post(api: &DpTran, post_data: &GlossariesPostData) -> Result<String, ConnectionError> {
+pub fn post_glosarry(api: &DpTran, post_data: &GlossariesPostData) -> Result<String, ConnectionError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         DEEPL_API_GLOSARRIES.to_string()
     } else {
