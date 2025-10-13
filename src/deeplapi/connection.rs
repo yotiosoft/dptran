@@ -104,6 +104,9 @@ pub fn post(url: String, post_data: String) -> Result<String, ConnectionError> {
     }
 }
 
+/// Communicate with the DeepL API with header
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
