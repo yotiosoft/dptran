@@ -105,7 +105,31 @@ pub fn post(url: String, post_data: String) -> Result<String, ConnectionError> {
 }
 
 /// Communicate with the DeepL API with header
+pub fn post_with_headers(url: String, post_data: String, header: &Vec<String>) -> Result<String, ConnectionError> {
+    let mut easy = match make_session(url, post_data) {
+        Ok(easy) => easy,
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+    {
+        let mut list = curl::easy::List::new();
+        for h in header {
+            list.append(h).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+        }
+        easy.http_headers(list).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+    }
+    let (dst, response_code) = match transfer(easy) {
+        Ok((dst, response_code)) => (dst, response_code),
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
 
+    if dst.len() > 0 {
+        let s = str::from_utf8(&dst).expect("Invalid UTF-8");
+        Ok(s.to_string())
+    } else {
+        // HTTP Error Handling
+        Err(handle_error(response_code))
+    }
+}
 
 #[cfg(test)]
 mod tests {

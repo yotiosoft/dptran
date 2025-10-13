@@ -72,24 +72,18 @@ pub fn create_glosarry_post(api: &DpTran, name: &String, glosarries: &Vec<Glosar
 }
 
 /// Create a curl session.
-fn send_glosarry_post(api: &DpTran, post_data: &GlossariesPostData) -> Result<String, ConnectionError> {
+pub fn send_glosarry_post(api: &DpTran, post_data: &GlossariesPostData) -> Result<String, ConnectionError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         DEEPL_API_GLOSARRIES.to_string()
     } else {
         DEEPL_API_GLOSARRIES_PRO.to_string()
     };
-    // For the glosarry api, we need to use deepl api v3.
-    // So, we need to set auth_key in the header.
-    // curl -X POST 'https://api.deepl.com/v3/glossaries' \
-    // --header 'Authorization: DeepL-Auth-Key [yourAuthKey]' \
-    // --header 'Content-Type: application/json' \
-    // --data '{
     
     let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
     let header_content_type = "Content-Type: application/json";
     let headers = vec![header_auth_key, header_content_type.to_string()];
     let post_data_json = serde_json::to_string(post_data).unwrap();
-    connection::post_with_headers(url, post_data_json, headers)
+    connection::post_with_headers(url, post_data_json, &headers)
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
