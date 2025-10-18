@@ -3,7 +3,7 @@
 # $ pip3 install -r requirements.txt
 # $ uvicorn dummy-api-server:app --reload 
 
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -25,6 +25,35 @@ class TranslationDummyData(BaseModel):
     target_lang: str
     request: str
     reponse: str
+
+class SplitSentences(str):
+    pass
+
+class Formality(str):
+    pass
+
+class ModelType(str):
+    pass
+
+class TagHandling(str):
+    pass
+
+class TranslateRequest(BaseModel):
+    text: List[str]
+    target_lang: str
+    source_lang: Optional[str] = None
+    context: Optional[str] = None
+    show_billed_characters: Optional[bool] = None
+    split_sentences: Optional[SplitSentences] = None
+    preserve_formatting: Optional[bool] = None
+    formality: Optional[Formality] = None
+    model_type: Optional[ModelType] = None
+    glossary_id: Optional[str] = None
+    tag_handling: Optional[TagHandling] = None
+    outline_detection: Optional[bool] = None
+    non_splitting_tags: Optional[List[str]] = None
+    splitting_tags: Optional[List[str]] = None
+    ignore_tags: Optional[List[str]] = None
 
 dummy_data = [
     TranslationDummyData(
@@ -180,18 +209,44 @@ def languages_response(type: str) -> JSONResponse:
     )
 
 @app.post("/free/v2/translate")
-async def translate_for_free(auth_key: str = Form(...), target_lang: str = Form(...), text: List[str] = Form(...), source_lang: Optional[str] = Form(None)):
-    print(f"Received request: auth_key={auth_key}, target_lang={target_lang}, text={text}, source_lang={source_lang}")
-    if auth_key == "":
+async def translate_for_free(request: Request, body: TranslateRequest):
+    # Get the Authorization header
+    auth_header = request.headers.get("Authorization", "")
+    print(f"Authorization header: {auth_header}")
+
+    # Check if the Authorization header is valid
+    if not auth_header.startswith("DeepL-Auth-Key "):
+        return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
+
+    api_key = auth_header.replace("DeepL-Auth-Key ", "")
+    if not api_key:
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
-    return translate_texts(source_lang, target_lang, text)
+
+    # Log the request body for debugging
+    print(f"Received JSON: {body.json()}")
+
+    # Call the translation function
+    return translate_texts(body.source_lang, body.target_lang, body.text)
 
 @app.post("/pro/v2/translate")
-async def translate_for_pro(auth_key: str = Form(...), target_lang: str = Form(...), text: List[str] = Form(...), source_lang: Optional[str] = Form(None)):
-    print(f"Received request: auth_key={auth_key}, target_lang={target_lang}, source_lang={source_lang}, text={text}")
-    if auth_key == "":
+async def translate_for_pro(request: Request, body: TranslateRequest):
+    # Get the Authorization header
+    auth_header = request.headers.get("Authorization", "")
+    print(f"Authorization header: {auth_header}")
+
+    # Check if the Authorization header is valid
+    if not auth_header.startswith("DeepL-Auth-Key "):
+        return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
+
+    api_key = auth_header.replace("DeepL-Auth-Key ", "")
+    if not api_key:
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
-    return translate_texts(source_lang, target_lang, text)
+
+    # Log the request body for debugging
+    print(f"Received JSON: {body.json()}")
+
+    # Call the translation function
+    return translate_texts(body.source_lang, body.target_lang, body.text)
 
 @app.post("/free/v2/usage")
 async def usage_for_free(auth_key: str = Form(...)):
