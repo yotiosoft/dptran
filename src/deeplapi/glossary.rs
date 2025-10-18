@@ -7,10 +7,10 @@ use connection::ConnectionError;
 use super::DeeplAPIError;
 use super::ApiKeyType;
 
-pub const DEEPL_API_GLOSARRIES: &str = "https://api-free.deepl.com/v3/glossaries";
-pub const DEEPL_API_GLOSARRIES_PRO: &str = "https://api.deepl.com/v3/glossaries";
+pub const DEEPL_API_GLOSSARIES: &str = "https://api-free.deepl.com/v3/glossaries";
+pub const DEEPL_API_GLOSSARIES_PRO: &str = "https://api.deepl.com/v3/glossaries";
 
-pub enum GlosarryFormat {
+pub enum GlossaryFormat {
     Tsv,
     Csv,
 }
@@ -51,19 +51,51 @@ struct GlossaryResponseData {
     creation_time: String,
 }
 
+impl Glossary {
+    /// Create a glossary.
+    pub fn new(source_lang: &String, target_lang: &String, entries: &Vec<(String, String)>) -> Self {
+        Glossary {
+            source_lang: source_lang.clone(),
+            target_lang: target_lang.clone(),
+            entries: entries.clone(),
+        }
+    }
+
+    /// Add an entry to the glossary.
+    pub fn add_entry(&mut self, source_term: &String, target_term: &String) {
+        self.entries.push((source_term.clone(), target_term.clone()));
+    }
+}
+
 impl GlossaryPostData {
     /// Create a glossary post data.
-    pub fn new(name: &String, glossaries: &Vec<Glossary>) -> Self {
+    pub fn new(name: &String, glossaries: &Vec<Glossary>, entries_format: &GlossaryFormat) -> Self {
         // Prepare post data
-        let dictionaries: Vec<DictionaryPostData> = Vec::new();
+        let mut dictionaries: Vec<DictionaryPostData> = Vec::new();
         for g in glossaries {
             // Currently, we use only TSV format.
             let mut entries = String::new();
             for (source, target) in &g.entries {
                 let source = source.replace("\t", " ");  // Replace tab characters in the source
                 let target = target.replace("\t", " ");  // Replace tab characters in the target
-                entries = format!("{}\n{}\t{}", entries, source, target);
+                entries = match entries_format {
+                    GlossaryFormat::Tsv => format!("{}{}\t{}\n", entries, source, target),
+                    GlossaryFormat::Csv => format!("{}\"{}\",\"{}\"\n", entries, source.replace("\"", "\"\""), target.replace("\"", "\"\"")),
+                };
             }
+
+            // Create dictionary post data
+            let entries_format_str = match entries_format {
+                GlossaryFormat::Tsv => "tsv",
+                GlossaryFormat::Csv => "csv",
+            }.to_string();
+            let dict_post_data = DictionaryPostData {
+                source_lang: g.source_lang.clone(),
+                target_lang: g.target_lang.clone(),
+                entries: entries,
+                entries_format: entries_format_str,
+            };
+            dictionaries.push(dict_post_data);
         }
         let post_data = GlossaryPostData {
             name: name.clone(),
@@ -75,9 +107,9 @@ impl GlossaryPostData {
     /// Create a curl session.
     pub fn send(&self, api: &DpTran) -> Result<String, ConnectionError> {
         let url = if api.api_key_type == ApiKeyType::Free {
-            DEEPL_API_GLOSARRIES.to_string()
+            DEEPL_API_GLOSSARIES.to_string()
         } else {
-            DEEPL_API_GLOSARRIES_PRO.to_string()
+            DEEPL_API_GLOSSARIES_PRO.to_string()
         };
         
         let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
