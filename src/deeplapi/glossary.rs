@@ -11,6 +11,8 @@ use super::ApiKeyType;
 
 pub const DEEPL_API_GLOSSARIES: &str = "https://api-free.deepl.com/v3/glossaries";
 pub const DEEPL_API_GLOSSARIES_PRO: &str = "https://api.deepl.com/v3/glossaries";
+pub const DEEPL_API_GLOSSARIES_PAIRS: &str = "https://api-free.deepl.com/v2/glossary-language-pairs";
+pub const DEEPL_API_GLOSSARIES_PRO_PAIRS: &str = "https://api.deepl.com/v2/glossary-language-pairs";
 
 #[derive(Debug, PartialEq)]
 pub enum GlossaryError {
@@ -28,17 +30,23 @@ impl fmt::Display for GlossaryError {
     }
 }
 
+/// Glossary file format
+/// TSV: Tab-Separated Values
+/// CSV: Comma-Separated Values
 pub enum GlossaryFormat {
     Tsv,
     Csv,
 }
 
+/// Glossary dictionary.
+/// A glossary consists of one or more pairs of words.
 pub struct Dictionary {
     source_lang: String,
     target_lang: String,
     entries: Vec<(String, String)>,
 }
 
+/// Data structures for glossary API.
 #[derive(serde::Deserialize, serde::Serialize)]
 struct DictionaryPostData {
     source_lang: String,
@@ -47,28 +55,44 @@ struct DictionaryPostData {
     entries_format: String,
 }
 
-#[derive(serde::Serialize)]
-struct DictionaryResponseData {
-    source_lang: String,
-    target_lang: String,
-    entry_count: u64,
+/// Response data structures for glossary API.
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct DictionaryResponseData {
+    pub source_lang: String,
+    pub target_lang: String,
+    pub entry_count: u64,
 }
 
+/// Glossary post data structure.
+/// Used to create a glossary via the DeepL API.
+/// You need to create an instance of this struct to send a glossary creation request.
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Glossary {
     name: String,
     dictionaries: Vec<DictionaryPostData>,
 }
 
+/// Response data structure for glossary creation via DeepL API.
+/// Returned when a glossary is successfully created.
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct GlossaryResponseData {
     pub glossary_id: String,
-    pub ready: bool,
     pub name: String,
+    pub dictionaries: Vec<DictionaryResponseData>,
+    pub creation_time: String,
+}
+
+/// An entry of supported languages by Glossaries API.
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct SupportedLanguageEntry {
     pub source_lang: String,
     pub target_lang: String,
-    pub creation_time: String,
-    pub entry_count: u64,
+}
+
+/// List of supported languages by Glossaries API.
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct SupportedLanguages {
+    pub supported_languages: Vec<SupportedLanguageEntry>,
 }
 
 impl Dictionary {
@@ -145,6 +169,33 @@ impl Glossary {
         match ret {
             Ok(res) => {
                 let ret: GlossaryResponseData = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
+                Ok(ret)
+            },
+            Err(e) => Err(GlossaryError::ConnectionError(e)),
+        }
+    }
+}
+
+impl SupportedLanguages {
+    /// Get supported languages for Glossaries API.
+    pub fn get(api: &DpTran) -> Result<SupportedLanguages, GlossaryError> {
+        let url = if api.api_key_type == ApiKeyType::Free {
+            DEEPL_API_GLOSSARIES_PAIRS.to_string()
+        } else {
+            DEEPL_API_GLOSSARIES_PRO_PAIRS.to_string()
+        };
+        
+        // Prepare headers
+        let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+        let headers = vec![header_auth_key];
+        
+        // Send request
+        let ret = connection::get_with_headers(url, &headers);
+
+        // Handle response
+        match ret {
+            Ok(res) => {
+                let ret: SupportedLanguages = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
                 Ok(ret)
             },
             Err(e) => Err(GlossaryError::ConnectionError(e)),

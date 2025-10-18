@@ -769,6 +769,15 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
 
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
+    // API Key confirmation
+    let api_key = match backend::get_api_key()? {
+        Some(api_key) => api_key,
+        None => {
+            print_api_key_error();
+            return Ok(());
+        },
+    };
+
     // Parsing arguments.
     let arg_struct = backend::args::parser()?;
     let mode = arg_struct.execution_mode;

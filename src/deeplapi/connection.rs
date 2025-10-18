@@ -45,12 +45,19 @@ impl fmt::Display for ConnectionError {
     }
 }
 
-/// Preparing curl::easy
-fn make_session(url: String, post_data: String) -> Result<Easy, String> {
+/// Create a POST session
+fn make_post_session(url: String, post_data: String) -> Result<Easy, String> {
     let mut easy = Easy::new();
     easy.url(url.as_str()).map_err(|e| e.to_string())?;
     easy.post(true).map_err(|e| e.to_string())?;
     easy.post_fields_copy(post_data.as_bytes()).map_err(|e| e.to_string())?;
+    Ok(easy)
+}
+
+/// Create a GET session
+fn make_get_session(url: String) -> Result<Easy, String> {
+    let mut easy = Easy::new();
+    easy.url(url.as_str()).map_err(|e| e.to_string())?;
     Ok(easy)
 }
 
@@ -86,7 +93,7 @@ fn handle_error(response_code: u32) -> ConnectionError {
 
 /// Communicate with the DeepL API.
 pub fn post(url: String, post_data: String) -> Result<String, ConnectionError> {
-    let easy = match make_session(url, post_data) {
+    let easy = match make_post_session(url, post_data) {
         Ok(easy) => easy,
         Err(e) => return Err(ConnectionError::CurlError(e)),
     };
@@ -106,7 +113,34 @@ pub fn post(url: String, post_data: String) -> Result<String, ConnectionError> {
 
 /// Communicate with the DeepL API with header
 pub fn post_with_headers(url: String, post_data: String, header: &Vec<String>) -> Result<String, ConnectionError> {
-    let mut easy = match make_session(url, post_data) {
+    let mut easy = match make_post_session(url, post_data) {
+        Ok(easy) => easy,
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+    {
+        let mut list = curl::easy::List::new();
+        for h in header {
+            list.append(h).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+        }
+        easy.http_headers(list).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+    }
+    let (dst, response_code) = match transfer(easy) {
+        Ok((dst, response_code)) => (dst, response_code),
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+
+    if dst.len() > 0 {
+        let s = str::from_utf8(&dst).expect("Invalid UTF-8");
+        Ok(s.to_string())
+    } else {
+        // HTTP Error Handling
+        Err(handle_error(response_code))
+    }
+}
+
+/// Get method with headers
+pub fn get_with_headers(url: String, header: &Vec<String>) -> Result<String, ConnectionError> {
+    let mut easy = match make_get_session(url) {
         Ok(easy) => easy,
         Err(e) => return Err(ConnectionError::CurlError(e)),
     };

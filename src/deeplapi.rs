@@ -12,7 +12,7 @@ pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
 mod languages;
 pub use languages::{LangCodeName, DEEPL_API_LANGUAGES, DEEPL_API_LANGUAGES_PRO};
 pub mod glossary;
-pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary, GlossaryResponseData};
+pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary, GlossaryResponseData, SupportedLanguages};
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
@@ -96,6 +96,12 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
 /// Send glossary to DeepL API and create a glossary.
 pub fn send_glossary(api: &DpTran, glossary: &Glossary) -> Result<GlossaryResponseData, DeeplAPIError> {
     glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+}
+
+/// For the glossary API.
+/// Get supported languages for Glossaries API.
+pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossary::SupportedLanguages, DeeplAPIError> {
+    glossary::SupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  

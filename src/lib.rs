@@ -225,6 +225,12 @@ impl DpTran {
         deeplapi::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
+    /// Translate with options. Using DeepL API.
+    /// You need to create a TranslateRequest instance first.
+    pub fn translate_with_options(&self, request: &translate::TranslateRequest) -> Result<translate::TranslateResponse, DpTranError> {
+        deeplapi::translate_with_options(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
+    }
+
     /// Send glossary to DeepL API and create a glossary.
     /// You need to create a Glossary instance first.
     /// Returns the glossary ID if successful.
@@ -233,6 +239,13 @@ impl DpTran {
     pub fn send_glossary(&self, glossary: &Glossary) -> Result<String, DpTranError> {
         let api_response = deeplapi::send_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))?;
         Ok(api_response.glossary_id)
+    }
+
+    /// Get supported languages for Glossaries API.
+    /// Returns the supported languages.
+    /// api_key: DeepL API key
+    pub fn get_glossary_supported_languages(&self) -> Result<glossary::SupportedLanguages, DpTranError> {
+        deeplapi::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
 
