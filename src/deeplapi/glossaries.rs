@@ -47,8 +47,8 @@ pub struct Dictionary {
 }
 
 /// Data structures for glossary API.
-#[derive(serde::Deserialize, serde::Serialize)]
-struct DictionaryPostData {
+#[derive(serde::Deserialize, serde::Serialize, Clone)]
+pub struct DictionaryPostData {
     source_lang: String,
     target_lang: String,
     entries: String,
@@ -174,6 +174,23 @@ impl Glossary {
             Err(e) => Err(GlossaryError::ConnectionError(e)),
         }
     }
+
+    /// Get glossary dictionaries.
+    pub fn get_dictionaries(&self) -> Vec<DictionaryPostData> {
+        self.dictionaries.clone()
+    }
+}
+
+impl DictionaryPostData {
+    /// Get source language.
+    pub fn get_source_lang(&self) -> &String {
+        &self.source_lang
+    }
+
+    /// Get target language.
+    pub fn get_target_lang(&self) -> &String {
+        &self.target_lang
+    }
 }
 
 impl SupportedLanguages {
@@ -200,6 +217,16 @@ impl SupportedLanguages {
             },
             Err(e) => Err(GlossaryError::ConnectionError(e)),
         }
+    }
+
+    /// Is the language pair supported?
+    pub fn is_lang_pair_supported(&self, source_lang: &String, target_lang: &String) -> bool {
+        for pair in &self.supported_languages {
+            if &pair.source_lang == source_lang && &pair.target_lang == target_lang {
+                return true;
+            }
+        }
+        false
     }
 }
 

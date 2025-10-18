@@ -32,6 +32,7 @@ pub enum DpTranError {
     ApiKeyIsNotSet,
     NoTargetLanguageSpecified,
     CouldNotGetInputText,
+    GlossaryLangPairNotSupported,
 }
 impl ToString for DpTranError {
     fn to_string(&self) -> String {
@@ -41,6 +42,7 @@ impl ToString for DpTranError {
             DpTranError::ApiKeyIsNotSet => "API key is not set".to_string(),
             DpTranError::NoTargetLanguageSpecified => "No target language specified".to_string(),
             DpTranError::CouldNotGetInputText => "Could not get input text".to_string(),
+            DpTranError::GlossaryLangPairNotSupported => "Glossary language pair not supported".to_string(),
         }
     }
 }
@@ -245,6 +247,14 @@ impl DpTran {
     /// api_key: DeepL API key
     /// glossary: Glossary instance
     pub fn send_glossary(&self, glossary: &Glossary) -> Result<String, DpTranError> {
+        // Check if the glossary language pair is supported
+        for dict in glossary.get_dictionaries() {
+            let is_supported = self.get_glossary_supported_languages()?.is_lang_pair_supported(&dict.get_source_lang(), &dict.get_target_lang());
+            if !is_supported {
+                return Err(DpTranError::GlossaryLangPairNotSupported);
+            }
+        }
+        // Send glossary
         let api_response = deeplapi::send_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))?;
         Ok(api_response.glossary_id)
     }
