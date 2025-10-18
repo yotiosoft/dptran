@@ -60,7 +60,7 @@ pub struct TranslateResponse {
 }
 
 /// Enum for split_sentences option
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug)]
 pub enum SplitSentences {
     /// no splitting at all, whole input is treated as one sentence
     False,
@@ -82,9 +82,23 @@ impl serde::Serialize for SplitSentences {
         serializer.serialize_str(s)
     }
 }
+impl<'de> serde::Deserialize<'de> for SplitSentences {
+    fn deserialize<D>(deserializer: D) -> Result<SplitSentences, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: &str = serde::Deserialize::deserialize(deserializer)?;
+        match s {
+            "0" => Ok(SplitSentences::False),
+            "1" => Ok(SplitSentences::True),
+            "nonewlines" => Ok(SplitSentences::NoNewLines),
+            _ => Err(serde::de::Error::custom(format!("Invalid value for SplitSentences: {}", s))),
+        }
+    }
+}
 
 /// Enum for formality option
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug)]
 pub enum Formality {
     Default,
     More,
@@ -107,9 +121,25 @@ impl serde::Serialize for Formality {
         serializer.serialize_str(s)
     }
 }
+impl <'de> serde::Deserialize<'de> for Formality {
+    fn deserialize<D>(deserializer: D) -> Result<Formality, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: &str = serde::Deserialize::deserialize(deserializer)?;
+        match s {
+            "default" => Ok(Formality::Default),
+            "more" => Ok(Formality::More),
+            "less" => Ok(Formality::Less),
+            "prefer_more" => Ok(Formality::PreferMore),
+            "prefer_less" => Ok(Formality::PreferLess),
+            _ => Err(serde::de::Error::custom(format!("Invalid value for Formality: {}", s))),
+        }
+    }
+}
 
 /// Enum for model_type option
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug)]
 pub enum ModelType {
     QualityOptimized,
     PreferQualityOptimized,
@@ -128,9 +158,23 @@ impl serde::Serialize for ModelType {
         serializer.serialize_str(s)
     }
 }
+impl <'de> serde::Deserialize<'de> for ModelType {
+    fn deserialize<D>(deserializer: D) -> Result<ModelType, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: &str = serde::Deserialize::deserialize(deserializer)?;
+        match s {
+            "quality_optimized" => Ok(ModelType::QualityOptimized),
+            "prefer_quality_optimized" => Ok(ModelType::PreferQualityOptimized),
+            "latency_optimized" => Ok(ModelType::LatencyOptimized),
+            _ => Err(serde::de::Error::custom(format!("Invalid value for ModelType: {}", s))),
+        }
+    }
+}
 
 /// Enum for tag_handling option
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug)]
 pub enum TagHandling {
     Xml,
     Html,
@@ -145,6 +189,19 @@ impl serde::Serialize for TagHandling {
             TagHandling::Html => "html",
         };
         serializer.serialize_str(s)
+    }
+}
+impl <'de> serde::Deserialize<'de> for TagHandling {
+    fn deserialize<D>(deserializer: D) -> Result<TagHandling, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: &str = serde::Deserialize::deserialize(deserializer)?;
+        match s {
+            "xml" => Ok(TagHandling::Xml),
+            "html" => Ok(TagHandling::Html),
+            _ => Err(serde::de::Error::custom(format!("Invalid value for TagHandling: {}", s))),
+        }
     }
 }
 
@@ -239,5 +296,235 @@ mod tests {
                 panic!("Error: {}", e);
             }
         }
+    }
+
+    #[test]
+    fn api_split_sentences_serialize() {
+        let s1 = SplitSentences::False;
+        let s2 = SplitSentences::True;
+        let s3 = SplitSentences::NoNewLines;
+        let res1 = serde_json::to_string(&s1).unwrap();
+        let res2 = serde_json::to_string(&s2).unwrap();
+        let res3 = serde_json::to_string(&s3).unwrap();
+        assert_eq!(res1, r#""0""#);
+        assert_eq!(res2, r#""1""#);
+        assert_eq!(res3, r#""nonewlines""#);
+    }
+
+    #[test]
+    fn api_split_sentences_deserialize() {
+        let json1 = r#""0""#;
+        let json2 = r#""1""#;
+        let json3 = r#""nonewlines""#;
+        let res1: SplitSentences = serde_json::from_str(json1).unwrap();
+        let res2: SplitSentences = serde_json::from_str(json2).unwrap();
+        let res3: SplitSentences = serde_json::from_str(json3).unwrap();
+        match res1 {
+            SplitSentences::False => {},
+            _ => panic!("Expected SplitSentences::False"),
+        }
+        match res2 {
+            SplitSentences::True => {},
+            _ => panic!("Expected SplitSentences::True"),
+        }
+        match res3 {
+            SplitSentences::NoNewLines => {},
+            _ => panic!("Expected SplitSentences::NoNewLines"),
+        }
+    }
+
+    #[test]
+    fn api_formality_serialize() {
+        let f1 = Formality::Default;
+        let f2 = Formality::More;
+        let f3 = Formality::Less;
+        let f4 = Formality::PreferMore;
+        let f5 = Formality::PreferLess;
+        let res1 = serde_json::to_string(&f1).unwrap();
+        let res2 = serde_json::to_string(&f2).unwrap();
+        let res3 = serde_json::to_string(&f3).unwrap();
+        let res4 = serde_json::to_string(&f4).unwrap();
+        let res5 = serde_json::to_string(&f5).unwrap();
+        assert_eq!(res1, r#""default""#);
+        assert_eq!(res2, r#""more""#);
+        assert_eq!(res3, r#""less""#);
+        assert_eq!(res4, r#""prefer_more""#);
+        assert_eq!(res5, r#""prefer_less""#);
+    }
+
+    #[test]
+    fn api_formality_deserialize() {
+        let json1 = r#""default""#;
+        let json2 = r#""more""#;
+        let json3 = r#""less""#;
+        let json4 = r#""prefer_more""#;
+        let json5 = r#""prefer_less""#;
+        let res1: Formality = serde_json::from_str(json1).unwrap();
+        let res2: Formality = serde_json::from_str(json2).unwrap();
+        let res3: Formality = serde_json::from_str(json3).unwrap();
+        let res4: Formality = serde_json::from_str(json4).unwrap();
+        let res5: Formality = serde_json::from_str(json5).unwrap();
+        match res1 {
+            Formality::Default => {},
+            _ => panic!("Expected Formality::Default"),
+        }
+        match res2 {
+            Formality::More => {},
+            _ => panic!("Expected Formality::More"),
+        }
+        match res3 {
+            Formality::Less => {},
+            _ => panic!("Expected Formality::Less"),
+        }
+        match res4 {
+            Formality::PreferMore => {},
+            _ => panic!("Expected Formality::PreferMore"),
+        }
+        match res5 {
+            Formality::PreferLess => {},
+            _ => panic!("Expected Formality::PreferLess"),
+        }
+    }
+
+    #[test]
+    fn api_model_type_serialize() {
+        let m1 = ModelType::QualityOptimized;
+        let m2 = ModelType::PreferQualityOptimized;
+        let m3 = ModelType::LatencyOptimized;
+        let res1 = serde_json::to_string(&m1).unwrap();
+        let res2 = serde_json::to_string(&m2).unwrap();
+        let res3 = serde_json::to_string(&m3).unwrap();
+        assert_eq!(res1, r#""quality_optimized""#);
+        assert_eq!(res2, r#""prefer_quality_optimized""#);
+        assert_eq!(res3, r#""latency_optimized""#);
+    }
+
+    #[test]
+    fn api_model_type_deserialize() {
+        let json1 = r#""quality_optimized""#;
+        let json2 = r#""prefer_quality_optimized""#;
+        let json3 = r#""latency_optimized""#;
+        let res1: ModelType = serde_json::from_str(json1).unwrap();
+        let res2: ModelType = serde_json::from_str(json2).unwrap();
+        let res3: ModelType = serde_json::from_str(json3).unwrap();
+        match res1 {
+            ModelType::QualityOptimized => {},
+            _ => panic!("Expected ModelType::QualityOptimized"),
+        }
+        match res2 {
+            ModelType::PreferQualityOptimized => {},
+            _ => panic!("Expected ModelType::PreferQualityOptimized"),
+        }
+        match res3 {
+            ModelType::LatencyOptimized => {},
+            _ => panic!("Expected ModelType::LatencyOptimized"),
+        }
+    }
+
+    #[test]
+    fn api_tag_handling_serialize() {
+        let t1 = TagHandling::Xml;
+        let t2 = TagHandling::Html;
+        let res1 = serde_json::to_string(&t1).unwrap();
+        let res2 = serde_json::to_string(&t2).unwrap();
+        assert_eq!(res1, r#""xml""#);
+        assert_eq!(res2, r#""html""#);
+    }
+
+    #[test]
+    fn api_tag_handling_deserialize() {
+        let json1 = r#""xml""#;
+        let json2 = r#""html""#;
+        let res1: TagHandling = serde_json::from_str(json1).unwrap();
+        let res2: TagHandling = serde_json::from_str(json2).unwrap();
+        match res1 {
+            TagHandling::Xml => {},
+            _ => panic!("Expected TagHandling::Xml"),
+        }
+        match res2 {
+            TagHandling::Html => {},
+            _ => panic!("Expected TagHandling::Html"),
+        }
+    }
+
+    #[test]
+    fn api_translate_request_serialize() {
+        let request = TranslateRequest {
+            text: vec!["Hello, world!".to_string()],
+            target_lang: "JA".to_string(),
+            source_lang: Some("EN".to_string()),
+            context: Some("greeting".to_string()),
+            show_billed_characters: Some(true),
+            split_sentences: Some(SplitSentences::True),
+            preserve_formatting: Some(false),
+            formality: Some(Formality::Default),
+            model_type: Some(ModelType::QualityOptimized),
+            glossary_id: Some("glossary-id-123".to_string()),
+            tag_handling: Some(TagHandling::Xml),
+            outline_detection: Some(true),
+            non_splitting_tags: Some(vec!["tag1".to_string(), "tag2".to_string()]),
+            splitting_tags: Some(vec!["tag3".to_string()]),
+            ignore_tags: Some(vec!["tag4".to_string()]),
+        };
+        let res = serde_json::to_string(&request).unwrap();
+        let expected = r#"{"text":["Hello, world!"],"target_lang":"JA","source_lang":"EN","context":"greeting","show_billed_characters":true,"split_sentences":"1","preserve_formatting":false,"formality":"default","model_type":"quality_optimized","glossary_id":"glossary-id-123","tag_handling":"xml","outline_detection":true,"non_splitting_tags":["tag1","tag2"],"splitting_tags":["tag3"],"ignore_tags":["tag4"]}"#;
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn api_translate_request_deserialize() {
+        let json = r#"{"text":["Hello, world!"],"target_lang":"JA","source_lang":"EN","context":"greeting","show_billed_characters":true,"split_sentences":"1","preserve_formatting":false,"formality":"default","model_type":"quality_optimized","glossary_id":"glossary-id-123","tag_handling":"xml","outline_detection":true,"non_splitting_tags":["tag1","tag2"],"splitting_tags":["tag3"],"ignore_tags":["tag4"]}"#;
+        let res: TranslateRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(res.text[0], "Hello, world!");
+        assert_eq!(res.target_lang, "JA");
+        assert_eq!(res.source_lang.unwrap(), "EN");
+        assert_eq!(res.context.unwrap(), "greeting");
+        assert_eq!(res.show_billed_characters.unwrap(), true);
+        match res.split_sentences.unwrap() {
+            SplitSentences::True => {},
+            _ => panic!("Expected SplitSentences::True"),
+        }
+        assert_eq!(res.preserve_formatting.unwrap(), false);
+        match res.formality.unwrap() {
+            Formality::Default => {},
+            _ => panic!("Expected Formality::Default"),
+        }
+        match res.model_type.unwrap() {
+            ModelType::QualityOptimized => {},
+            _ => panic!("Expected ModelType::QualityOptimized"),
+        }
+        assert_eq!(res.glossary_id.unwrap(), "glossary-id-123");
+        match res.tag_handling.unwrap() {
+            TagHandling::Xml => {},
+            _ => panic!("Expected TagHandling::Xml"),
+        }
+        assert_eq!(res.outline_detection.unwrap(), true);
+        assert_eq!(res.non_splitting_tags.unwrap(), vec!["tag1".to_string(), "tag2".to_string()]);
+        assert_eq!(res.splitting_tags.unwrap(), vec!["tag3".to_string()]);
+        assert_eq!(res.ignore_tags.unwrap(), vec!["tag4".to_string()]);
+    }
+
+    #[test]
+    fn api_translate_request_default() {
+        let request = TranslateRequest {
+            text: vec!["Hello, world!".to_string()],
+            target_lang: "JA".to_string(),
+            ..Default::default()
+        };
+        assert_eq!(request.text[0], "Hello, world!");
+        assert_eq!(request.target_lang, "JA");
+        assert!(request.source_lang.is_none());
+        assert!(request.context.is_none());
+        assert!(request.show_billed_characters.is_none());
+        assert!(request.split_sentences.is_none());
+        assert!(request.preserve_formatting.is_none());
+        assert!(request.formality.is_none());
+        assert!(request.model_type.is_none());
+        assert!(request.glossary_id.is_none());
+        assert!(request.tag_handling.is_none());
+        assert!(request.outline_detection.is_none());
+        assert!(request.non_splitting_tags.is_none());
+        assert!(request.splitting_tags.is_none());
+        assert!(request.ignore_tags.is_none());
     }
 }
