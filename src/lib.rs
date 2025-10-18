@@ -1,20 +1,20 @@
 mod deeplapi;
 
 pub use deeplapi::ApiKeyType;
-pub use deeplapi::LangCodeName;
+pub use deeplapi::languages::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
 pub use deeplapi::translate;
-pub use deeplapi::{ GlossaryFormat, Glossary, Dictionary, glossary };
+pub use deeplapi::glossaries::{ GlossaryFormat, Glossary, Dictionary };
 
-pub use deeplapi::DEEPL_API_TRANSLATE;
-pub use deeplapi::DEEPL_API_TRANSLATE_PRO;
-pub use deeplapi::DEEPL_API_USAGE;
-pub use deeplapi::DEEPL_API_USAGE_PRO;
-pub use deeplapi::DEEPL_API_LANGUAGES;
-pub use deeplapi::DEEPL_API_LANGUAGES_PRO;
-pub use deeplapi::DEEPL_API_GLOSSARIES;
-pub use deeplapi::DEEPL_API_GLOSSARIES_PRO;
+pub use deeplapi::translate::DEEPL_API_TRANSLATE;
+pub use deeplapi::translate::DEEPL_API_TRANSLATE_PRO;
+pub use deeplapi::usage::DEEPL_API_USAGE;
+pub use deeplapi::usage::DEEPL_API_USAGE_PRO;
+pub use deeplapi::languages::DEEPL_API_LANGUAGES;
+pub use deeplapi::languages::DEEPL_API_LANGUAGES_PRO;
+pub use deeplapi::glossaries::DEEPL_API_GLOSSARIES;
+pub use deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO;
 
 /// string as language code
 pub type LangCode = String;
@@ -70,16 +70,24 @@ pub struct EndpointUrls {
     pub usage_for_pro: String,
     pub languages_for_free: String,
     pub languages_for_pro: String,
+    pub glossaries_for_free: String,
+    pub glossaries_for_pro: String,
+    pub glossaries_language_pairs_for_free: String,
+    pub glossaries_language_pairs_for_pro: String,
 }
 impl Default for EndpointUrls {
     fn default() -> Self {
         EndpointUrls {
-            translate_for_free: deeplapi::DEEPL_API_TRANSLATE.to_string(),
-            translate_for_pro: deeplapi::DEEPL_API_TRANSLATE_PRO.to_string(),
-            usage_for_free: deeplapi::DEEPL_API_USAGE.to_string(),
-            usage_for_pro: deeplapi::DEEPL_API_USAGE_PRO.to_string(),
-            languages_for_free: deeplapi::DEEPL_API_LANGUAGES.to_string(),
-            languages_for_pro: deeplapi::DEEPL_API_LANGUAGES_PRO.to_string(),
+            translate_for_free: deeplapi::translate::DEEPL_API_TRANSLATE.to_string(),
+            translate_for_pro: deeplapi::translate::DEEPL_API_TRANSLATE_PRO.to_string(),
+            usage_for_free: deeplapi::usage::DEEPL_API_USAGE.to_string(),
+            usage_for_pro: deeplapi::usage::DEEPL_API_USAGE_PRO.to_string(),
+            languages_for_free: deeplapi::languages::DEEPL_API_LANGUAGES.to_string(),
+            languages_for_pro: deeplapi::languages::DEEPL_API_LANGUAGES_PRO.to_string(),
+            glossaries_for_free: deeplapi::glossaries::DEEPL_API_GLOSSARIES.to_string(),
+            glossaries_for_pro: deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO.to_string(),
+            glossaries_language_pairs_for_free: deeplapi::glossaries::DEEPL_API_GLOSSARIES_PAIRS.to_string(),
+            glossaries_language_pairs_for_pro: deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO_PAIRS.to_string(),
         }
     }
 }
@@ -244,7 +252,7 @@ impl DpTran {
     /// Get supported languages for Glossaries API.
     /// Returns the supported languages.
     /// api_key: DeepL API key
-    pub fn get_glossary_supported_languages(&self) -> Result<glossary::SupportedLanguages, DpTranError> {
+    pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::SupportedLanguages, DpTranError> {
         deeplapi::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
@@ -544,6 +552,10 @@ mod tests {
             usage_for_pro: "http://localhost:8000/v2/usage_pro".to_string(),
             languages_for_free: "http://localhost:8000/v2/languages".to_string(),
             languages_for_pro: "http://localhost:8000/v2/languages_pro".to_string(),
+            glossaries_for_free: "http://localhost:8000/v2/glossaries".to_string(),
+            glossaries_for_pro: "http://localhost:8000/v2/glossaries_pro".to_string(),
+            glossaries_language_pairs_for_free: "http://localhost:8000/v2/glossaries/supported-languages".to_string(),
+            glossaries_language_pairs_for_pro: "http://localhost:8000/v2/glossaries/supported-languages_pro".to_string(),
         };
         dptran.set_api_urls(custom_urls.clone());
         assert_eq!(dptran.get_api_urls(), custom_urls);

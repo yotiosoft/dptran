@@ -6,13 +6,9 @@ pub mod connection;
 pub use connection::ConnectionError;
 
 pub mod translate;
-pub use translate::{DEEPL_API_TRANSLATE, DEEPL_API_TRANSLATE_PRO};
-mod usage;
-pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
-mod languages;
-pub use languages::{LangCodeName, DEEPL_API_LANGUAGES, DEEPL_API_LANGUAGES_PRO};
-pub mod glossary;
-pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary, GlossaryResponseData, SupportedLanguages};
+pub mod usage;
+pub mod languages;
+pub mod glossaries;
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
@@ -88,20 +84,20 @@ pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
 /// For the languages API.
 /// Get language code list  
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.  
-pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
+pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<languages::LangCodeName>, DeeplAPIError> {
     languages::get_language_codes(api, type_name)
 }
 
 /// For the glossary API.
 /// Send glossary to DeepL API and create a glossary.
-pub fn send_glossary(api: &DpTran, glossary: &Glossary) -> Result<GlossaryResponseData, DeeplAPIError> {
+pub fn send_glossary(api: &DpTran, glossary: &glossaries::Glossary) -> Result<glossaries::GlossaryResponseData, DeeplAPIError> {
     glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// For the glossary API.
 /// Get supported languages for Glossaries API.
-pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossary::SupportedLanguages, DeeplAPIError> {
-    glossary::SupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossaries::SupportedLanguages, DeeplAPIError> {
+    glossaries::SupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
@@ -148,6 +144,10 @@ pub mod tests {
         pub const TEST_DEEPL_API_USAGE_PRO: &str = "http://localhost:8000/pro/v2/usage";
         pub const TEST_DEEPL_API_LANGUAGES: &str = "http://localhost:8000/free/v2/languages";
         pub const TEST_DEEPL_API_LANGUAGES_PRO: &str = "http://localhost:8000/pro/v2/languages";
+        pub const TEST_DEEPL_API_GLOSSARIES: &str = "http://localhost:8000/free/v2/glossaries";
+        pub const TEST_DEEPL_API_GLOSSARIES_PRO: &str = "http://localhost:8000/pro/v2/glossaries";
+        pub const TEST_DEEPL_API_GLOSSARIES_LANGUAGE_PAIRS: &str = "http://localhost:8000/free/v2/glossaries/supported-languages";
+        pub const TEST_DEEPL_API_GLOSSARIES_PRO_LANGUAGE_PAIRS: &str = "http://localhost:8000/pro/v2/glossaries/supported-languages";
 
         EndpointUrls {
             translate_for_free: TEST_DEEPL_API_TRANSLATE.to_string(),
@@ -156,6 +156,10 @@ pub mod tests {
             usage_for_pro: TEST_DEEPL_API_USAGE_PRO.to_string(),
             languages_for_free: TEST_DEEPL_API_LANGUAGES.to_string(),
             languages_for_pro: TEST_DEEPL_API_LANGUAGES_PRO.to_string(),
+            glossaries_for_free: TEST_DEEPL_API_GLOSSARIES.to_string(),
+            glossaries_for_pro: TEST_DEEPL_API_GLOSSARIES_PRO.to_string(),
+            glossaries_language_pairs_for_free: TEST_DEEPL_API_GLOSSARIES_LANGUAGE_PAIRS.to_string(),
+            glossaries_language_pairs_for_pro: TEST_DEEPL_API_GLOSSARIES_PRO_LANGUAGE_PAIRS.to_string(),
         }
     }
 
