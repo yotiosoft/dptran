@@ -33,7 +33,7 @@ pub static EXTENDED_LANG_CODES: [(&str, &str, LangType); 2] = [
 /// Parses the translation results passed in json format,
 /// stores the translation in a vector, and returns it.
 fn json_to_vec(json: &String, type_name: &String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
-    let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+    let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
 
     let lang_type = if type_name == "source" { 
         LangType::Source 
@@ -47,11 +47,11 @@ fn json_to_vec(json: &String, type_name: &String) -> Result<Vec<LangCodeName>, D
         if v.to_string().contains("Wrong endpoint") {
             return Err(DeeplAPIError::WrongEndPointError(v.to_string()));
         }
-        return Err(DeeplAPIError::JsonError(v.to_string()));
+        return Err(DeeplAPIError::JsonError(v.to_string(), json.clone()));
     }
     // Add got language codes
     for value in v_array.unwrap() {
-        value.get("language").ok_or(format!("Invalid response: {}", value)).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+        value.get("language").ok_or(format!("Invalid response: {}", value)).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
         // Remove quotation marks
         let lang_code_with_quote = value["language"].to_string();
         let lang_code = &lang_code_with_quote[1..lang_code_with_quote.len()-1];

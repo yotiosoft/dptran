@@ -1,5 +1,3 @@
-use std::io;
-
 use super::DpTran;
 
 use super::connection;
@@ -10,71 +8,209 @@ use super::ApiKeyType;
 pub const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
 pub const DEEPL_API_TRANSLATE_PRO: &str = "https://api.deepl.com/v2/translate";
 
-/// Return translation results.  
-/// Receive translation results in json format and display translation results.  
-/// Return error if json parsing fails.
-pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
-    // Get json of translation result with request_translate().
-    let res = request_translate(api, text, target_lang, source_lang);
-    match res {
-        Ok(res) => {
-            json_to_vec(&res)
-        },
-        // Error message if translation result is not successful
-        // DeepL If the API is an error code with a specific meaning, detect it here
-        // https://www.deepl.com/en/docs-api/api-access/error-handling/
-        Err(e) => {
-            if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
-                Err(DeeplAPIError::LimitError)
-            }
-            else {
-                Err(DeeplAPIError::ConnectionError(e))
+/// Request translation structure
+/// See also <https://developers.deepl.com/api-reference/translate/request-translation>
+#[derive(Debug, serde::Serialize, serde::Deserialize, Default)]
+pub struct TranslateRequest {
+    /// Text to be translated. (Required)
+    pub text: Vec<String>,                      // Required 
+    /// Target language code. (Required)
+    pub target_lang: String,                    // Required
+    /// Source language code. (Optional)
+    pub source_lang: Option<String>,
+    /// Additional context for the translation. (Optional)
+    pub context: Option<String>,
+    /// Whether to show the number of billed characters in the response. (Optional)
+    pub show_billed_characters: Option<bool>,
+    /// Sets whether the translation engine should first split the input into sentences. (Optional)
+    pub split_sentences: Option<SplitSentences>,// "0", "1" (default), "nonewlines". Default is "1"
+    /// Sets whether the translation engine should respect the original formatting, even if it would usually correct some aspects. (Optional)
+    pub preserve_formatting: Option<bool>,      // Default is false
+    /// Formality level for the translation. (Optional)
+    pub formality: Option<Formality>,           // "default", "more", "less", "prefer_more", "prefer_less". Default is "default"
+    /// Model type to use for the translation. (Optional)
+    pub model_type: Option<ModelType>,          // "quality_optimized", "prefer_quality_optimized", "latency_optimized"
+    /// Glossary ID to be used for the translation. (Optional)
+    pub glossary_id: Option<String>,
+    /// Tag handling mode. (Optional)
+    pub tag_handling: Option<TagHandling>,      // "xml", "html"
+    /// Disable the automatic detection of XML structure by setting the outline_detection parameter to false. (Optional)
+    pub outline_detection: Option<bool>,        // Default is true
+    /// Comma-separated list of XML tags which never split sentences. (Optional)
+    pub non_splitting_tags: Option<Vec<String>>,
+    /// Comma-separated list of XML tags which always cause splits. (Optional)
+    pub splitting_tags: Option<Vec<String>>,
+    /// Comma-separated list of XML tags that indicate text not to be translated. (Optional)
+    pub ignore_tags: Option<Vec<String>>,
+}
+
+/// Translation item structure
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Translation {
+    pub detected_source_language: String,
+    pub text: String,
+    pub billed_characters: Option<u64>,
+    pub model_type_used: Option<String>,
+}
+
+/// Translation response structure
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct TranslateResponse {
+    pub translations: Vec<Translation>,
+}
+
+/// Enum for split_sentences option
+#[derive(Debug, serde::Deserialize)]
+pub enum SplitSentences {
+    /// no splitting at all, whole input is treated as one sentence
+    False,
+    /// splits on punctuation and on newlines
+    True,
+    /// splits on punctuation only, no splitting at newlines
+    NoNewLines,
+}
+impl serde::Serialize for SplitSentences {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = match *self {
+            SplitSentences::False => "0",
+            SplitSentences::True => "1",
+            SplitSentences::NoNewLines => "nonewlines",
+        };
+        serializer.serialize_str(s)
+    }
+}
+
+/// Enum for formality option
+#[derive(Debug, serde::Deserialize)]
+pub enum Formality {
+    Default,
+    More,
+    Less,
+    PreferMore,
+    PreferLess,
+}
+impl serde::Serialize for Formality {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = match *self {
+            Formality::Default => "default",
+            Formality::More => "more",
+            Formality::Less => "less",
+            Formality::PreferMore => "prefer_more",
+            Formality::PreferLess => "prefer_less",
+        };
+        serializer.serialize_str(s)
+    }
+}
+
+/// Enum for model_type option
+#[derive(Debug, serde::Deserialize)]
+pub enum ModelType {
+    QualityOptimized,
+    PreferQualityOptimized,
+    LatencyOptimized,
+}
+impl serde::Serialize for ModelType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = match *self {
+            ModelType::QualityOptimized => "quality_optimized",
+            ModelType::PreferQualityOptimized => "prefer_quality_optimized",
+            ModelType::LatencyOptimized => "latency_optimized",
+        };
+        serializer.serialize_str(s)
+    }
+}
+
+/// Enum for tag_handling option
+#[derive(Debug, serde::Deserialize)]
+pub enum TagHandling {
+    Xml,
+    Html,
+}
+impl serde::Serialize for TagHandling {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = match *self {
+            TagHandling::Xml => "xml",
+            TagHandling::Html => "html",
+        };
+        serializer.serialize_str(s)
+    }
+}
+
+impl TranslateRequest {
+    /// Return translation results.  
+    /// Receive translation results in json format and display translation results.  
+    /// Return error if json parsing fails.
+    pub fn translate(&self, api: &DpTran) -> Result<TranslateResponse, DeeplAPIError> {
+        // Get json of translation result with request_translate().
+        let res = self.request_translate(api);
+        match res {
+            Ok(res) => {
+                // Parse json to TranslateResponse struct
+                let translate_response: TranslateResponse = serde_json::from_str(&res)
+                    .map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
+                Ok(translate_response)
+            },
+            // Error message if translation result is not successful
+            // DeepL If the API is an error code with a specific meaning, detect it here
+            // https://www.deepl.com/en/docs-api/api-access/error-handling/
+            Err(e) => {
+                if e == connection::ConnectionError::UnprocessableEntity {  // 456 Unprocessable Entity -> limit reached
+                    Err(DeeplAPIError::LimitError)
+                }
+                else {
+                    Err(DeeplAPIError::ConnectionError(e))
+                }
             }
         }
     }
+
+    /// Translation  
+    /// Returns an error if it fails.
+    fn request_translate(&self, api: &DpTran) -> Result<String, ConnectionError> {
+        let url = if api.api_key_type == ApiKeyType::Free {
+            api.api_urls.translate_for_free.clone()
+        } else {
+            api.api_urls.translate_for_pro.clone()
+        };
+        
+        // Prepare headers
+        let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+        let header_content_type = "Content-Type: application/json";
+        let headers = vec![header_auth_key, header_content_type.to_string()];
+        let post_data_json = serde_json::to_string(self).unwrap();
+
+        // Send request
+        connection::post_with_headers(url, post_data_json, &headers)
+    }
 }
 
-/// Translation  
-/// Returns an error if it fails.
-fn request_translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<String, ConnectionError> {
-    let url = if api.api_key_type == ApiKeyType::Free {
-        api.api_urls.translate_for_free.clone()
-    } else {
-        api.api_urls.translate_for_pro.clone()
-    };
-    let mut query = if source_lang.is_none() {
-        format!("auth_key={}&target_lang={}", api.api_key, target_lang)
-    } else {
-        format!("auth_key={}&target_lang={}&source_lang={}", api.api_key, target_lang, source_lang.as_ref().unwrap())
-    };
-    
-    for t in text {
-        let t =  urlencoding::encode(t);
-        query = format!("{}&text={}", query, t);
+impl TranslateResponse {
+    /// Parses the translation results passed in json format,
+    /// stores the translation in a vector, and returns it.
+    pub fn get_translation_strings(&self) -> Result<Vec<String>, DeeplAPIError> {
+        let mut translated_texts: Vec<String> = Vec::new();
+        for t in &self.translations {
+            translated_texts.push(t.text.clone());
+        }
+        Ok(translated_texts)
     }
-    
-    connection::post(url, query)
-}
-
-/// Parses the translation results passed in json format,
-/// stores the translation in a vector, and returns it.
-fn json_to_vec(json: &String) -> Result<Vec<String>, DeeplAPIError> {
-    let json: serde_json::Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-    json.get("translations").ok_or(io::Error::new(io::ErrorKind::Other, format!("Invalid response: {}", json))).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-    let translations = &json["translations"];
-
-    let mut translated_texts = Vec::new();
-    for translation in translations.as_array().expect("failed to get array") {
-        let len = translation["text"].to_string().len();
-        let translation_trimmed= translation["text"].to_string()[1..len-1].to_string();
-        translated_texts.push(translation_trimmed);
-    }
-
-    Ok(translated_texts)
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
-/// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
+/// You should run these tests with ``cargo test -- --test-threads=1``
+/// because the DeepL API has a limit on the number of requests per second.
 /// And also, you need to run the dummy server for the DeepL API to test the API endpoints.
 ///   $ pip3 install -r requirements.txt
 ///   $ uvicorn dummy-api-server:app --reload
@@ -83,9 +219,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn api_json_to_vec_test() {
-        let json = r#"{"translations":[{"detected_source_language":"EN","text":"ハロー、ワールド！"}]}"#.to_string();
-        let res = json_to_vec(&json);
+    fn api_get_translation_strings() {
+        let json = TranslateResponse {
+            translations: vec![
+                Translation {
+                    detected_source_language: "EN".to_string(),
+                    text: "ハロー、ワールド！".to_string(),
+                    billed_characters: None,
+                    model_type_used: None,
+                }
+            ]
+        };
+        let res = json.get_translation_strings();
         match res {
             Ok(res) => {
                 assert_eq!(res[0], "ハロー、ワールド！");

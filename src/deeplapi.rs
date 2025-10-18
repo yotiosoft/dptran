@@ -5,13 +5,14 @@ use super::DpTran;
 pub mod connection;
 pub use connection::ConnectionError;
 
-mod translate;
+pub mod translate;
 pub use translate::{DEEPL_API_TRANSLATE, DEEPL_API_TRANSLATE_PRO};
 mod usage;
 pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
 mod languages;
 pub use languages::{LangCodeName, DEEPL_API_LANGUAGES, DEEPL_API_LANGUAGES_PRO};
-mod glosarries;
+pub mod glossary;
+pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary, GlossaryResponseData};
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
@@ -34,8 +35,9 @@ pub enum ApiKeyType {
 #[derive(Debug, PartialEq)]
 pub enum DeeplAPIError {
     ConnectionError(ConnectionError),
-    JsonError(String),
+    JsonError(String, String),
     WrongEndPointError(String),
+    GlossaryError(String),
     LimitError,
     GetLanguageCodesError,
 }
@@ -43,8 +45,9 @@ impl fmt::Display for DeeplAPIError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             DeeplAPIError::ConnectionError(ref e) => write!(f, "Connection error: {}", e),
-            DeeplAPIError::JsonError(ref e) => write!(f, "JSON error: {}", e),
+            DeeplAPIError::JsonError(ref e, ref json) => write!(f, "JSON error: {}\nContent: {}", e, json),
             DeeplAPIError::WrongEndPointError(ref e) => write!(f, "Wrong endpoint error. Please check your API key type such as Free or Pro. {}", e),
+            DeeplAPIError::GlossaryError(ref e) => write!(f, "Glossary error: {}", e),
             DeeplAPIError::LimitError => write!(f, "The translation limit of your account has been reached. Consider upgrading your subscription."),
             DeeplAPIError::GetLanguageCodesError => write!(f, "Could not get language codes"),
         }
@@ -56,7 +59,22 @@ impl fmt::Display for DeeplAPIError {
 /// Receive translation results in json format and display translation results.  
 /// Return error if json parsing fails.
 pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
-    translate::translate(api, text, target_lang, source_lang)
+    let translations = translate::TranslateRequest {
+        text: text.clone(),
+        target_lang: target_lang.clone(),
+        source_lang: source_lang.clone(),
+        ..Default::default()
+    };
+    let results = translations.translate(api)?;
+    let translated_texts = results.get_translation_strings()?;
+    Ok(translated_texts)
+}
+
+/// For the translation API.
+/// Translate with detailed options.
+/// Return detailed translation results.
+pub fn translate_with_options(api: &DpTran, request: &translate::TranslateRequest) -> Result<translate::TranslateResponse, DeeplAPIError> {
+    request.translate(api)
 }
 
 /// For the usage API.
@@ -72,6 +90,12 @@ pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.  
 pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
     languages::get_language_codes(api, type_name)
+}
+
+/// For the glossary API.
+/// Send glossary to DeepL API and create a glossary.
+pub fn send_glossary(api: &DpTran, glossary: &Glossary) -> Result<GlossaryResponseData, DeeplAPIError> {
+    glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  

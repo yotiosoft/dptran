@@ -12,9 +12,9 @@ pub const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
 /// Parses the translation results passed in json format,
 /// stores the translation in a vector, and returns it.
 fn json_to_vec(json: &String) -> Result<(u64, u64), DeeplAPIError> {
-    let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-    v.get("character_count").ok_or(format!("failed to get character_count: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
-    v.get("character_limit").ok_or(format!("failed to get character_limit: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string()))?;
+    let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
+    v.get("character_count").ok_or(format!("failed to get character_count: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
+    v.get("character_limit").ok_or(format!("failed to get character_limit: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
     let character_count = v["character_count"].as_u64().expect("failed to get character_count");
     let character_limit = v["character_limit"].as_u64().expect("failed to get character_limit");
     Ok((character_count, character_limit))

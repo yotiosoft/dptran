@@ -4,6 +4,8 @@ pub use deeplapi::ApiKeyType;
 pub use deeplapi::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
+pub use deeplapi::translate;
+pub use deeplapi::{ GlossaryFormat, Glossary, Dictionary, glossary };
 
 pub use deeplapi::DEEPL_API_TRANSLATE;
 pub use deeplapi::DEEPL_API_TRANSLATE_PRO;
@@ -11,6 +13,8 @@ pub use deeplapi::DEEPL_API_USAGE;
 pub use deeplapi::DEEPL_API_USAGE_PRO;
 pub use deeplapi::DEEPL_API_LANGUAGES;
 pub use deeplapi::DEEPL_API_LANGUAGES_PRO;
+pub use deeplapi::DEEPL_API_GLOSSARIES;
+pub use deeplapi::DEEPL_API_GLOSSARIES_PRO;
 
 /// string as language code
 pub type LangCode = String;
@@ -210,8 +214,8 @@ impl DpTran {
         })
     }
 
-    /// Display translation results. Using DeepL API.  
-    /// Receive translation results in json format and display translation results.  
+    /// Get translation results. Using DeepL API.  
+    /// Receive translation results in json format and return them as a vector of strings.  
     /// Return error if json parsing fails.  
     /// api_key: DeepL API key  
     /// text: Text to translate  
@@ -219,6 +223,16 @@ impl DpTran {
     /// source_lang: Source language (optional)  
     pub fn translate(&self, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
         deeplapi::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
+    }
+
+    /// Send glossary to DeepL API and create a glossary.
+    /// You need to create a Glossary instance first.
+    /// Returns the glossary ID if successful.
+    /// api_key: DeepL API key
+    /// glossary: Glossary instance
+    pub fn send_glossary(&self, glossary: &Glossary) -> Result<String, DpTranError> {
+        let api_response = deeplapi::send_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))?;
+        Ok(api_response.glossary_id)
     }
 }
 

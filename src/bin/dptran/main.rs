@@ -4,6 +4,7 @@ mod backend;
 use backend::RuntimeError;
 use backend::ExecutionMode;
 
+use dptran::translate;
 use dptran::{DpTranError, LangType};
 use crate::backend::args::CacheTarget;
 use crate::backend::args::SettingTarget;
