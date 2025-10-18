@@ -11,8 +11,8 @@ mod usage;
 pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
 mod languages;
 pub use languages::{LangCodeName, DEEPL_API_LANGUAGES, DEEPL_API_LANGUAGES_PRO};
-mod glossary;
-pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary};
+pub mod glossary;
+pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary, GlossaryResponseData};
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
@@ -79,7 +79,7 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
 
 /// For the glossary API.
 /// Send glossary to DeepL API and create a glossary.
-pub fn send_glossary(api: &DpTran, glossary: &Glossary) -> Result<String, DeeplAPIError> {
+pub fn send_glossary(api: &DpTran, glossary: &Glossary) -> Result<GlossaryResponseData, DeeplAPIError> {
     glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 

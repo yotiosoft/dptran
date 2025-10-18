@@ -16,12 +16,14 @@ pub const DEEPL_API_GLOSSARIES_PRO: &str = "https://api.deepl.com/v3/glossaries"
 pub enum GlossaryError {
     ConnectionError(ConnectionError),
     JsonError(String),
+    CouldNotCreateGlossary,
 }
 impl fmt::Display for GlossaryError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             GlossaryError::ConnectionError(e) => write!(f, "Connection error: {}", e),
             GlossaryError::JsonError(e) => write!(f, "JSON error: {}", e),
+            GlossaryError::CouldNotCreateGlossary => write!(f, "Could not create glossary on DeepL API by some reason"),
         }
     }
 }
@@ -37,7 +39,7 @@ pub struct Dictionary {
     entries: Vec<(String, String)>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 struct DictionaryPostData {
     source_lang: String,
     target_lang: String,
@@ -45,26 +47,28 @@ struct DictionaryPostData {
     entries_format: String,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Serialize)]
 struct DictionaryResponseData {
     source_lang: String,
     target_lang: String,
     entry_count: u64,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 pub struct Glossary {
     name: String,
     dictionaries: Vec<DictionaryPostData>,
 }
 
-#[derive(serde::Deserialize)]
-struct GlossaryResponseData {
-    glossary_id: String,
-    ready: bool,
-    name: String,
-    dictionaries: Vec<DictionaryResponseData>,
-    creation_time: String,
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct GlossaryResponseData {
+    pub glossary_id: String,
+    pub ready: bool,
+    pub name: String,
+    pub source_lang: String,
+    pub target_lang: String,
+    pub creation_time: String,
+    pub entry_count: u64,
 }
 
 impl Dictionary {
@@ -121,7 +125,7 @@ impl Glossary {
     }
 
     /// Create a curl session.
-    pub fn send(&self, api: &DpTran) -> Result<String, GlossaryError> {
+    pub fn send(&self, api: &DpTran) -> Result<GlossaryResponseData, GlossaryError> {
         let url = if api.api_key_type == ApiKeyType::Free {
             DEEPL_API_GLOSSARIES.to_string()
         } else {
@@ -140,13 +144,8 @@ impl Glossary {
         // Handle response
         match ret {
             Ok(res) => {
-                let v: Value = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
-                let glossary_id = v.get("glossary_id")
-                    .ok_or("Invalid response: missing glossary_id").map_err(|e| GlossaryError::JsonError(e.to_string()))?;
-                let glossary_id_str = glossary_id.to_string();
-                // Remove quotation marks
-                let glossary_id_clean = &glossary_id_str[1..glossary_id_str.len()-1];
-                Ok(glossary_id_clean.to_string())
+                let ret: GlossaryResponseData = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
+                Ok(ret)
             },
             Err(e) => Err(GlossaryError::ConnectionError(e)),
         }
