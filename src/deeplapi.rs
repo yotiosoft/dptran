@@ -12,6 +12,7 @@ pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
 mod languages;
 pub use languages::{LangCodeName, DEEPL_API_LANGUAGES, DEEPL_API_LANGUAGES_PRO};
 mod glossary;
+pub use glossary::{DEEPL_API_GLOSSARIES, DEEPL_API_GLOSSARIES_PRO, Dictionary, GlossaryFormat, Glossary};
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
@@ -36,6 +37,7 @@ pub enum DeeplAPIError {
     ConnectionError(ConnectionError),
     JsonError(String),
     WrongEndPointError(String),
+    GlossaryError(String),
     LimitError,
     GetLanguageCodesError,
 }
@@ -45,6 +47,7 @@ impl fmt::Display for DeeplAPIError {
             DeeplAPIError::ConnectionError(ref e) => write!(f, "Connection error: {}", e),
             DeeplAPIError::JsonError(ref e) => write!(f, "JSON error: {}", e),
             DeeplAPIError::WrongEndPointError(ref e) => write!(f, "Wrong endpoint error. Please check your API key type such as Free or Pro. {}", e),
+            DeeplAPIError::GlossaryError(ref e) => write!(f, "Glossary error: {}", e),
             DeeplAPIError::LimitError => write!(f, "The translation limit of your account has been reached. Consider upgrading your subscription."),
             DeeplAPIError::GetLanguageCodesError => write!(f, "Could not get language codes"),
         }
@@ -72,6 +75,12 @@ pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.  
 pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
     languages::get_language_codes(api, type_name)
+}
+
+/// For the glossary API.
+/// Send glossary to DeepL API and create a glossary.
+pub fn send_glossary(api: &DpTran, glossary: &Glossary) -> Result<String, DeeplAPIError> {
+    glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  

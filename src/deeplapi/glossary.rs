@@ -1,4 +1,6 @@
+use core::fmt;
 use std::io;
+use serde_json::Value;
 
 use super::DpTran;
 
@@ -10,12 +12,26 @@ use super::ApiKeyType;
 pub const DEEPL_API_GLOSSARIES: &str = "https://api-free.deepl.com/v3/glossaries";
 pub const DEEPL_API_GLOSSARIES_PRO: &str = "https://api.deepl.com/v3/glossaries";
 
+#[derive(Debug, PartialEq)]
+pub enum GlossaryError {
+    ConnectionError(ConnectionError),
+    JsonError(String),
+}
+impl fmt::Display for GlossaryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            GlossaryError::ConnectionError(e) => write!(f, "Connection error: {}", e),
+            GlossaryError::JsonError(e) => write!(f, "JSON error: {}", e),
+        }
+    }
+}
+
 pub enum GlossaryFormat {
     Tsv,
     Csv,
 }
 
-pub struct Glossary {
+pub struct Dictionary {
     source_lang: String,
     target_lang: String,
     entries: Vec<(String, String)>,
@@ -29,17 +45,17 @@ struct DictionaryPostData {
     entries_format: String,
 }
 
-#[derive(serde::Serialize)]
-pub struct GlossaryPostData {
-    name: String,
-    dictionaries: Vec<DictionaryPostData>,
-}
-
 #[derive(serde::Deserialize)]
 struct DictionaryResponseData {
     source_lang: String,
     target_lang: String,
     entry_count: u64,
+}
+
+#[derive(serde::Serialize)]
+pub struct Glossary {
+    name: String,
+    dictionaries: Vec<DictionaryPostData>,
 }
 
 #[derive(serde::Deserialize)]
@@ -51,10 +67,10 @@ struct GlossaryResponseData {
     creation_time: String,
 }
 
-impl Glossary {
+impl Dictionary {
     /// Create a glossary.
     pub fn new(source_lang: &String, target_lang: &String, entries: &Vec<(String, String)>) -> Self {
-        Glossary {
+        Dictionary {
             source_lang: source_lang.clone(),
             target_lang: target_lang.clone(),
             entries: entries.clone(),
@@ -67,9 +83,9 @@ impl Glossary {
     }
 }
 
-impl GlossaryPostData {
+impl Glossary {
     /// Create a glossary post data.
-    pub fn new(name: &String, glossaries: &Vec<Glossary>, entries_format: &GlossaryFormat) -> Self {
+    pub fn new(glossary_name: &String, glossaries: &Vec<Dictionary>, entries_format: &GlossaryFormat) -> Self {
         // Prepare post data
         let mut dictionaries: Vec<DictionaryPostData> = Vec::new();
         for g in glossaries {
@@ -97,26 +113,43 @@ impl GlossaryPostData {
             };
             dictionaries.push(dict_post_data);
         }
-        let post_data = GlossaryPostData {
-            name: name.clone(),
+        let post_data = Glossary {
+            name: glossary_name.clone(),
             dictionaries: dictionaries,
         };
         post_data
     }
 
     /// Create a curl session.
-    pub fn send(&self, api: &DpTran) -> Result<String, ConnectionError> {
+    pub fn send(&self, api: &DpTran) -> Result<String, GlossaryError> {
         let url = if api.api_key_type == ApiKeyType::Free {
             DEEPL_API_GLOSSARIES.to_string()
         } else {
             DEEPL_API_GLOSSARIES_PRO.to_string()
         };
         
+        // Prepare headers
         let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
         let header_content_type = "Content-Type: application/json";
         let headers = vec![header_auth_key, header_content_type.to_string()];
         let post_data_json = serde_json::to_string(self).unwrap();
-        connection::post_with_headers(url, post_data_json, &headers)
+        
+        // Send request
+        let ret = connection::post_with_headers(url, post_data_json, &headers);
+
+        // Handle response
+        match ret {
+            Ok(res) => {
+                let v: Value = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
+                let glossary_id = v.get("glossary_id")
+                    .ok_or("Invalid response: missing glossary_id").map_err(|e| GlossaryError::JsonError(e.to_string()))?;
+                let glossary_id_str = glossary_id.to_string();
+                // Remove quotation marks
+                let glossary_id_clean = &glossary_id_str[1..glossary_id_str.len()-1];
+                Ok(glossary_id_clean.to_string())
+            },
+            Err(e) => Err(GlossaryError::ConnectionError(e)),
+        }
     }
 }
 
