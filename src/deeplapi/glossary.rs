@@ -30,7 +30,7 @@ struct DictionaryPostData {
 }
 
 #[derive(serde::Serialize)]
-pub struct GlossariesPostData {
+pub struct GlossaryPostData {
     name: String,
     dictionaries: Vec<DictionaryPostData>,
 }
@@ -43,7 +43,7 @@ struct DictionaryResponseData {
 }
 
 #[derive(serde::Deserialize)]
-struct GlossariesResponseData {
+struct GlossaryResponseData {
     glossary_id: String,
     ready: bool,
     name: String,
@@ -51,7 +51,7 @@ struct GlossariesResponseData {
     creation_time: String,
 }
 
-impl GlossariesPostData {
+impl GlossaryPostData {
     /// Create a glossary post data.
     pub fn new(name: &String, glossaries: &Vec<Glossary>) -> Self {
         // Prepare post data
@@ -65,7 +65,7 @@ impl GlossariesPostData {
                 entries = format!("{}\n{}\t{}", entries, source, target);
             }
         }
-        let post_data = GlossariesPostData {
+        let post_data = GlossaryPostData {
             name: name.clone(),
             dictionaries: dictionaries,
         };

@@ -11,7 +11,7 @@ mod usage;
 pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
 mod languages;
 pub use languages::{LangCodeName, DEEPL_API_LANGUAGES, DEEPL_API_LANGUAGES_PRO};
-mod glosarries;
+mod glossary;
 
 pub const UNLIMITED_CHARACTERS_NUMBER: u64 = 1000000000000;  // DeepL Pro API has no character limit, but the API returns a character limit of 1000000000000 characters as a default value.
 
