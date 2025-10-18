@@ -209,7 +209,7 @@ def languages_response(type: str) -> JSONResponse:
     )
 
 @app.post("/free/v2/translate")
-async def translate_for_free(request: Request, body: TranslateRequest):
+async def translate_for_free(request: Request, body: TranslateRequest = Form(...)):
     # Get the Authorization header
     auth_header = request.headers.get("Authorization", "")
     print(f"Authorization header: {auth_header}")
@@ -229,7 +229,7 @@ async def translate_for_free(request: Request, body: TranslateRequest):
     return translate_texts(body.source_lang, body.target_lang, body.text)
 
 @app.post("/pro/v2/translate")
-async def translate_for_pro(request: Request, body: TranslateRequest):
+async def translate_for_pro(request: Request, body: TranslateRequest = Form(...)):
     # Get the Authorization header
     auth_header = request.headers.get("Authorization", "")
     print(f"Authorization header: {auth_header}")
@@ -237,6 +237,17 @@ async def translate_for_pro(request: Request, body: TranslateRequest):
     # Check if the Authorization header is valid
     if not auth_header.startswith("DeepL-Auth-Key "):
         return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
+
+    api_key = auth_header.replace("DeepL-Auth-Key ", "")
+    if not api_key:
+        return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+
+    # Log the request body for debugging
+    print(f"Received JSON: {body.json()}")
+
+    # Call the translation function
+    return translate_texts(body.source_lang, body.target_lang, body.text)
+
 
     api_key = auth_header.replace("DeepL-Auth-Key ", "")
     if not api_key:
