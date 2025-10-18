@@ -5,7 +5,7 @@ pub use deeplapi::languages::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
 pub use deeplapi::translate;
-pub use deeplapi::glossaries::{ GlossaryFormat, Glossary, Dictionary };
+pub use deeplapi::glossaries::{ GlossaryFormat, GlossaryPostData, Dictionary };
 
 pub use deeplapi::translate::DEEPL_API_TRANSLATE;
 pub use deeplapi::translate::DEEPL_API_TRANSLATE_PRO;
@@ -227,7 +227,6 @@ impl DpTran {
     /// Get translation results. Using DeepL API.  
     /// Receive translation results in json format and return them as a vector of strings.  
     /// Return error if json parsing fails.  
-    /// api_key: DeepL API key  
     /// text: Text to translate  
     /// target_lang: Target language  
     /// source_lang: Source language (optional)  
@@ -235,18 +234,17 @@ impl DpTran {
         deeplapi::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
-    /// Translate with options. Using DeepL API.
+    /// Translate with options. Using DeepL API.  
     /// You need to create a TranslateRequest instance first.
     pub fn translate_with_options(&self, request: &translate::TranslateRequest) -> Result<translate::TranslateResponse, DpTranError> {
         deeplapi::translate_with_options(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
-    /// Send glossary to DeepL API and create a glossary.
-    /// You need to create a Glossary instance first.
-    /// Returns the glossary ID if successful.
-    /// api_key: DeepL API key
+    /// Send glossary to DeepL API and create a glossary.  
+    /// You need to create a Glossary instance first.  
+    /// Returns the glossary ID if successful.  
     /// glossary: Glossary instance
-    pub fn send_glossary(&self, glossary: &Glossary) -> Result<String, DpTranError> {
+    pub fn send_glossary(&self, glossary: &GlossaryPostData) -> Result<String, DpTranError> {
         // Check if the glossary language pair is supported
         for dict in glossary.get_dictionaries() {
             let is_supported = self.get_glossary_supported_languages()?.is_lang_pair_supported(&dict.get_source_lang(), &dict.get_target_lang());
@@ -259,9 +257,14 @@ impl DpTran {
         Ok(api_response.glossary_id)
     }
 
-    /// Get supported languages for Glossaries API.
+    /// Get a list of registered glossaries.  
+    /// Returns the list of registered glossaries.
+    pub fn get_registered_glossaries(&self) -> Result<deeplapi::glossaries::GlossaryResponseData, DpTranError> {
+        deeplapi::get_registered_glossaries(&self).map_err(|e| DpTranError::DeeplApiError(e))
+    }
+
+    /// Get supported languages for Glossaries API.  
     /// Returns the supported languages.
-    /// api_key: DeepL API key
     pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::SupportedLanguages, DpTranError> {
         deeplapi::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }

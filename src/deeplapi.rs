@@ -50,7 +50,7 @@ impl fmt::Display for DeeplAPIError {
     }
 }
 
-/// For the translation API.
+/// For the translation API.  
 /// Return translation results.  
 /// Receive translation results in json format and display translation results.  
 /// Return error if json parsing fails.
@@ -66,14 +66,14 @@ pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_
     Ok(translated_texts)
 }
 
-/// For the translation API.
-/// Translate with detailed options.
+/// For the translation API.  
+/// Translate with detailed options.  
 /// Return detailed translation results.
 pub fn translate_with_options(api: &DpTran, request: &translate::TranslateRequest) -> Result<translate::TranslateResponse, DeeplAPIError> {
     request.translate(api)
 }
 
-/// For the usage API.
+/// For the usage API.  
 /// Get the number of characters remaining to be translated.  
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.  
 /// Returns an error if acquisition fails.  
@@ -81,20 +81,26 @@ pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
     usage::get_usage(api)
 }
 
-/// For the languages API.
+/// For the languages API.  
 /// Get language code list  
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.  
 pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<languages::LangCodeName>, DeeplAPIError> {
     languages::get_language_codes(api, type_name)
 }
 
-/// For the glossary API.
+/// For the glossary API.  
 /// Send glossary to DeepL API and create a glossary.
-pub fn send_glossary(api: &DpTran, glossary: &glossaries::Glossary) -> Result<glossaries::GlossaryResponseData, DeeplAPIError> {
+pub fn send_glossary(api: &DpTran, glossary: &glossaries::GlossaryPostData) -> Result<glossaries::GlossaryResponseData, DeeplAPIError> {
     glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
-/// For the glossary API.
+/// For the glossary API.  
+/// Get a list of registered glossaries.
+pub fn get_registered_glossaries(api: &DpTran) -> Result<glossaries::GlossaryResponseData, DeeplAPIError> {
+    glossaries::GlossaryResponseData::get_registered_dictionaries(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+}
+
+/// For the glossary API.  
 /// Get supported languages for Glossaries API.
 pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossaries::SupportedLanguages, DeeplAPIError> {
     glossaries::SupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))

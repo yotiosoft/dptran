@@ -30,15 +30,15 @@ impl fmt::Display for GlossaryError {
     }
 }
 
-/// Glossary file format
-/// TSV: Tab-Separated Values
+/// Glossary file format  
+/// TSV: Tab-Separated Values  
 /// CSV: Comma-Separated Values
 pub enum GlossaryFormat {
     Tsv,
     Csv,
 }
 
-/// Glossary dictionary.
+/// Glossary dictionary.  
 /// A glossary consists of one or more pairs of words.
 pub struct Dictionary {
     source_lang: String,
@@ -63,16 +63,16 @@ pub struct DictionaryResponseData {
     pub entry_count: u64,
 }
 
-/// Glossary post data structure.
-/// Used to create a glossary via the DeepL API.
+/// Glossary post data structure.  
+/// Used to create a glossary via the DeepL API.  
 /// You need to create an instance of this struct to send a glossary creation request.
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct Glossary {
+pub struct GlossaryPostData {
     name: String,
     dictionaries: Vec<DictionaryPostData>,
 }
 
-/// Response data structure for glossary creation via DeepL API.
+/// Response data structure for glossary creation via DeepL API.  
 /// Returned when a glossary is successfully created.
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct GlossaryResponseData {
@@ -111,7 +111,7 @@ impl Dictionary {
     }
 }
 
-impl Glossary {
+impl GlossaryPostData {
     /// Create a glossary post data.
     pub fn new(glossary_name: &String, glossaries: &Vec<Dictionary>, entries_format: &GlossaryFormat) -> Self {
         // Prepare post data
@@ -141,7 +141,7 @@ impl Glossary {
             };
             dictionaries.push(dict_post_data);
         }
-        let post_data = Glossary {
+        let post_data = GlossaryPostData {
             name: glossary_name.clone(),
             dictionaries: dictionaries,
         };
@@ -190,6 +190,33 @@ impl DictionaryPostData {
     /// Get target language.
     pub fn get_target_lang(&self) -> &String {
         &self.target_lang
+    }
+}
+
+impl GlossaryResponseData {
+    /// Get a list of glossaries from the API server.
+    pub fn get_registered_dictionaries(api: &DpTran) -> Result<Self, DeeplAPIError> {
+        let url = if api.api_key_type == ApiKeyType::Free {
+            DEEPL_API_GLOSSARIES.to_string()
+        } else {
+            DEEPL_API_GLOSSARIES_PRO.to_string()
+        };
+
+        // Prepare headers
+        let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+        let headers = vec![header_auth_key];
+
+        // Send request
+        let ret = connection::get_with_headers(url, &headers);
+
+        // Handle response
+        match ret {
+            Ok(res) => {
+                let ret: GlossaryResponseData = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
+                Ok(ret)
+            },
+            Err(e) => Err(DeeplAPIError::ConnectionError(e)),
+        }
     }
 }
 
