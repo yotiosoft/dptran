@@ -6,6 +6,7 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from enum import Enum
 from typing import List, Optional
 
 app = FastAPI()
@@ -26,17 +27,26 @@ class TranslationDummyData(BaseModel):
     request: str
     reponse: str
 
-class SplitSentences(str):
-    pass
+class SplitSentences(str, Enum):
+    False_ = "0"
+    True_ = "1"
+    NoNewLines = "nonewlines"
 
-class Formality(str):
-    pass
+class Formality(str, Enum):
+    Default = "default"
+    More = "more"
+    Less = "less"
+    PreferMore = "prefer_more"
+    PreferLess = "prefer_less"
 
-class ModelType(str):
-    pass
+class ModelType(str, Enum):
+    QualityOptimized = "quality"
+    PreferQualityOptimized = "prefer_quality_optimized"
+    LatencyOptimized = "latency_optimized"
 
-class TagHandling(str):
-    pass
+class TagHandling(str, Enum):
+    Xml = "xml"
+    Html = "html"
 
 class TranslateRequest(BaseModel):
     text: List[str]
