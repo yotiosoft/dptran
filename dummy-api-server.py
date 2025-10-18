@@ -124,9 +124,7 @@ def translate_texts(source_lang: str, target_lang: str, text: str) -> str:
     # if source_lang == target_lang, return the text as is
     if source_lang == target_lang:
         return JSONResponse(content={"translations": [
-            {
-                "text": text
-            }
+            {"detected_source_language": source_lang or target_lang, "text": t} for t in text
         ]})
     # Simulate translation by looking up dummy data
     results = []
@@ -138,14 +136,13 @@ def translate_texts(source_lang: str, target_lang: str, text: str) -> str:
                     item.target_lang == target_lang and
                     item.request == text):
                 results.append({
+                    "detected_source_language": item.source_lang,
                     "text": item.reponse
                 })
     if results:
         return JSONResponse(content={"translations": results})
     return JSONResponse(content={"translations": [
-        {
-            "text": text
-        }
+        {"detected_source_language": source_lang or target_lang, "text": text}
     ]})
 
 def usage_response(character_count: int, character_limit: int, type: str) -> JSONResponse:
@@ -219,7 +216,7 @@ def languages_response(type: str) -> JSONResponse:
     )
 
 @app.post("/free/v2/translate")
-async def translate_for_free(request: Request, body: TranslateRequest = Form(...)):
+async def translate_for_free(request: Request, body: TranslateRequest):
     # Get the Authorization header
     auth_header = request.headers.get("Authorization", "")
     print(f"Authorization header: {auth_header}")
@@ -239,7 +236,7 @@ async def translate_for_free(request: Request, body: TranslateRequest = Form(...
     return translate_texts(body.source_lang, body.target_lang, body.text)
 
 @app.post("/pro/v2/translate")
-async def translate_for_pro(request: Request, body: TranslateRequest = Form(...)):
+async def translate_for_pro(request: Request, body: TranslateRequest):
     # Get the Authorization header
     auth_header = request.headers.get("Authorization", "")
     print(f"Authorization header: {auth_header}")
