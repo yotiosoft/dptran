@@ -5,7 +5,7 @@ use super::DpTran;
 pub mod connection;
 pub use connection::ConnectionError;
 
-mod translate;
+pub mod translate;
 pub use translate::{DEEPL_API_TRANSLATE, DEEPL_API_TRANSLATE_PRO};
 mod usage;
 pub use usage::{DEEPL_API_USAGE, DEEPL_API_USAGE_PRO};
@@ -59,7 +59,10 @@ impl fmt::Display for DeeplAPIError {
 /// Receive translation results in json format and display translation results.  
 /// Return error if json parsing fails.
 pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
-    translate::translate(api, text, target_lang, source_lang)
+    let translations = translate::TranslateRequest::new(text, target_lang, source_lang);
+    let results = translations.translate(api)?;
+    let translated_texts = results.get_translation_strings()?;
+    Ok(translated_texts)
 }
 
 /// For the usage API.
