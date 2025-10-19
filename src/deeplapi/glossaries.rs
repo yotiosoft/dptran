@@ -1,6 +1,6 @@
 use core::fmt;
-use std::io;
-use serde_json::Value;
+
+use crate::deeplapi::DeeplAPIMessage;
 
 use super::DpTran;
 
@@ -17,15 +17,17 @@ pub const DEEPL_API_GLOSSARIES_PRO_PAIRS: &str = "https://api.deepl.com/v2/gloss
 #[derive(Debug, PartialEq)]
 pub enum GlossaryError {
     ConnectionError(ConnectionError),
-    JsonError(String),
+    JsonError(String, String),
     CouldNotCreateGlossary,
+    QuotaExceeded,
 }
 impl fmt::Display for GlossaryError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             GlossaryError::ConnectionError(e) => write!(f, "Connection error: {}", e),
-            GlossaryError::JsonError(e) => write!(f, "JSON error: {}", e),
+            GlossaryError::JsonError(e, j) => write!(f, "JSON error: {}\nJSON: {}", e, j),
             GlossaryError::CouldNotCreateGlossary => write!(f, "Could not create glossary on DeepL API by some reason"),
+            GlossaryError::QuotaExceeded => write!(f, "Glossary quota exceeded on DeepL API"),
         }
     }
 }
@@ -174,7 +176,19 @@ impl GlossaryPostData {
         // Handle response
         match ret {
             Ok(res) => {
-                let ret: GlossaryResponseData = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
+                // Error check
+                let ret: Result<DeeplAPIMessage, serde_json::Error> = serde_json::from_str(&res);
+                if let Ok(ret) = ret {
+                    if ret.message == "Quota exceeded" {
+                        return Err(GlossaryError::QuotaExceeded);
+                    } else {
+                        return Err(GlossaryError::CouldNotCreateGlossary);
+                    }
+                }
+                
+                // If there is no error, the response is GlossaryResponseData.
+                // Parse response
+                let ret: GlossaryResponseData = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string(), res.clone()))?;
                 Ok(ret)
             },
             Err(e) => Err(GlossaryError::ConnectionError(e)),
@@ -245,7 +259,7 @@ impl SupportedLanguages {
         // Handle response
         match ret {
             Ok(res) => {
-                let ret: SupportedLanguages = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string()))?;
+                let ret: SupportedLanguages = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string(), res.clone()))?;
                 Ok(ret)
             },
             Err(e) => Err(GlossaryError::ConnectionError(e)),

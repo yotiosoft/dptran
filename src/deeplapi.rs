@@ -50,6 +50,12 @@ impl fmt::Display for DeeplAPIError {
     }
 }
 
+/// Error message from DeepL API for some reason.
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct DeeplAPIMessage {
+    pub message: String,
+}
+
 /// For the translation API.  
 /// Return translation results.  
 /// Receive translation results in json format and display translation results.  
