@@ -259,7 +259,7 @@ impl DpTran {
 
     /// Get a list of registered glossaries.  
     /// Returns the list of registered glossaries.
-    pub fn get_registered_glossaries(&self) -> Result<deeplapi::glossaries::GlossaryResponseData, DpTranError> {
+    pub fn get_registered_glossaries(&self) -> Result<deeplapi::glossaries::GlossariesList, DpTranError> {
         deeplapi::get_registered_glossaries(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 

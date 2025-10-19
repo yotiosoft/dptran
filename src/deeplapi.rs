@@ -96,8 +96,8 @@ pub fn send_glossary(api: &DpTran, glossary: &glossaries::GlossaryPostData) -> R
 
 /// For the glossary API.  
 /// Get a list of registered glossaries.
-pub fn get_registered_glossaries(api: &DpTran) -> Result<glossaries::GlossaryResponseData, DeeplAPIError> {
-    glossaries::GlossaryResponseData::get_registered_dictionaries(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+pub fn get_registered_glossaries(api: &DpTran) -> Result<glossaries::GlossariesList, DeeplAPIError> {
+    glossaries::GlossariesList::get_registered_dictionaries(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// For the glossary API.  
