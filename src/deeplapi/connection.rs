@@ -17,6 +17,7 @@ use curl::easy::Easy;
 /// ``UnknownError``: Unknown Error  
 #[derive(Debug, PartialEq)]
 pub enum ConnectionError {
+    NoContent,
     BadRequest,
     Forbidden,
     NotFound,
@@ -26,11 +27,12 @@ pub enum ConnectionError {
     UnprocessableEntity,
     ServiceUnavailable,
     CurlError(String),
-    UnknownError,
+    UnknownError(u32),
 }
 impl fmt::Display for ConnectionError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            ConnectionError::NoContent => write!(f, "204 No Content"),
             ConnectionError::BadRequest => write!(f, "400 Bad Request"),
             ConnectionError::Forbidden => write!(f, "403 Forbidden"),
             ConnectionError::NotFound => write!(f, "404 Not Found"),
@@ -40,7 +42,7 @@ impl fmt::Display for ConnectionError {
             ConnectionError::UnprocessableEntity => write!(f, "456 Unprocessable Entity"),
             ConnectionError::ServiceUnavailable => write!(f, "503 Service Unavailable"),
             ConnectionError::CurlError(ref e) => write!(f, "Curl Error: {}", e),
-            ConnectionError::UnknownError => write!(f, "Unknown Error"),
+            ConnectionError::UnknownError(code) => write!(f, "Unknown Error: {}", code),
         }
     }
 }
@@ -58,6 +60,14 @@ fn make_post_session(url: String, post_data: String) -> Result<Easy, String> {
 fn make_get_session(url: String) -> Result<Easy, String> {
     let mut easy = Easy::new();
     easy.url(url.as_str()).map_err(|e| e.to_string())?;
+    Ok(easy)
+}
+
+/// Create a DELETE session
+fn make_delete_session(url: String) -> Result<Easy, String> {
+    let mut easy = Easy::new();
+    easy.url(url.as_str()).map_err(|e| e.to_string())?;
+    easy.custom_request("DELETE").map_err(|e| e.to_string())?;
     Ok(easy)
 }
 
@@ -87,7 +97,7 @@ fn handle_error(response_code: u32) -> ConnectionError {
         429 => ConnectionError::TooManyRequests,
         456 => ConnectionError::UnprocessableEntity,
         503 => ConnectionError::ServiceUnavailable,
-        _ => ConnectionError::UnknownError,
+        code => ConnectionError::UnknownError(code),
     }
 }
 
@@ -165,8 +175,36 @@ pub fn get_with_headers(url: String, header: &Vec<String>) -> Result<String, Con
     }
 }
 
+/// Delete method with headers
+pub fn delete_with_headers(url: String, header: &Vec<String>) -> Result<(), ConnectionError> {
+    let mut easy = match make_delete_session(url) {
+        Ok(easy) => easy,
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+    {
+        let mut list = curl::easy::List::new();
+        for h in header {
+            list.append(h).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+        }
+        easy.http_headers(list).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+    }
+    let (dst, response_code) = match transfer(easy) {
+        Ok((dst, response_code)) => (dst, response_code),
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+
+    if response_code == 200 || response_code == 204 {
+        Ok(())
+    } else {
+        // HTTP Error Handling
+        Err(handle_error(response_code))
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use clap::error;
+
     use super::*;
 
     #[test]
@@ -181,6 +219,10 @@ mod tests {
 
     #[test]
     fn handling_error_test() {
+        let error_code = 204;
+        let error = handle_error(error_code);
+        assert_eq!(error, ConnectionError::NoContent);
+
         let error_code = 400;
         let error = handle_error(error_code);
         assert_eq!(error, ConnectionError::BadRequest);
@@ -211,6 +253,6 @@ mod tests {
 
         let error_code = 999;
         let error = handle_error(error_code);
-        assert_eq!(error, ConnectionError::UnknownError);
+        assert_eq!(error, ConnectionError::UnknownError(999));
     }
 }

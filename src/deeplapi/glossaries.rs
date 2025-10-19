@@ -240,6 +240,28 @@ impl GlossariesList {
     }
 }
 
+impl GlossaryResponseData {
+    /// Delete the glossary via DeepL API.
+    pub fn delete(&self, api: &DpTran) -> Result<(), GlossaryError> {
+        let url = if api.api_key_type == ApiKeyType::Free {
+            format!("{}/{}", DEEPL_API_GLOSSARIES, self.glossary_id)
+        } else {
+            format!("{}/{}", DEEPL_API_GLOSSARIES_PRO, self.glossary_id)
+        };
+
+        // Prepare headers
+        let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+        let headers = vec![header_auth_key];
+
+        // Send request
+        let ret = connection::delete_with_headers(url, &headers);
+        match ret {
+            Ok(_) => Ok(()),
+            Err(e) => Err(GlossaryError::ConnectionError(e)),
+        }
+    }
+}
+
 impl SupportedLanguages {
     /// Get supported languages for Glossaries API.
     pub fn get(api: &DpTran) -> Result<SupportedLanguages, GlossaryError> {
@@ -287,7 +309,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn api_glosarries_dictionary() {
+    fn api_glossaries_dictionary() {
         let mut dict = Dictionary::new(&"EN".to_string(), &"FR".to_string(), &vec![]);
         dict.add_entry(&"Hello".to_string(), &"Bonjour".to_string());
         dict.add_entry(&"Goodbye".to_string(), &"Au revoir".to_string());
@@ -299,7 +321,7 @@ mod tests {
     }
 
     #[test]
-    fn api_glosarries_post_data() {
+    fn api_glossaries_post_data() {
         let dict1 = Dictionary::new(&"EN".to_string(), &"FR".to_string(), &vec![
             ("Hello".to_string(), "Bonjour".to_string()),
             ("Goodbye".to_string(), "Au revoir".to_string()),
@@ -315,7 +337,7 @@ mod tests {
     }
 
     #[test]
-    fn api_glosarries_post_send() {
+    fn api_glossaries_post_send() {
         // Send glossary creation request to DeepL API
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
         let api = DpTran::with(&api_key, &ApiKeyType::Free);
@@ -338,13 +360,17 @@ mod tests {
         let created_glossary = &glossary_response.glossaries[0];
         assert_eq!(created_glossary.name, "MyGlossary".to_string());
         assert_eq!(created_glossary.dictionaries.len(), 1);
-        assert_eq!(created_glossary.dictionaries[0].source_lang, "EN".to_string());
-        assert_eq!(created_glossary.dictionaries[0].target_lang, "FR".to_string());
+        assert_eq!(created_glossary.dictionaries[0].source_lang.to_uppercase(), "EN".to_string());
+        assert_eq!(created_glossary.dictionaries[0].target_lang.to_uppercase(), "FR".to_string());
         assert_eq!(created_glossary.dictionaries[0].entry_count, 2);
+
+        // Delete the created glossary
+        let delete_res = created_glossary.delete(&api);
+        assert!(delete_res.is_ok());
     }
 
     #[test]
-    fn api_glosarries_get_registered_dictionaries() {
+    fn api_glossaries_get_registered_dictionaries() {
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
         let api = DpTran::with(&api_key, &ApiKeyType::Free);
         let res = GlossariesList::get_registered_dictionaries(&api);
@@ -352,7 +378,7 @@ mod tests {
     }
 
     #[test]
-    fn api_glosarries_supported_languages() {
+    fn api_glossaries_supported_languages() {
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
         let api = DpTran::with(&api_key, &ApiKeyType::Free);
         let res = SupportedLanguages::get(&api);
