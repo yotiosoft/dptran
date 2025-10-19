@@ -112,6 +112,12 @@ pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossaries::Supp
     glossaries::SupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
+/// For the glossary API.
+/// Delete a glossary.
+pub fn delete_glossary(api: &DpTran, glossary: &glossaries::GlossaryResponseData) -> Result<(), DeeplAPIError> {
+    glossary.delete(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+}
+
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 /// And also, you need to run the dummy server for the DeepL API to test the API endpoints.

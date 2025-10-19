@@ -268,6 +268,12 @@ impl DpTran {
     pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::SupportedLanguages, DpTranError> {
         deeplapi::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
+
+    /// Delete a glossary.
+    /// glossary: Glossary instance
+    pub fn delete_glossary(&self, glossary: &deeplapi::glossaries::GlossaryResponseData) -> Result<(), DpTranError> {
+        deeplapi::delete_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))
+    }
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
