@@ -23,6 +23,9 @@ pub enum ApiKeyType {
     Pro,
 }
 
+/// string as language code
+pub type LangCode = String;
+
 /// DeepL API error.  
 /// ``ConnectionError``: Connection error occurred in the process of sending and receiving data.  
 /// ``JsonError``: Error occurred while parsing json.  
@@ -34,6 +37,7 @@ pub enum DeeplAPIError {
     JsonError(String, String),
     WrongEndPointError(String),
     GlossaryError(String),
+    GlossaryIsNotRegisteredError,
     LimitError,
     GetLanguageCodesError,
 }
@@ -44,10 +48,30 @@ impl fmt::Display for DeeplAPIError {
             DeeplAPIError::JsonError(ref e, ref json) => write!(f, "JSON error: {}\nContent: {}", e, json),
             DeeplAPIError::WrongEndPointError(ref e) => write!(f, "Wrong endpoint error. Please check your API key type such as Free or Pro. {}", e),
             DeeplAPIError::GlossaryError(ref e) => write!(f, "Glossary error: {}", e),
+            DeeplAPIError::GlossaryIsNotRegisteredError => write!(f, "The specified glossary is not registered."),
             DeeplAPIError::LimitError => write!(f, "The translation limit of your account has been reached. Consider upgrading your subscription."),
             DeeplAPIError::GetLanguageCodesError => write!(f, "Could not get language codes"),
         }
     }
+}
+
+/// Glossary ID
+pub type GlossaryID = String;
+
+/// Glossaries dictionary struct
+pub struct GlossaryDictionary {
+    pub source_lang: LangCode,
+    pub target_lang: LangCode,
+    pub entries: Vec<(String, String)>,
+    pub entries_format: glossaries::GlossariesApiFormat,
+    pub entry_count: usize,
+}
+
+/// Glossary struct
+pub struct Glossary {
+    pub name: String,
+    pub id: Option<GlossaryID>,
+    pub dictionaries: Vec<GlossaryDictionary>,
 }
 
 /// Error message from DeepL API for some reason.
@@ -95,27 +119,109 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<languag
 }
 
 /// For the glossary API.  
-/// Send glossary to DeepL API and create a glossary.
-pub fn send_glossary(api: &DpTran, glossary: &glossaries::GlossaryPostData) -> Result<glossaries::GlossaryResponseData, DeeplAPIError> {
-    glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
-}
-
-/// For the glossary API.  
 /// Get a list of registered glossaries.
-pub fn get_registered_glossaries(api: &DpTran) -> Result<glossaries::GlossariesList, DeeplAPIError> {
-    glossaries::GlossariesList::get_registered_dictionaries(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+pub fn get_registered_glossaries(api: &DpTran) -> Result<Vec<Glossary>, DeeplAPIError> {
+    let glossaries_list = glossaries::GlossariesApiList::get_registered_dictionaries(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))?;
+    let mut result: Vec<Glossary> = Vec::new();
+    for glossary_data in glossaries_list.glossaries.iter() {
+        // Convert GlossariesApiResponseData to Glossary
+        let dictionaries: Vec<GlossaryDictionary> = glossary_data.dictionaries.iter().map(|dict_data| {
+            GlossaryDictionary {
+                source_lang: dict_data.source_lang.clone(),
+                target_lang: dict_data.target_lang.clone(),
+                entries: Vec::new(),  // Entries are not included in the list API response
+                entries_format: glossaries::GlossariesApiFormat::Tsv,  // Default to Tsv
+                entry_count: dict_data.entry_count as usize,
+            }
+        }).collect();
+
+        let glossary = Glossary {
+            name: glossary_data.name.clone(),
+            dictionaries,
+            id: Some(glossary_data.glossary_id.clone()),
+        };
+        result.push(glossary);
+    }
+
+    Ok(result)
 }
 
 /// For the glossary API.  
 /// Get supported languages for Glossaries API.
-pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossaries::SupportedLanguages, DeeplAPIError> {
-    glossaries::SupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+pub fn get_glossary_supported_languages(api: &DpTran) -> Result<glossaries::GlossariesApiSupportedLanguages, DeeplAPIError> {
+    glossaries::GlossariesApiSupportedLanguages::get(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
 }
 
 /// For the glossary API.
 /// Delete a glossary.
-pub fn delete_glossary(api: &DpTran, glossary: &glossaries::GlossaryResponseData) -> Result<(), DeeplAPIError> {
-    glossary.delete(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+pub fn delete_glossary(api: &DpTran, glossary: &Glossary) -> Result<(), DeeplAPIError> {
+    if let Some(glossary_id) = &glossary.id {
+        glossaries::delete_glossary(api, glossary_id).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+    } else {
+        Err(DeeplAPIError::GlossaryIsNotRegisteredError)
+    }
+}
+
+impl GlossaryDictionary {
+    /// Make a new GlossaryDictionary instance.
+    pub fn new(source_lang: String, target_lang: String, entries: Vec<(String, String)>, entries_format: glossaries::GlossariesApiFormat) -> Self {
+        let entry_count = entries.len();
+        GlossaryDictionary {
+            source_lang,
+            target_lang,
+            entries,
+            entries_format,
+            entry_count: entry_count,
+        }
+    }
+}
+
+impl Glossary {
+    /// Make a new Glossary instance.
+    pub fn new(name: String, dictionaries: Vec<GlossaryDictionary>) -> Self {
+        Glossary {
+            name,
+            dictionaries,
+            id: None,
+        }
+    }
+
+    /// Send glossary to DeepL API and create a glossary.  
+    pub fn send(&mut self, api: &DpTran) -> Result<GlossaryID, DeeplAPIError> {
+        // Make Vec<GlossariesApiDictionaryPostData>
+        let dictionaries: Vec<glossaries::GlossariesApiDictionaryPostData> = self.dictionaries.iter().map(|dict| {
+            // Prepare entries
+            let entries = match dict.entries_format {
+                glossaries::GlossariesApiFormat::Tsv => {
+                    dict.entries.iter().map(|(source, target)| format!("{}\t{}", source, target)).collect::<Vec<String>>().join("\n")
+                },
+                glossaries::GlossariesApiFormat::Csv => {
+                    dict.entries.iter().map(|(source, target)| format!("\"{}\",\"{}\"", source.replace("\"", "\"\""), target.replace("\"", "\"\""))).collect::<Vec<String>>().join("\n")
+                },
+            };
+
+            glossaries::GlossariesApiDictionaryPostData::new(
+                &dict.source_lang,
+                &dict.target_lang,
+                &entries,
+                &dict.entries_format.to_string(),
+            )
+        }).collect();
+
+        // Make a new GlossariesApiPostData instance
+        let glossary = glossaries::GlossariesApiPostData::new(
+            self.name.clone(),
+            dictionaries,
+        );
+
+        // Send glossary to DeepL API
+        let res = glossary.send(api).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))?;
+
+        // Set and return glossary ID
+        self.id = Some(res.glossary_id);
+        
+        Ok(self.id.as_ref().unwrap().clone())
+    }
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  

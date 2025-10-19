@@ -5,7 +5,8 @@ pub use deeplapi::languages::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
 pub use deeplapi::translate;
-pub use deeplapi::glossaries::{ GlossaryFormat, GlossaryPostData, Dictionary };
+pub use deeplapi::glossaries::{ GlossariesApiFormat, GlossariesApiPostData };
+pub use deeplapi::LangCode;
 
 pub use deeplapi::translate::DEEPL_API_TRANSLATE;
 pub use deeplapi::translate::DEEPL_API_TRANSLATE_PRO;
@@ -15,9 +16,6 @@ pub use deeplapi::languages::DEEPL_API_LANGUAGES;
 pub use deeplapi::languages::DEEPL_API_LANGUAGES_PRO;
 pub use deeplapi::glossaries::DEEPL_API_GLOSSARIES;
 pub use deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO;
-
-/// string as language code
-pub type LangCode = String;
 
 /// Errors that can occur in this library.  
 /// ``DeeplApiError``: DeepL API error  
@@ -244,34 +242,25 @@ impl DpTran {
     /// You need to create a Glossary instance first.  
     /// Returns the glossary ID if successful.  
     /// glossary: Glossary instance
-    pub fn send_glossary(&self, glossary: &GlossaryPostData) -> Result<String, DpTranError> {
-        // Check if the glossary language pair is supported
-        for dict in glossary.get_dictionaries() {
-            let is_supported = self.get_glossary_supported_languages()?.is_lang_pair_supported(&dict.get_source_lang(), &dict.get_target_lang());
-            if !is_supported {
-                return Err(DpTranError::GlossaryLangPairNotSupported);
-            }
-        }
-        // Send glossary
-        let api_response = deeplapi::send_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))?;
-        Ok(api_response.glossary_id)
+    pub fn send_glossary(&self, glossary: &mut deeplapi::Glossary) -> Result<String, DpTranError> {
+        glossary.send(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Get a list of registered glossaries.  
     /// Returns the list of registered glossaries.
-    pub fn get_registered_glossaries(&self) -> Result<deeplapi::glossaries::GlossariesList, DpTranError> {
+    pub fn get_registered_glossaries(&self) -> Result<Vec<deeplapi::Glossary>, DpTranError> {
         deeplapi::get_registered_glossaries(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Get supported languages for Glossaries API.  
     /// Returns the supported languages.
-    pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::SupportedLanguages, DpTranError> {
+    pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::GlossariesApiSupportedLanguages, DpTranError> {
         deeplapi::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Delete a glossary.
     /// glossary: Glossary instance
-    pub fn delete_glossary(&self, glossary: &deeplapi::glossaries::GlossaryResponseData) -> Result<(), DpTranError> {
+    pub fn delete_glossary(&self, glossary: &deeplapi::Glossary) -> Result<(), DpTranError> {
         deeplapi::delete_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
