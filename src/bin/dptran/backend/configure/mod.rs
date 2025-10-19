@@ -23,6 +23,8 @@ pub struct Configure {
     pub endpoint_of_translation: Option<String>,
     pub endpoint_of_usage: Option<String>,
     pub endpoint_of_languages: Option<String>,
+    pub endpoint_of_glossaries: Option<String>,
+    pub endpoint_of_glossaries_langs: Option<String>,
 }
 impl Default for Configure {
     fn default() -> Self {
@@ -37,6 +39,8 @@ impl Default for Configure {
             endpoint_of_translation: None,
             endpoint_of_usage: None,
             endpoint_of_languages: None,
+            endpoint_of_glossaries: None,
+            endpoint_of_glossaries_langs: None,
         }
     }
 }
@@ -204,6 +208,44 @@ impl ConfigureWrapper {
         Ok(())
     }
 
+    /// Set endpoint of glossaries API
+    pub fn set_endpoint_of_glossaries(&mut self, endpoint: String) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_glossaries = Some(endpoint);
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Get endpoint of glossaries API
+    pub fn get_endpoint_of_glossaries(&self) -> Result<Option<String>, ConfigError> {
+        Ok(self.configure.endpoint_of_glossaries.clone())
+    }
+
+    /// Reset endpoint of glossaries API
+    pub fn reset_endpoint_of_glossaries(&mut self) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_glossaries = None;
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Set endpoint of glossaries languages API
+    pub fn set_endpoint_of_glossaries_langs(&mut self, endpoint: String) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_glossaries_langs = Some(endpoint);
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Get endpoint of glossaries languages API
+    pub fn get_endpoint_of_glossaries_langs(&self) -> Result<Option<String>, ConfigError> {
+        Ok(self.configure.endpoint_of_glossaries_langs.clone())
+    }
+
+    /// Reset endpoint of glossaries languages API
+    pub fn reset_endpoint_of_glossaries_langs(&mut self) -> Result<(), ConfigError> {
+        self.configure.endpoint_of_glossaries_langs = None;
+        self.save().map_err(|e| ConfigError::FailToSetApiKey(e.to_string()))?;
+        Ok(())
+    }
+
     /// Initialize general settings (except API keys and endpoints)
     pub fn clear_general_settings(&mut self) -> Result<(), ConfigError> {
         let endpoint_of_translation = self.configure.endpoint_of_translation.clone();
@@ -326,6 +368,8 @@ mod older_configure {
                 endpoint_of_translation: None,
                 endpoint_of_usage: None,
                 endpoint_of_languages: None,
+                endpoint_of_glossaries: None,
+                endpoint_of_glossaries_langs: None,
             };
             confy::store("dptran", configure_name, &settings).map_err(|e| ConfigError::FailToGetSettings(e.to_string()))?;
             return Ok(settings);

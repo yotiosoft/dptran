@@ -368,6 +368,34 @@ fn handle_api_settings(api_setting_struct: backend::args::ApiSettingsStruct) -> 
                 return Ok(());
             }
         }
+        backend::args::ApiSettingsTarget::EndpointOfGlossaries => {
+            if let Some(s) = api_setting_struct.endpoint_of_glossaries {
+                if s.len() == 0 {
+                    config.reset_endpoint_of_glossaries().map_err(|e| RuntimeError::ConfigError(e))?;
+                }
+                else {
+                    config.set_endpoint_of_glossaries(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                }
+                return Ok(());
+            } else {
+                config.reset_endpoint_of_glossaries().map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            }
+        }
+        backend::args::ApiSettingsTarget::EndpointOfGlossariesLangs => {
+            if let Some(s) = api_setting_struct.endpoint_of_glossaries_langs {
+                if s.len() == 0 {
+                    config.reset_endpoint_of_glossaries_langs().map_err(|e| RuntimeError::ConfigError(e))?;
+                }
+                else {
+                    config.set_endpoint_of_glossaries_langs(s).map_err(|e| RuntimeError::ConfigError(e))?;
+                }
+                return Ok(());
+            } else {
+                config.reset_endpoint_of_glossaries_langs().map_err(|e| RuntimeError::ConfigError(e))?;
+                return Ok(());
+            }
+        }
         backend::args::ApiSettingsTarget::ClearEndpoints => {
             config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
             config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
@@ -769,15 +797,6 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
 
 /// Obtaining arguments and calling the translation process
 fn main() -> Result<(), RuntimeError> {
-    // API Key confirmation
-    let api_key = match backend::get_api_key()? {
-        Some(api_key) => api_key,
-        None => {
-            print_api_key_error();
-            return Ok(());
-        },
-    };
-
     // Parsing arguments.
     let arg_struct = backend::args::parser()?;
     let mode = arg_struct.execution_mode;
@@ -1258,6 +1277,24 @@ mod runtime_tests {
             .arg("api")
             .arg("--endpoint-of-langs")
             .arg("http://localhost:8000/free/v2/languages")
+            .output();
+
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-glossaries")
+            .arg("http://localhost:8000/free/v2/glossaries")
+            .output();
+
+        let mut cmd = Command::new("cargo");
+        let _ = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("api")
+            .arg("--endpoint-of-glossaries-langs")
+            .arg("http://localhost:8000/free/v2/glossary-language-pairs")
             .output();
 
         // Now, test the translation with the changed endpoints.

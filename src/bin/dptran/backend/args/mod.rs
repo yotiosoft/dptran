@@ -36,6 +36,8 @@ pub enum ApiSettingsTarget {
     EndpointOfTranslation,
     EndpointOfUsage,
     EndpointOfLangs,
+    EndpointOfGlossaries,
+    EndpointOfGlossariesLangs,
     ClearEndpoints,
     ShowSettings,
     ClearSettings,
@@ -78,6 +80,8 @@ pub struct ApiSettingsStruct {
     pub endpoint_of_translation: Option<String>,
     pub endpoint_of_usage: Option<String>,
     pub endpoint_of_langs: Option<String>,
+    pub endpoint_of_glossaries: Option<String>,
+    pub endpoint_of_glossaries_langs: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -211,6 +215,14 @@ enum SubCommands {
         #[arg(short='l', long)]
         endpoint_of_langs: Option<String>,
 
+        /// Endpoint of glossaries API. (e.g. `https://api-free.deepl.com/v2/glossaries`)
+        #[arg(short='g', long)]
+        endpoint_of_glossaries: Option<String>,
+
+        /// Endpoint of glossaries language pairs API. (e.g. `https://api-free.deepl.com/v2/glossary-language-pairs`)
+        #[arg(short='a', long)]
+        endpoint_of_glossaries_langs: Option<String>,
+
         /// Clear endpoints to default values.
         #[arg(long)]
         clear_endpoints: bool,
@@ -321,6 +333,8 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             endpoint_of_translation: None,
             endpoint_of_usage: None,
             endpoint_of_langs: None,
+            endpoint_of_glossaries: None,
+            endpoint_of_glossaries_langs: None,
         }),
         cache_setting: Some(CacheSettingsStruct {
             setting_target: None,
@@ -386,7 +400,9 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 return Ok(arg_struct);
             }
             SubCommands::Api { api_key_free, api_key_pro, clear_free_api_key, clear_pro_api_key,
-                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs , clear_endpoints, show, clear_all } => {
+                    endpoint_of_translation, endpoint_of_usage, endpoint_of_langs , 
+                    endpoint_of_glossaries, endpoint_of_glossaries_langs,
+                    clear_endpoints, show, clear_all } => {
                 if let Some(api_key) = api_key_free {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
                     arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::FreeApiKey);
@@ -421,6 +437,16 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;
                     arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfLangs);
                     arg_struct.api_setting.as_mut().unwrap().endpoint_of_langs = Some(endpoint_of_langs);
+                }
+                if let Some(endpoint_of_glossaries) = endpoint_of_glossaries {
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfGlossaries);
+                    arg_struct.api_setting.as_mut().unwrap().endpoint_of_glossaries = Some(endpoint_of_glossaries);
+                }
+                if let Some(endpoint_of_glossaries_langs) = endpoint_of_glossaries_langs {
+                    arg_struct.execution_mode = ExecutionMode::ApiSettings;
+                    arg_struct.api_setting.as_mut().unwrap().setting_target = Some(ApiSettingsTarget::EndpointOfGlossariesLangs);
+                    arg_struct.api_setting.as_mut().unwrap().endpoint_of_glossaries_langs = Some(endpoint_of_glossaries_langs);
                 }
                 if clear_endpoints == true {
                     arg_struct.execution_mode = ExecutionMode::ApiSettings;

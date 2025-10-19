@@ -147,3 +147,26 @@ fn configure_fix_settings_test() {
     assert_eq!(fixed_config.editor_command, None);
     assert_eq!(fixed_config.cache_enabled, true);
 }
+
+#[test]
+fn configure_set_endpoints_test() {
+    let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
+    let new_endpoint_translation = "https://api-free.deepl.com/v2/translate".to_string();
+    let new_endpoint_usage = "https://api-free.deepl.com/v2/usage".to_string();
+    let new_endpoint_languages = "https://api-free.deepl.com/v2/languages".to_string();
+    let new_endpoint_glossaries = "https://api-free.deepl.com/v2/glossaries".to_string();
+    let new_endpoint_glossaries_langs = "https://api-free.deepl.com/v2/glossary-language-pairs".to_string();
+
+    config_wrapper.set_endpoint_of_translation(new_endpoint_translation.clone()).unwrap();
+    config_wrapper.set_endpoint_of_usage(new_endpoint_usage.clone()).unwrap();
+    config_wrapper.set_endpoint_of_languages(new_endpoint_languages.clone()).unwrap();
+    config_wrapper.set_endpoint_of_glossaries(new_endpoint_glossaries.clone()).unwrap();
+    config_wrapper.set_endpoint_of_glossaries_langs(new_endpoint_glossaries_langs.clone()).unwrap();
+
+    let updated_config = ConfigureWrapper::get("configure_test").unwrap();
+    assert_eq!(updated_config.configure.endpoint_of_translation, Some(new_endpoint_translation));
+    assert_eq!(updated_config.configure.endpoint_of_usage, Some(new_endpoint_usage));
+    assert_eq!(updated_config.configure.endpoint_of_languages, Some(new_endpoint_languages));
+    assert_eq!(updated_config.configure.endpoint_of_glossaries, Some(new_endpoint_glossaries));
+    assert_eq!(updated_config.configure.endpoint_of_glossaries_langs, Some(new_endpoint_glossaries_langs));
+}
