@@ -185,7 +185,7 @@ impl GlossaryPostData {
                         return Err(GlossaryError::CouldNotCreateGlossary);
                     }
                 }
-                
+
                 // If there is no error, the response is GlossaryResponseData.
                 // Parse response
                 let ret: GlossaryResponseData = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string(), res.clone()))?;
@@ -341,6 +341,14 @@ mod tests {
         assert_eq!(created_glossary.dictionaries[0].source_lang, "EN".to_string());
         assert_eq!(created_glossary.dictionaries[0].target_lang, "FR".to_string());
         assert_eq!(created_glossary.dictionaries[0].entry_count, 2);
+    }
+
+    #[test]
+    fn api_glosarries_get_registered_dictionaries() {
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
+        let api = DpTran::with(&api_key, &ApiKeyType::Free);
+        let res = GlossariesList::get_registered_dictionaries(&api);
+        assert!(res.is_ok());
     }
 
     #[test]
