@@ -291,7 +291,8 @@ impl SupportedLanguages {
     /// Is the language pair supported?
     pub fn is_lang_pair_supported(&self, source_lang: &String, target_lang: &String) -> bool {
         for pair in &self.supported_languages {
-            if &pair.source_lang == source_lang && &pair.target_lang == target_lang {
+            if &pair.source_lang.to_ascii_uppercase() == source_lang.to_ascii_uppercase() 
+                && &pair.target_lang.to_ascii_uppercase() == target_lang.to_ascii_uppercase() {
                 return true;
             }
         }
