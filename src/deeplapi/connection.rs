@@ -89,6 +89,7 @@ fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), String> {
 /// Error statement generation
 fn handle_error(response_code: u32) -> ConnectionError {
     match response_code {
+        204 => ConnectionError::NoContent,
         400 => ConnectionError::BadRequest,
         403 => ConnectionError::Forbidden,
         404 => ConnectionError::NotFound,
