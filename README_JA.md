@@ -155,7 +155,7 @@ cargo test -- --test-threads=1
 
 ```bash
 pip3 install -r requirements.txt
-uvicorn dummy-api-server:app --reload
+uvicorn dummy_api_server.main:app --reload
 ```
 
 ## ドキュメント

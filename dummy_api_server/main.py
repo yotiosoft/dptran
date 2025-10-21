@@ -1,7 +1,7 @@
 # This is a dummy API server for translation services for testing purposes.
 # To run this server:
 # $ pip3 install -r requirements.txt
-# $ uvicorn dummy-api-server:app --reload 
+# $ uvicorn dummy_api_server.main:app --reload
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import JSONResponse

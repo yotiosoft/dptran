@@ -153,7 +153,7 @@ The dummey server will be run at `http://localhost:8000/` by default.
 
 ```bash
 $ pip3 install -r requirements.txt
-$ uvicorn dummy-api-server:app --reload
+$ uvicorn dummy_api_server.main:app --reload
 ```
 
 ## Documentation

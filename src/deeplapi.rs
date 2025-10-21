@@ -271,7 +271,7 @@ impl Glossary {
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.
 /// And also, you need to run the dummy server for the DeepL API to test the API endpoints.
 ///   $ pip3 install -r requirements.txt
-///   $ uvicorn dummy-api-server:app --reload
+///   $ uvicorn dummy_api_server.main:app --reload
 #[cfg(test)]
 pub mod tests {
     use core::panic;
