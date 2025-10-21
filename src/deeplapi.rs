@@ -178,6 +178,9 @@ impl GlossaryDictionary {
 
 impl Glossary {
     /// Make a new Glossary instance.
+    /// 
+    /// `name`: Glossary name
+    /// `dictionaries`: Vec<GlossaryDictionary>
     pub fn new(name: String, dictionaries: Vec<GlossaryDictionary>) -> Self {
         Glossary {
             name,
@@ -187,6 +190,8 @@ impl Glossary {
     }
 
     /// Send glossary to DeepL API and create a glossary.  
+    /// 
+    /// `api`: DpTran instance
     pub fn send(&mut self, api: &DpTran) -> Result<GlossaryID, DeeplAPIError> {
         // Make Vec<GlossariesApiDictionaryPostData>
         let dictionaries: Vec<glossaries::GlossariesApiDictionaryPostData> = self.dictionaries.iter().map(|dict| {
@@ -219,8 +224,46 @@ impl Glossary {
 
         // Set and return glossary ID
         self.id = Some(res.glossary_id);
-        
+
         Ok(self.id.as_ref().unwrap().clone())
+    }
+
+    /// Edit glossary content and update it on DeepL API.
+    /// 
+    /// `api`: DpTran instance
+    pub fn update(&self, api: &DpTran) -> Result<(), DeeplAPIError> {
+        if let Some(glossary_id) = &self.id {
+            // Make Vec<GlossariesApiDictionaryPostData>
+            let dictionaries: Vec<glossaries::GlossariesApiDictionaryPostData> = self.dictionaries.iter().map(|dict| {
+                // Prepare entries
+                let entries = match dict.entries_format {
+                    glossaries::GlossariesApiFormat::Tsv => {
+                        dict.entries.iter().map(|(source, target)| format!("{}\t{}", source, target)).collect::<Vec<String>>().join("\n")
+                    },
+                    glossaries::GlossariesApiFormat::Csv => {
+                        dict.entries.iter().map(|(source, target)| format!("\"{}\",\"{}\"", source.replace("\"", "\"\""), target.replace("\"", "\"\""))).collect::<Vec<String>>().join("\n")
+                    },
+                };
+
+                glossaries::GlossariesApiDictionaryPostData::new(
+                    &dict.source_lang,
+                    &dict.target_lang,
+                    &entries,
+                    &dict.entries_format.to_string(),
+                )
+            }).collect();
+
+            // Make a new GlossariesApiPostData instance
+            let glossary = glossaries::GlossariesApiPostData::new(
+                self.name.clone(),
+                dictionaries,
+            );
+
+            // Update glossary on DeepL API
+            glossaries::patch_glossary(api, glossary_id, &glossary).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))
+        } else {
+            Err(DeeplAPIError::GlossaryIsNotRegisteredError)
+        }
     }
 }
 

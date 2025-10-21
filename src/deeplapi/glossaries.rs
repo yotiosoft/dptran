@@ -228,6 +228,28 @@ pub fn delete_glossary(api: &DpTran, glossary_id: &String) -> Result<(), Glossar
     }
 }
 
+/// Patch the glossary via DeepL API.
+pub fn patch_glossary(api: &DpTran, glossary_id: &String, patch_data: &GlossariesApiPostData) -> Result<(), GlossaryError> {
+    let url = if api.api_key_type == ApiKeyType::Free {
+        format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
+    } else {
+        format!("{}/{}", DEEPL_API_GLOSSARIES_PRO, glossary_id)
+    };
+
+    // Prepare headers
+    let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+    let header_content_type = "Content-Type: application/json";
+    let headers = vec![header_auth_key, header_content_type.to_string()];
+    let patch_data_json = serde_json::to_string(patch_data).unwrap();
+
+    // Send request
+    let ret = connection::patch_with_headers(url, patch_data_json, &headers);
+    match ret {
+        Ok(_) => Ok(()),
+        Err(e) => Err(GlossaryError::ConnectionError(e)),
+    }
+}
+
 impl GlossariesApiSupportedLanguages {
     /// Get supported languages for Glossaries API.
     pub fn get(api: &DpTran) -> Result<GlossariesApiSupportedLanguages, GlossaryError> {

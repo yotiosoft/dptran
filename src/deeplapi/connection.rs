@@ -71,6 +71,15 @@ fn make_delete_session(url: String) -> Result<Easy, String> {
     Ok(easy)
 }
 
+/// Create a PATCH session
+fn make_patch_session(url: String, patch_data: String) -> Result<Easy, String> {
+    let mut easy = Easy::new();
+    easy.url(url.as_str()).map_err(|e| e.to_string())?;
+    easy.custom_request("PATCH").map_err(|e| e.to_string())?;
+    easy.post_fields_copy(patch_data.as_bytes()).map_err(|e| e.to_string())?;
+    Ok(easy)
+}
+
 /// Sending and Receiving
 fn transfer(mut easy: Easy) -> Result<(Vec<u8>, u32), String> {
     let mut dst = Vec::new();
@@ -196,6 +205,33 @@ pub fn delete_with_headers(url: String, header: &Vec<String>) -> Result<(), Conn
 
     if response_code == 200 || response_code == 204 {
         Ok(())
+    } else {
+        // HTTP Error Handling
+        Err(handle_error(response_code))
+    }
+}
+
+/// Patch method with headers
+pub fn patch_with_headers(url: String, patch_data: String, header: &Vec<String>) -> Result<String, ConnectionError> {
+    let mut easy = match make_patch_session(url, patch_data) {
+        Ok(easy) => easy,
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+    {
+        let mut list = curl::easy::List::new();
+        for h in header {
+            list.append(h).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+        }
+        easy.http_headers(list).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
+    }
+    let (dst, response_code) = match transfer(easy) {
+        Ok((dst, response_code)) => (dst, response_code),
+        Err(e) => return Err(ConnectionError::CurlError(e)),
+    };
+
+    if dst.len() > 0 {
+        let s = str::from_utf8(&dst).expect("Invalid UTF-8");
+        Ok(s.to_string())
     } else {
         // HTTP Error Handling
         Err(handle_error(response_code))
