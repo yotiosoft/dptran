@@ -29,7 +29,7 @@ jobs:
     - name: Run tests
       run: |
         pip3 install -r requirements.txt
-        cd dummy-api-server && uvicorn main:app --reload --port 8000 &
+        uvicorn dummy_api_server.main:app --reload --port 8000 &
         sleep 5  # Wait for the dummy API server to start
         cargo test --verbose -- --test-threads=1
 
@@ -54,6 +54,6 @@ jobs:
           echo "Tests will run with a Pro DeepL API key."
         fi
         pip3 install -r requirements.txt
-        cd dummy-api-server && uvicorn main:app --reload --port 8000 &
+        uvicorn dummy_api_server.main:app --reload --port 8000 &
         sleep 5  # Wait for the dummy API server to start
         cargo test --verbose -- --test-threads=1
