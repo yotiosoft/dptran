@@ -198,8 +198,8 @@ pub fn delete_with_headers(url: String, header: &Vec<String>) -> Result<(), Conn
         }
         easy.http_headers(list).map_err(|e| ConnectionError::CurlError(e.to_string()))?;
     }
-    let (dst, response_code) = match transfer(easy) {
-        Ok((dst, response_code)) => (dst, response_code),
+    let response_code = match transfer(easy) {
+        Ok((_, response_code)) => response_code,
         Err(e) => return Err(ConnectionError::CurlError(e)),
     };
 
@@ -243,17 +243,42 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn send_and_get_test() {
-        let url = "https://api-free.deepl.com/v2/".to_string();
-        let post_data = "text=Hello&target_lang=FR&auth_key=".to_string();
-        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
-        let url = format!("{}translate?auth_key={}", url, api_key);
+    fn connection_post_test() {
+        let url = "http://localhost:8000/".to_string();
+        let post_data = "test".to_string();
         let result = post(url, post_data);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn handling_error_test() {
+    fn connection_post_with_headers_test() {
+        let url = "http://localhost:8000/".to_string();
+        let post_data = "test".to_string();
+        let headers = vec!["Content-Type: application/json".to_string()];
+        let result = post_with_headers(url, post_data, &headers);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn connection_delete_test() {
+        let url = "http://localhost:8000/delete".to_string();
+        let headers = vec!["Content-Type: application/json".to_string()];
+        let result = delete_with_headers(url, &headers);
+        panic!("Result: {:?}", result);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn connection_patch_with_headers_test() {
+        let url = "http://localhost:8000/".to_string();
+        let patch_data = "test".to_string();
+        let headers = vec!["Content-Type: application/json".to_string()];
+        let result = patch_with_headers(url, patch_data, &headers);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn connection_handling_error_test() {
         let error_code = 204;
         let error = handle_error(error_code);
         assert_eq!(error, ConnectionError::NoContent);

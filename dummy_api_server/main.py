@@ -309,3 +309,19 @@ async def languages_for_pro(type: str = Form(...), auth_key: str = Form(...)):
     if auth_key == "":
         return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
     return languages_response(type)
+
+@app.get("/")
+async def get_root():
+    return JSONResponse(content={"message": "200 OK"}, status_code=200)
+
+@app.post("/")
+async def post_root():
+    return JSONResponse(content={"message": "200 OK"}, status_code=200)
+
+@app.delete("/")
+async def delete_root():
+    return JSONResponse(content={"message": "200 OK"}, status_code=200)
+
+@app.patch("/")
+async def patch_root():
+    return JSONResponse(content={"message": "200 OK"}, status_code=200)
