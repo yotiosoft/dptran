@@ -8,8 +8,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from enum import Enum
 from typing import List, Optional
+from glossaries_api import router as glossaries_router
 
 app = FastAPI()
+app.include_router(glossaries_router)
 
 @app.get("/")
 async def root():

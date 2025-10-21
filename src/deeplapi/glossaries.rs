@@ -317,7 +317,7 @@ mod tests {
     fn api_glossaries_post_send() {
         // Send glossary creation request to DeepL API
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
-        let api = DpTran::with(&api_key, &ApiKeyType::Free);
+        let api = DpTran::with_endpoint(&api_key, &ApiKeyType::Free, super::super::tests::get_endpoint());
         let dict = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"FR".to_string(), &"Hello\tBonjour\nGoodbye\tAu revoir".to_string(), &"tsv".to_string());
         let glossaries = vec![dict];
         let post_data = GlossariesApiPostData::new("MyGlossary".to_string(), glossaries);
@@ -346,7 +346,7 @@ mod tests {
     #[test]
     fn api_glossaries_get_registered_dictionaries() {
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
-        let api = DpTran::with(&api_key, &ApiKeyType::Free);
+        let api = DpTran::with_endpoint(&api_key, &ApiKeyType::Free, super::super::tests::get_endpoint());
         let res = GlossariesApiList::get_registered_dictionaries(&api);
         assert!(res.is_ok());
     }
@@ -354,7 +354,7 @@ mod tests {
     #[test]
     fn api_glossaries_supported_languages() {
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
-        let api = DpTran::with(&api_key, &ApiKeyType::Free);
+        let api = DpTran::with_endpoint(&api_key, &ApiKeyType::Free, super::super::tests::get_endpoint());
         let res = GlossariesApiSupportedLanguages::get(&api);
         assert!(res.is_ok());
         let supported_languages = res.unwrap();
@@ -366,7 +366,7 @@ mod tests {
     fn api_glossaries_patch_glossary() {
         // Send glossary creation request to DeepL API
         let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
-        let api = DpTran::with(&api_key, &ApiKeyType::Free);
+        let api = DpTran::with_endpoint(&api_key, &ApiKeyType::Free, super::super::tests::get_endpoint());
         let dict = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"FR".to_string(), &"Hello\tBonjour\nGoodbye\tAu revoir".to_string(), &"tsv".to_string());
         let glossaries = vec![dict];
         let post_data = GlossariesApiPostData::new("MyGlossary".to_string(), glossaries);
