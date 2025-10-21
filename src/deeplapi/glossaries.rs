@@ -361,4 +361,43 @@ mod tests {
         assert!(supported_languages.is_lang_pair_supported(&"EN".to_string(), &"FR".to_string()));
         assert!(!supported_languages.is_lang_pair_supported(&"EN".to_string(), &"XX".to_string()));
     }
+
+    #[test]
+    fn api_glossaries_patch_glossary() {
+        // Send glossary creation request to DeepL API
+        let api_key = std::env::var("DPTRAN_DEEPL_API_KEY").unwrap();
+        let api = DpTran::with(&api_key, &ApiKeyType::Free);
+        let dict = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"FR".to_string(), &"Hello\tBonjour\nGoodbye\tAu revoir".to_string(), &"tsv".to_string());
+        let glossaries = vec![dict];
+        let post_data = GlossariesApiPostData::new("MyGlossary".to_string(), glossaries);
+        let res = post_data.send(&api);
+        assert!(res.is_ok());
+
+        // Retrieve response data
+        let glossary_response = GlossariesApiList::get_registered_dictionaries(&api);
+        assert!(glossary_response.is_ok());
+        let glossary_response = glossary_response.unwrap();
+        let created_glossary = &glossary_response.glossaries[0];
+        
+        // Patch the created glossary
+        let new_dict = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"FR".to_string(), &"Hello\tBonjour!\nGoodbye\tAu revoir!".to_string(), &"tsv".to_string());
+        let patch_data = GlossariesApiPostData::new("MyGlossaryUpdated".to_string(), vec![new_dict]);
+        let patch_res = patch_glossary(&api, &created_glossary.glossary_id, &patch_data);
+        assert!(patch_res.is_ok());
+
+        // Retrieve updated glossary data
+        let updated_glossary_response = GlossariesApiList::get_registered_dictionaries(&api);
+        assert!(updated_glossary_response.is_ok());
+        let updated_glossary_response = updated_glossary_response.unwrap();
+        let updated_glossary = &updated_glossary_response.glossaries[0];
+        assert_eq!(updated_glossary.name, "MyGlossaryUpdated".to_string());
+        assert_eq!(updated_glossary.dictionaries.len(), 1);
+        assert_eq!(updated_glossary.dictionaries[0].source_lang.to_uppercase(), "EN".to_string());
+        assert_eq!(updated_glossary.dictionaries[0].target_lang.to_uppercase(), "FR".to_string());
+        assert_eq!(updated_glossary.dictionaries[0].entry_count, 2);
+
+        // Delete the created glossary
+        let delete_res = delete_glossary(&api, &created_glossary.glossary_id);
+        assert!(delete_res.is_ok());
+    }
 }
