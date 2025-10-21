@@ -239,9 +239,7 @@ pub fn patch_with_headers(url: String, patch_data: String, header: &Vec<String>)
 }
 
 #[cfg(test)]
-mod tests {
-    use clap::error;
-
+pub mod tests {
     use super::*;
 
     #[test]

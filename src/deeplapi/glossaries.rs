@@ -294,7 +294,7 @@ impl GlossariesApiSupportedLanguages {
 ///   $ pip3 install -r requirements.txt
 ///   $ uvicorn dummy_api_server.main:app --reload
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
 
     #[test]

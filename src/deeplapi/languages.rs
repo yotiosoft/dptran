@@ -103,7 +103,7 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
 ///   $ pip3 install -r requirements.txt
 ///   $ uvicorn dummy_api_server.main:app --reload
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
 
     #[test]

@@ -271,7 +271,7 @@ impl DpTran {
 ///   $ pip3 install -r requirements.txt
 ///   $ uvicorn dummy_api_server.main:app --reload
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
 
     fn retry_or_panic(e: &DpTranError, times: u8) -> bool {
