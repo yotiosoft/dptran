@@ -319,7 +319,7 @@ pub mod tests {
         if res.is_err() {
             if retry_or_panic(&res.err().unwrap(), times) {
                 // retry
-                impl_lib_usage_test(times + 1);
+                do_lib_api_usage_test(times + 1);
                 return;
             }
         }
@@ -509,13 +509,13 @@ pub mod tests {
     #[test]
     fn lib_impl_correct_source_language_code_test() {
         // correct_source_language_code test
-        do_correct_source_language_code_test(0);
+        do_lib_api_correct_source_language_code_test(0);
     }
 
     #[test]
     fn lib_impl_correct_target_language_code_test() {
         // correct_target_language_code test
-        do_correct_target_language_code_test(0);
+        do_lib_api_correct_target_language_code_test(0);
     }
 
     #[test]
