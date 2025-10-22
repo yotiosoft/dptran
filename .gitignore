@@ -6,3 +6,5 @@ config.json
 *.DS_Store
 __pycache__
 *.pyc
+output.txt
+dummy-api-server-venv

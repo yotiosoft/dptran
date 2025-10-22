@@ -13,10 +13,6 @@ from dummy_api_server.glossaries_api import router as glossaries_router
 app = FastAPI()
 app.include_router(glossaries_router)
 
-@app.get("/")
-async def root():
-    return {"message": "Access Successful"}
-
 class TranslationResponseText(BaseModel):
     text: str
 
@@ -325,3 +321,8 @@ async def delete_root():
 @app.patch("/")
 async def patch_root():
     return JSONResponse(content={"message": "200 OK"}, status_code=200)
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000)

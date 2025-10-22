@@ -261,10 +261,9 @@ pub mod tests {
 
     #[test]
     fn connection_delete_test() {
-        let url = "http://localhost:8000/delete".to_string();
+        let url = "http://localhost:8000/".to_string();
         let headers = vec!["Content-Type: application/json".to_string()];
         let result = delete_with_headers(url, &headers);
-        panic!("Result: {:?}", result);
         assert!(result.is_ok());
     }
 
