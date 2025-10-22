@@ -393,7 +393,7 @@ pub mod tests {
             Err(e) => {
                 if retry_or_panic(&e, times) {
                     // retry
-                    impl_api_get_language_codes_test(times + 1);
+                    do_api_get_language_codes_test(times + 1);
                     return;
                 }
             }
