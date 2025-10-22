@@ -285,7 +285,7 @@ pub mod tests {
         }
     }
 
-    fn impl_lib_translate_test(times: u8) {
+    fn do_lib_api_translate_test(times: u8) {
         // create instance test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -303,14 +303,14 @@ pub mod tests {
             Err(e) => {
                 if retry_or_panic(&e, times) {
                     // retry
-                    impl_lib_translate_test(times + 1);
+                    do_lib_api_translate_test(times + 1);
                     return;
                 }
             }
         }
     }
 
-    fn impl_lib_usage_test(times: u8) {
+    fn do_lib_api_usage_test(times: u8) {
         // usage test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -325,7 +325,7 @@ pub mod tests {
         }
     }
 
-    fn impl_lib_get_language_code_test(times: u8) {
+    fn do_lib_api_get_language_code_test(times: u8) {
         // get_language_codes test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -340,14 +340,14 @@ pub mod tests {
             Err(e) => {
                 if retry_or_panic(&e, times) {
                     // retry
-                    impl_lib_get_language_code_test(times + 1);
+                    do_lib_api_get_language_code_test(times + 1);
                     return;
                 }
             }
         }
     }
 
-    fn impl_lib_check_language_code_test(times: u8) {
+    fn do_lib_api_check_language_code_test(times: u8) {
         // check_language_code test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -360,7 +360,7 @@ pub mod tests {
             Err(e) => {
                 if retry_or_panic(&e, times) {
                     // retry
-                    impl_lib_check_language_code_test(times + 1);
+                    do_lib_api_check_language_code_test(times + 1);
                     return;
                 }
             }
@@ -373,14 +373,14 @@ pub mod tests {
             Err(e) => {
                 if retry_or_panic(&e, times) {
                     // retry
-                    impl_lib_check_language_code_test(times + 1);
+                    do_lib_api_check_language_code_test(times + 1);
                     return;
                 }
             }
         }
     }
 
-    fn impl_correct_source_language_code_test(times: u8) {
+    fn do_lib_api_correct_source_language_code_test(times: u8) {
         // correct_source_language_code test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -396,7 +396,7 @@ pub mod tests {
                 Err(e) => {
                     if retry_or_panic(&e, times) {
                         // retry
-                        impl_correct_source_language_code_test(times + 1);
+                        do_lib_api_correct_source_language_code_test(times + 1);
                         return;
                     }
                 }
@@ -426,7 +426,7 @@ pub mod tests {
         }
     }
 
-    fn impl_correct_target_language_code_test(times: u8) {
+    fn do_lib_api_correct_target_language_code_test(times: u8) {
         // correct_target_language_code test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -442,7 +442,7 @@ pub mod tests {
                 Err(e) => {
                     if retry_or_panic(&e, times) {
                         // retry
-                        impl_correct_target_language_code_test(times + 1);
+                        do_lib_api_correct_target_language_code_test(times + 1);
                         return;
                     }
                 }
@@ -473,30 +473,30 @@ pub mod tests {
     }
 
     #[test]
-    fn lib_translate_test() {
-        impl_lib_translate_test(0);
+    fn lib_api_translate_test() {
+        do_lib_api_translate_test(0);
     }
 
     #[test]
-    fn lib_usage_test() {
+    fn lib_api_usage_test() {
         // usage test
-        impl_lib_usage_test(0);
+        do_lib_api_usage_test(0);
     }
 
     #[test]
-    fn lib_get_language_code_test() {   
+    fn lib_api_get_language_code_test() {   
         // get_language_codes test
-        impl_lib_get_language_code_test(0);
+        do_lib_api_get_language_code_test(0);
     }
 
     #[test]
-    fn lib_check_language_code_test() {
+    fn lib_api_check_language_code_test() {
         // check_language_code test
-        impl_lib_check_language_code_test(0);
+        do_lib_api_check_language_code_test(0);
     }
 
     #[test]
-    fn lib_set_and_get_api_key_test() {
+    fn lib_impl_set_and_get_api_key_test() {
         // set_api_key test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let mut dptran = DpTran::with_endpoint(&api_key, &api_key_type, deeplapi::tests::get_endpoint());
@@ -507,19 +507,19 @@ pub mod tests {
     }
 
     #[test]
-    fn lib_correct_source_language_code_test() {
+    fn lib_impl_correct_source_language_code_test() {
         // correct_source_language_code test
-        impl_correct_source_language_code_test(0);
+        do_correct_source_language_code_test(0);
     }
 
     #[test]
-    fn lib_correct_target_language_code_test() {
+    fn lib_impl_correct_target_language_code_test() {
         // correct_target_language_code test
-        impl_correct_target_language_code_test(0);
+        do_correct_target_language_code_test(0);
     }
 
     #[test]
-    fn lib_set_and_get_api_urls_test() {
+    fn lib_impl_set_and_get_api_urls_test() {
         // set_api_urls test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let mut dptran = DpTran::with(&api_key, &api_key_type);
@@ -536,7 +536,7 @@ pub mod tests {
     }
 
     #[test]
-    fn lib_with_endpoint_test() {
+    fn lib_impl_with_endpoint_test() {
         // with_endpoint test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let dptran = DpTran::with(&api_key, &api_key_type);
@@ -548,7 +548,7 @@ pub mod tests {
     }
 
     #[test]
-    fn lib_change_endpoint_urls_test() {
+    fn lib_impl_change_endpoint_urls_test() {
         // change_endpoint_urls test
         let (api_key, api_key_type) = deeplapi::tests::get_api_key();
         let mut dptran = DpTran::with(&api_key, &api_key_type);

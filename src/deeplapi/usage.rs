@@ -46,7 +46,7 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn api_json_to_vec_test() {
+    fn impl_json_to_vec() {
         let json = r#"{"character_count":12345,"character_limit":500000}"#.to_string();
         let res = json_to_vec(&json);
         assert!(res.is_ok());

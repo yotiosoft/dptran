@@ -107,7 +107,7 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn api_json_to_vec_test() {
+    fn impl_json_to_vec() {
         let json = r#"[{"language":"EN","name":"English"},{"language":"DE","name":"German"}]"#.to_string();
         let res = json_to_vec(&json, &"source".to_string());
         match res {

@@ -298,13 +298,13 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn api_glossaries_dictionary() {
+    fn impl_glossaries_dictionary() {
         let dict = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"FR".to_string(), &"Hello\tBonjour\nGoodbye\tAu revoir".to_string(), &"tsv".to_string());
         assert_eq!(dict.get_source_lang(), &"EN".to_string());
     }
 
     #[test]
-    fn api_glossaries_post_data() {
+    fn impl_glossaries_post_data() {
         let dict1 = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"FR".to_string(), &"Hello\tBonjour\nGoodbye\tAu revoir".to_string(), &"tsv".to_string());
         let dict2 = GlossariesApiDictionaryPostData::new(&"DE".to_string(), &"EN".to_string(), &"Hallo\tHello\nTschüss\tGoodbye".to_string(), &"tsv".to_string());
         let glossaries_post_data = GlossariesApiPostData::new("MyGlossary".to_string(), vec![dict1.clone(), dict2.clone()]);

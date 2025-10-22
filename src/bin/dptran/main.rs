@@ -857,37 +857,37 @@ mod func_tests {
         }
     }
 
-    fn impl_app_show_source_language_codes_test(times: u8) {
+    fn do_app_deeplapi_show_source_language_codes_test(times: u8) {
         let result = show_source_language_codes();
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
-                return impl_app_show_source_language_codes_test(times + 1);
+                return do_app_deeplapi_show_source_language_codes_test(times + 1);
             }
         }
         assert!(result.is_ok());
     }
 
-    fn impl_app_show_target_language_codes_test(times: u8) {
+    fn do_app_deeplapi_show_target_language_codes_test(times: u8) {
         let result = show_target_language_codes();
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
-                return impl_app_show_target_language_codes_test(times + 1);
+                return do_app_deeplapi_show_target_language_codes_test(times + 1);
             }
         }
         assert!(result.is_ok());
     }
 
-    fn impl_app_show_usage_test(times: u8) {
+    fn do_app_deeplapi_show_usage_test(times: u8) {
         let result = handle_show_usage();
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
-                return impl_app_show_usage_test(times + 1);
+                return do_app_deeplapi_show_usage_test(times + 1);
             }
         }
         assert!(result.is_ok());
     }
 
-    fn impl_app_process_test(times: u8) {
+    fn do_app_deeplapi_process_test(times: u8) {
         let api_key = backend::get_api_key().unwrap().unwrap();
         let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
         let mode = ExecutionMode::TranslateNormal;
@@ -900,14 +900,14 @@ mod func_tests {
         let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
-                return impl_app_process_test(times + 1);
+                return do_app_deeplapi_process_test(times + 1);
             }
         }
         assert!(result.is_ok());
     }
 
     #[test]
-    fn app_get_langcodes_maxlen_test() {
+    fn app_impl_get_langcodes_maxlen_test() {
         let lang_codes = vec![
             ("en".to_string(), "English".to_string()),
             ("fr".to_string(), "French".to_string()),
@@ -920,34 +920,34 @@ mod func_tests {
     }
 
     #[test]
-    fn app_display_general_settings_test() {
+    fn app_impl_display_general_settings_test() {
         let result = display_general_settings();
         assert!(result.is_ok());
     }
 
     #[test]
-    fn app_display_api_settings_test() {
+    fn app_impl_display_api_settings_test() {
         let result = display_api_settings();
         assert!(result.is_ok());
     }
 
     #[test]
-    fn app_show_source_language_codes_test() {
-        impl_app_show_source_language_codes_test(0);
+    fn app_deeplapi_show_source_language_codes_test() {
+        do_app_deeplapi_show_source_language_codes_test(0);
     }
 
     #[test]
-    fn app_show_target_language_codes_test() {
-        impl_app_show_target_language_codes_test(0);
+    fn app_deeplapi_show_target_language_codes_test() {
+        do_app_deeplapi_show_target_language_codes_test(0);
     }
 
     #[test]
-    fn app_show_usage_test() {
-        impl_app_show_usage_test(0);
+    fn app_deeplapi_show_usage_test() {
+        do_app_deeplapi_show_usage_test(0);
     }
 
     #[test]
-    fn app_get_input_test() {
+    fn app_impl_get_input_test() {
         let mode = ExecutionMode::TranslateNormal;
         let multilines = false;
         let rm_line_breaks = false;
@@ -958,8 +958,8 @@ mod func_tests {
     }
 
     #[test]
-    fn app_process_test() {
-        impl_app_process_test(0);
+    fn app_deeplapi_process_test() {
+        do_app_deeplapi_process_test(0);
     }
 }
 
@@ -1016,7 +1016,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn runtime_test() {
+    fn runtime_deeplapi_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1057,7 +1057,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn runtime_with_file_test() {
+    fn runtime_deeplapi_with_file_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1093,7 +1093,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn runtime_with_cache_test() {
+    fn runtime_deeplapi_with_cache_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1175,7 +1175,7 @@ mod runtime_tests {
 
     /// Test for the interactive mode.
     #[test]
-    fn runtime_interactive_mode_test() {
+    fn runtime_deeplapi_interactive_mode_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1213,7 +1213,7 @@ mod runtime_tests {
 
     #[test]
     #[cfg(target_os = "linux")]
-    fn runtime_from_pipe_test() {
+    fn runtime_deeplapi_from_pipe_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1246,7 +1246,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn runtime_change_endpoints_test() {
+    fn runtime_impl_change_endpoints_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1316,7 +1316,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn runtime_change_endpoints_and_clear_test() {
+    fn runtime_impl_change_endpoints_and_clear_test() {
         // Reset configuration.
         reset_general_settings();
         reset_api_settings();
@@ -1360,7 +1360,7 @@ mod runtime_tests {
     }
 
     #[test]
-    fn runtime_config_helper_test() {
+    fn runtime_impl_config_helper_test() {
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
