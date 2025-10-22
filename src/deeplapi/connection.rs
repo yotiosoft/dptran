@@ -243,7 +243,7 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn connection_post_test() {
+    fn access_post_test() {
         let url = "http://localhost:8000/".to_string();
         let post_data = "test".to_string();
         let result = post(url, post_data);
@@ -251,7 +251,7 @@ pub mod tests {
     }
 
     #[test]
-    fn connection_post_with_headers_test() {
+    fn access_post_with_headers_test() {
         let url = "http://localhost:8000/".to_string();
         let post_data = "test".to_string();
         let headers = vec!["Content-Type: application/json".to_string()];
@@ -260,7 +260,7 @@ pub mod tests {
     }
 
     #[test]
-    fn connection_delete_test() {
+    fn access_delete_test() {
         let url = "http://localhost:8000/".to_string();
         let headers = vec!["Content-Type: application/json".to_string()];
         let result = delete_with_headers(url, &headers);
@@ -268,7 +268,7 @@ pub mod tests {
     }
 
     #[test]
-    fn connection_patch_with_headers_test() {
+    fn access_patch_with_headers_test() {
         let url = "http://localhost:8000/".to_string();
         let patch_data = "test".to_string();
         let headers = vec!["Content-Type: application/json".to_string()];
@@ -277,7 +277,7 @@ pub mod tests {
     }
 
     #[test]
-    fn connection_handling_error_test() {
+    fn impl_handling_error_test() {
         let error_code = 204;
         let error = handle_error(error_code);
         assert_eq!(error, ConnectionError::NoContent);

@@ -240,7 +240,7 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn backend_get_and_set_api_key_test() {
+    fn storage_get_and_set_api_key_test() {
         // Set as a free API key
         get_config().unwrap().clear_api_settings().map_err(|e| RuntimeError::ConfigError(e)).unwrap();
         let mut config = get_config().unwrap();
@@ -260,7 +260,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_editor_command_test() {
+    fn storage_get_and_set_editor_command_test() {
         let editor_command = "test_editor".to_string();
         let mut config = get_config().unwrap();
         config.set_editor_command(editor_command.clone()).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
@@ -272,7 +272,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_cache_max_entries_test() {
+    fn storage_get_and_set_cache_max_entries_test() {
         let cache_max_entries = 50;
         let mut config = get_config().unwrap();
         config.set_cache_max_entries(cache_max_entries).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
@@ -284,7 +284,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_get_and_set_cache_enabled_test() {
+    fn storage_get_and_set_cache_enabled_test() {
         let cache_enabled = false;
         let mut config = get_config().unwrap();
         config.set_cache_enabled(cache_enabled).map_err(|e| RuntimeError::ConfigError(e)).unwrap();
@@ -296,7 +296,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_into_and_search_cache_test() {
+    fn storage_into_and_search_cache_test() {
         let source_text = vec!["Hello".to_string()];
         let translated_text = vec!["Bonjour".to_string()];
         let source_lang = Some("en".to_string());
@@ -317,7 +317,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_format_translation_result_test() {
+    fn storage_format_translation_result_test() {
         // some Arabic text
         let translated_text = "مرحبا بك في ديبل";
         let formatted_text = format_translation_result(translated_text);
@@ -333,7 +333,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_create_and_append_file_test() {
+    fn storage_create_and_append_file_test() {
         let file_path = "test_file.txt";
         let text = "Hello, world!";
         let ofile = create_file(file_path).unwrap();
@@ -342,7 +342,7 @@ pub mod tests {
     }
 
     #[test]
-    fn backend_set_and_get_endpoints_test() {
+    fn storage_set_and_get_endpoints_test() {
         let mut config = get_config().unwrap();
         let translate_endpoint = "http://localhost:8000/free/v2/translate".to_string();
         let usage_endpoint = "http://localhost:8000/free/v2/usage".to_string();

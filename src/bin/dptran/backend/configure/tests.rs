@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn configure_set_api_key_test() {
+fn storage_set_api_key_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_api_key = "new_api_key".to_string();
     config_wrapper.set_api_key(new_api_key, ApiKeyType::Free).unwrap();
@@ -10,7 +10,7 @@ fn configure_set_api_key_test() {
 }
 
 #[test]
-fn configure_set_default_target_language_test() {
+fn storage_set_default_target_language_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_target_language = "FR".to_string();
     config_wrapper.set_default_target_language(&new_target_language).unwrap();
@@ -19,7 +19,7 @@ fn configure_set_default_target_language_test() {
 }
 
 #[test]
-fn configure_set_cache_max_entries_test() {
+fn storage_set_cache_max_entries_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_cache_max_entries = 200;
     config_wrapper.set_cache_max_entries(new_cache_max_entries).unwrap();
@@ -28,7 +28,7 @@ fn configure_set_cache_max_entries_test() {
 }
 
 #[test]
-fn configure_set_editor_command_test() {
+fn storage_set_editor_command_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_editor_command = "vim".to_string();
     config_wrapper.set_editor_command(new_editor_command).unwrap();
@@ -37,7 +37,7 @@ fn configure_set_editor_command_test() {
 }
 
 #[test]
-fn configure_set_cache_enabled_test() {
+fn storage_set_cache_enabled_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_cache_enabled = false;
     config_wrapper.set_cache_enabled(new_cache_enabled).unwrap();
@@ -46,7 +46,7 @@ fn configure_set_cache_enabled_test() {
 }
 
 #[test]
-fn configure_clear_general_settings_test() {
+fn storage_clear_general_settings_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     config_wrapper.clear_general_settings().unwrap();
     let cleared_config = ConfigureWrapper::get("configure_test").unwrap();
@@ -57,7 +57,7 @@ fn configure_clear_general_settings_test() {
 }
 
 #[test]
-fn configure_clear_api_settings_test() {
+fn storage_clear_api_settings_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     config_wrapper.clear_api_settings().unwrap();
     let cleared_config = ConfigureWrapper::get("configure_test").unwrap();
@@ -69,7 +69,7 @@ fn configure_clear_api_settings_test() {
 }
 
 #[test]
-fn configure_get_default_target_language_code_test() {
+fn storage_get_default_target_language_code_test() {
     // set up a test configuration 
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     config_wrapper.set_default_target_language(&"FR".to_string()).unwrap();
@@ -78,7 +78,7 @@ fn configure_get_default_target_language_code_test() {
 }
 
 #[test]
-fn configure_set_and_get_api_key_test() {
+fn storage_set_and_get_api_key_test() {
     // for ApiKeyType::Free
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     config_wrapper.clear_api_settings().unwrap();
@@ -104,7 +104,7 @@ fn configure_set_and_get_api_key_test() {
 }
 
 #[test]
-fn configure_get_cache_max_entries_test() {
+fn storage_get_cache_max_entries_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let cache_max_entries_to_set = 200;
     config_wrapper.set_cache_max_entries(cache_max_entries_to_set).unwrap();
@@ -113,7 +113,7 @@ fn configure_get_cache_max_entries_test() {
 }
 
 #[test]
-fn configure_get_editor_command_test() {
+fn storage_get_editor_command_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let editor_command_to_set = "vim".to_string();
     config_wrapper.set_editor_command(editor_command_to_set.clone()).unwrap();
@@ -122,7 +122,7 @@ fn configure_get_editor_command_test() {
 }
 
 #[test]
-fn configure_get_cache_enabled_test() {
+fn storage_get_cache_enabled_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let cache_enabled_to_set = false;
     config_wrapper.set_cache_enabled(cache_enabled_to_set).unwrap();
@@ -131,7 +131,7 @@ fn configure_get_cache_enabled_test() {
 }
 
 #[test]
-fn configure_fix_settings_test() {
+fn storage_fix_settings_test() {
     // for ConfigureBeforeV2_0_0
     // Create a temporary configuration file with old settings
     let old_config = older_configure::ConfigureBeforeV2_0_0::default();
@@ -149,7 +149,7 @@ fn configure_fix_settings_test() {
 }
 
 #[test]
-fn configure_set_endpoints_test() {
+fn storage_set_endpoints_test() {
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_endpoint_translation = "https://api-free.deepl.com/v2/translate".to_string();
     let new_endpoint_usage = "https://api-free.deepl.com/v2/usage".to_string();

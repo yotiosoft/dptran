@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn cache_hash_test() {
+fn impl_hash_test() {
     let text = String::from("Hello");
     let source_lang = Some(String::from("en"));
     let target_lang = String::from("fr");
@@ -13,7 +13,7 @@ fn cache_hash_test() {
 }
 
 #[test]
-fn cache_into_and_search_test() {
+fn storage_into_and_search_test() {
     let source_text = String::from("Hello");
     let value = String::from("Bonjour");
     let source_lang = Some(String::from("en"));
@@ -37,7 +37,7 @@ fn cache_into_and_search_test() {
 }
 
 #[test]
-fn cache_clear_test() {
+fn storage_clear_test() {
     let mut cache = get_cache_data("test_cache").map_err(|e| CacheError::FailToReadCache(e.to_string())).unwrap();
 
     _ = cache.clear_cache();

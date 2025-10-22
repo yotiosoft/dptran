@@ -276,7 +276,7 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn get_translation_strings() {
+    fn impl_get_translation_strings() {
         let json = TranslateResponse {
             translations: vec![
                 Translation {
@@ -299,7 +299,7 @@ pub mod tests {
     }
 
     #[test]
-    fn split_sentences_serialize() {
+    fn impl_split_sentences_serialize() {
         let s1 = SplitSentences::False;
         let s2 = SplitSentences::True;
         let s3 = SplitSentences::NoNewLines;
@@ -312,7 +312,7 @@ pub mod tests {
     }
 
     #[test]
-    fn split_sentences_deserialize() {
+    fn impl_split_sentences_deserialize() {
         let json1 = r#""0""#;
         let json2 = r#""1""#;
         let json3 = r#""nonewlines""#;
@@ -334,7 +334,7 @@ pub mod tests {
     }
 
     #[test]
-    fn formality_serialize() {
+    fn impl_formality_serialize() {
         let f1 = Formality::Default;
         let f2 = Formality::More;
         let f3 = Formality::Less;
@@ -353,7 +353,7 @@ pub mod tests {
     }
 
     #[test]
-    fn formality_deserialize() {
+    fn impl_formality_deserialize() {
         let json1 = r#""default""#;
         let json2 = r#""more""#;
         let json3 = r#""less""#;
@@ -387,7 +387,7 @@ pub mod tests {
     }
 
     #[test]
-    fn model_type_serialize() {
+    fn impl_model_type_serialize() {
         let m1 = ModelType::QualityOptimized;
         let m2 = ModelType::PreferQualityOptimized;
         let m3 = ModelType::LatencyOptimized;
@@ -400,7 +400,7 @@ pub mod tests {
     }
 
     #[test]
-    fn model_type_deserialize() {
+    fn impl_model_type_deserialize() {
         let json1 = r#""quality_optimized""#;
         let json2 = r#""prefer_quality_optimized""#;
         let json3 = r#""latency_optimized""#;
@@ -422,7 +422,7 @@ pub mod tests {
     }
 
     #[test]
-    fn tag_handling_serialize() {
+    fn impl_tag_handling_serialize() {
         let t1 = TagHandling::Xml;
         let t2 = TagHandling::Html;
         let res1 = serde_json::to_string(&t1).unwrap();
@@ -432,7 +432,7 @@ pub mod tests {
     }
 
     #[test]
-    fn tag_handling_deserialize() {
+    fn impl_tag_handling_deserialize() {
         let json1 = r#""xml""#;
         let json2 = r#""html""#;
         let res1: TagHandling = serde_json::from_str(json1).unwrap();
@@ -448,7 +448,7 @@ pub mod tests {
     }
 
     #[test]
-    fn translate_request_serialize() {
+    fn impl_translate_request_serialize() {
         let request = TranslateRequest {
             text: vec!["Hello, world!".to_string()],
             target_lang: "JA".to_string(),
@@ -472,7 +472,7 @@ pub mod tests {
     }
 
     #[test]
-    fn translate_request_deserialize() {
+    fn impl_translate_request_deserialize() {
         let json = r#"{"text":["Hello, world!"],"target_lang":"JA","source_lang":"EN","context":"greeting","show_billed_characters":true,"split_sentences":"1","preserve_formatting":false,"formality":"default","model_type":"quality_optimized","glossary_id":"glossary-id-123","tag_handling":"xml","outline_detection":true,"non_splitting_tags":["tag1","tag2"],"splitting_tags":["tag3"],"ignore_tags":["tag4"]}"#;
         let res: TranslateRequest = serde_json::from_str(json).unwrap();
         assert_eq!(res.text[0], "Hello, world!");
@@ -505,7 +505,7 @@ pub mod tests {
     }
 
     #[test]
-    fn translate_request_default() {
+    fn impl_translate_request_default() {
         let request = TranslateRequest {
             text: vec!["Hello, world!".to_string()],
             target_lang: "JA".to_string(),
