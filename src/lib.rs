@@ -234,7 +234,7 @@ impl DpTran {
 
     /// Translate with options. Using DeepL API.  
     /// You need to create a TranslateRequest instance first.
-    pub fn translate_with_options(&self, request: &translate::TranslateRequest) -> Result<translate::TranslateResponse, DpTranError> {
+    pub fn translate_with_options(&self, request: &translate::TranslateRequest) -> Result<translate::TranslateResult, DpTranError> {
         deeplapi::translate_with_options(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
