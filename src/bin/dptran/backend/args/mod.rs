@@ -534,3 +534,27 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     }
     Ok(arg_struct)
 }
+
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn parser_test() {
+        let args = vec![
+            "dptran",
+            "-f", "EN",
+            "-t", "FR",
+            "--multilines",
+            "--remove-line-breaks",
+            "-o", "output.txt",
+            "Hello, world!"
+        ];
+        let arg_struct = Args::parse_from(args);
+        assert_eq!(arg_struct.from.unwrap(), "EN".to_string());
+        assert_eq!(arg_struct.to.unwrap(), "FR".to_string());
+        assert_eq!(arg_struct.multilines, true);
+        assert_eq!(arg_struct.remove_line_breaks, true);
+        assert_eq!(arg_struct.output_file.unwrap(), "output.txt".to_string());
+        assert_eq!(arg_struct.source_text.unwrap().join(" "), "Hello, world!".to_string());
+    }
+}
