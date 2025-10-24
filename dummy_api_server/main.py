@@ -253,17 +253,6 @@ async def translate_for_pro(request: Request, body: TranslateRequest):
     # Call the translation function
     return translate_texts(body.source_lang, body.target_lang, body.text)
 
-
-    api_key = auth_header.replace("DeepL-Auth-Key ", "")
-    if not api_key:
-        return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
-
-    # Log the request body for debugging
-    print(f"Received JSON: {body.json()}")
-
-    # Call the translation function
-    return translate_texts(body.source_lang, body.target_lang, body.text)
-
 @app.post("/free/v2/usage")
 async def usage_for_free(auth_key: str = Form(...)):
     print(f"Received request: auth_key={auth_key}")

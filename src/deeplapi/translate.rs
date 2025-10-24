@@ -55,7 +55,7 @@ pub struct Translation {
 
 /// Translation response structure
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct TranslateResponse {
+pub struct TranslateResult {
     pub translations: Vec<Translation>,
 }
 
@@ -209,13 +209,13 @@ impl TranslateRequest {
     /// Return translation results.  
     /// Receive translation results in json format and display translation results.  
     /// Return error if json parsing fails.
-    pub fn translate(&self, api: &DpTran) -> Result<TranslateResponse, DeeplAPIError> {
+    pub fn translate(&self, api: &DpTran) -> Result<TranslateResult, DeeplAPIError> {
         // Get json of translation result with request_translate().
         let res = self.request_translate(api);
         match res {
             Ok(res) => {
                 // Parse json to TranslateResponse struct
-                let translate_response: TranslateResponse = serde_json::from_str(&res)
+                let translate_response: TranslateResult = serde_json::from_str(&res)
                     .map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
                 Ok(translate_response)
             },
@@ -253,7 +253,7 @@ impl TranslateRequest {
     }
 }
 
-impl TranslateResponse {
+impl TranslateResult {
     /// Parses the translation results passed in json format,
     /// stores the translation in a vector, and returns it.
     pub fn get_translation_strings(&self) -> Result<Vec<String>, DeeplAPIError> {
@@ -277,7 +277,7 @@ pub mod tests {
 
     #[test]
     fn impl_get_translation_strings() {
-        let json = TranslateResponse {
+        let json = TranslateResult {
             translations: vec![
                 Translation {
                     detected_source_language: "EN".to_string(),

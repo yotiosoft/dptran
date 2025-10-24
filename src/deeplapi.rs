@@ -80,7 +80,7 @@ pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_
 /// For the translation API.  
 /// Translate with detailed options.  
 /// Return detailed translation results.
-pub fn translate_with_options(api: &DpTran, request: &translate::TranslateRequest) -> Result<translate::TranslateResponse, DeeplAPIError> {
+pub fn translate_with_options(api: &DpTran, request: &translate::TranslateRequest) -> Result<translate::TranslateResult, DeeplAPIError> {
     request.translate(api)
 }
 
