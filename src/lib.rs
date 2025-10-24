@@ -5,7 +5,7 @@ pub use deeplapi::languages::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
 pub use deeplapi::translate;
-pub use deeplapi::glossaries::{ GlossariesApiFormat, GlossariesApiPostData };
+pub use deeplapi::glossaries::api::{ GlossariesApiFormat, GlossariesApiPostData };
 pub use deeplapi::LangCode;
 
 pub use deeplapi::translate::DEEPL_API_TRANSLATE;
@@ -14,8 +14,8 @@ pub use deeplapi::usage::DEEPL_API_USAGE;
 pub use deeplapi::usage::DEEPL_API_USAGE_PRO;
 pub use deeplapi::languages::DEEPL_API_LANGUAGES;
 pub use deeplapi::languages::DEEPL_API_LANGUAGES_PRO;
-pub use deeplapi::glossaries::DEEPL_API_GLOSSARIES;
-pub use deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO;
+pub use deeplapi::glossaries::api::DEEPL_API_GLOSSARIES;
+pub use deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PRO;
 
 /// Errors that can occur in this library.  
 /// ``DeeplApiError``: DeepL API error  
@@ -84,10 +84,10 @@ impl Default for EndpointUrls {
             usage_for_pro: deeplapi::usage::DEEPL_API_USAGE_PRO.to_string(),
             languages_for_free: deeplapi::languages::DEEPL_API_LANGUAGES.to_string(),
             languages_for_pro: deeplapi::languages::DEEPL_API_LANGUAGES_PRO.to_string(),
-            glossaries_for_free: deeplapi::glossaries::DEEPL_API_GLOSSARIES.to_string(),
-            glossaries_for_pro: deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO.to_string(),
-            glossaries_language_pairs_for_free: deeplapi::glossaries::DEEPL_API_GLOSSARIES_PAIRS.to_string(),
-            glossaries_language_pairs_for_pro: deeplapi::glossaries::DEEPL_API_GLOSSARIES_PRO_PAIRS.to_string(),
+            glossaries_for_free: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES.to_string(),
+            glossaries_for_pro: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PRO.to_string(),
+            glossaries_language_pairs_for_free: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PAIRS.to_string(),
+            glossaries_language_pairs_for_pro: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PRO_PAIRS.to_string(),
         }
     }
 }
@@ -242,26 +242,26 @@ impl DpTran {
     /// You need to create a Glossary instance first.  
     /// Returns the glossary ID if successful.  
     /// glossary: Glossary instance
-    pub fn send_glossary(&self, glossary: &mut deeplapi::Glossary) -> Result<String, DpTranError> {
+    pub fn send_glossary(&self, glossary: &mut deeplapi::glossaries::Glossary) -> Result<String, DpTranError> {
         glossary.send(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Get a list of registered glossaries.  
     /// Returns the list of registered glossaries.
-    pub fn get_registered_glossaries(&self) -> Result<Vec<deeplapi::Glossary>, DpTranError> {
-        deeplapi::get_registered_glossaries(&self).map_err(|e| DpTranError::DeeplApiError(e))
+    pub fn get_registered_glossaries(&self) -> Result<Vec<deeplapi::glossaries::Glossary>, DpTranError> {
+        deeplapi::glossaries::get_registered_glossaries(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Get supported languages for Glossaries API.  
     /// Returns the supported languages.
-    pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::GlossariesApiSupportedLanguages, DpTranError> {
-        deeplapi::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
+    pub fn get_glossary_supported_languages(&self) -> Result<deeplapi::glossaries::api::GlossariesApiSupportedLanguages, DpTranError> {
+        deeplapi::glossaries::get_glossary_supported_languages(&self).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Delete a glossary.
     /// glossary: Glossary instance
-    pub fn delete_glossary(&self, glossary: &deeplapi::Glossary) -> Result<(), DpTranError> {
-        deeplapi::delete_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))
+    pub fn delete_glossary(&self, glossary: &deeplapi::glossaries::Glossary) -> Result<(), DpTranError> {
+        deeplapi::glossaries::delete_glossary(&self, glossary).map_err(|e| DpTranError::DeeplApiError(e))
     }
 }
 
