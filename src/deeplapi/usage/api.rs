@@ -29,8 +29,10 @@ pub fn get_usage_as_struct(api: &DpTran) -> Result<Usage, DeeplAPIError> {
     } else {
         api.api_urls.usage_for_pro.clone()
     };
-    let header = format!("Authentication: DeepL-Auth-Key {}", api.api_key);
-    let res = connection::get_with_headers(url, &vec![header]).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+    let header_content_type = "Content-Type: application/json";
+    let headers = vec![header_auth_key, header_content_type.to_string()];
+    let res = connection::get_with_headers(url, &headers).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let usage: Usage = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
     Ok(usage)
 }

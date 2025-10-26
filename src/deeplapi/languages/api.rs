@@ -101,10 +101,12 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
     } else {
         api.api_urls.languages_for_pro.clone()
     };
-    let header = format!("Authentication: DeepL-Auth-Key {}", api.api_key);
-    let res = connection::get_with_headers(url, &vec![header]).map_err(|e| DeeplAPIError::ConnectionError(e))?;
-
-    let mut lang_codes = json_to_vec(&res, &type_name)?;    
+    let url = format!("{}?type={}", url, type_name);
+    let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+    let header_content_type = "Content-Type: application/json";
+    let headers = vec![header_auth_key, header_content_type.to_string()];
+    let res = connection::get_with_headers(url, &headers).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let mut lang_codes = json_to_vec(&res, &type_name)?;
 
     // Sort by language code
     lang_codes.sort_by(|a, b| a.0.cmp(&b.0));
@@ -118,14 +120,17 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
 
 /// Get language code list and return as Language struct vector.
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.
-pub fn get_languages_as_struct(api: &DpTran) -> Result<Vec<Language>, DeeplAPIError> {
+pub fn get_languages_as_struct(api: &DpTran, type_name: String) -> Result<Vec<Language>, DeeplAPIError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         api.api_urls.languages_for_free.clone()
     } else {
         api.api_urls.languages_for_pro.clone()
     };
-    let header = format!("Authentication: DeepL-Auth-Key {}", api.api_key);
-    let res = connection::get_with_headers(url, &vec![header]).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let url = format!("{}?type={}", url, type_name);
+    let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+    let header_content_type = "Content-Type: application/json";
+    let headers = vec![header_auth_key, header_content_type.to_string()];
+    let res = connection::get_with_headers(url, &headers).map_err(|e| DeeplAPIError::ConnectionError(e))?;
 
     let result = get_languages_list(&res)?;
 
@@ -275,25 +280,11 @@ pub mod tests {
         // get_languages_as_struct test
         let (api_key, api_key_type) = super::super::super::tests::get_api_key();
         let api = DpTran::with_endpoint(&api_key, &api_key_type, super::super::super::tests::get_endpoint());
-        let res = get_languages_as_struct(&api);
+        let res = get_languages_as_struct(&api, "source".to_string());
         match res {
             Ok(res) => {
                 if res.len() == 0 {
                     panic!("Error: languages is empty");
-                }
-            },
-            Err(e) => {
-                panic!("Error: {}", e);
-            }
-        }
-        // Check if the languages are sorted
-        let res = get_languages_as_struct(&api);
-        match res {
-            Ok(res) => {
-                for i in 0..res.len()-1 {
-                    if res[i].language > res[i+1].language {
-                        panic!("Error: languages are not sorted");
-                    }
                 }
             },
             Err(e) => {

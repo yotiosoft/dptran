@@ -3,7 +3,7 @@
 # $ pip3 install -r requirements.txt
 # $ uvicorn dummy_api_server.main:app --reload
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from enum import Enum
@@ -170,19 +170,23 @@ def languages_response(type: str) -> JSONResponse:
             content=[
                 {
                     "language": "EN",
-                    "name": "English"
+                    "name": "English",
+                    "supports_formality": True
                 },
                 {
                     "language": "EN-US",
-                    "name": "English"
+                    "name": "English",
+                    "supports_formality": True
                 },
                 {
                     "language": "JA",
-                    "name": "Japanese"
+                    "name": "Japanese",
+                    "supports_formality": False
                 },
                 {
                     "language": "FR",
-                    "name": "French"
+                    "name": "French",
+                    "supports_formality": True
                 }
             ]
         )
@@ -191,19 +195,23 @@ def languages_response(type: str) -> JSONResponse:
             content=[
                 {
                     "language": "EN",
-                    "name": "English"
+                    "name": "English",
+                    "supports_formality": True
                 },
                 {
                     "language": "EN-US",
-                    "name": "English"
+                    "name": "English",
+                    "supports_formality": True
                 },
                 {
                     "language": "JA",
-                    "name": "Japanese"
+                    "name": "Japanese",
+                    "supports_formality": False
                 },
                 {
                     "language": "FR",
-                    "name": "French"
+                    "name": "French",
+                    "supports_formality": True
                 }
             ]
         )
@@ -253,11 +261,12 @@ async def translate_for_pro(request: Request, body: TranslateRequest):
     # Call the translation function
     return translate_texts(body.source_lang, body.target_lang, body.text)
 
-@app.post("/free/v2/usage")
-async def usage_for_free(auth_key: str = Form(...)):
-    print(f"Received request: auth_key={auth_key}")
-    if auth_key == "":
-        return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+@app.get("/free/v2/usage")
+async def usage_for_free(request: Request):
+    auth_header = request.headers.get("Authorization", "")
+    print(f"Received request: auth_key={auth_header}")
+    if not auth_header.startswith("DeepL-Auth-Key "):
+        return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
     global character_count
     return usage_response(
         character_count=character_count,
@@ -265,11 +274,12 @@ async def usage_for_free(auth_key: str = Form(...)):
         type="free"
     )
 
-@app.post("/pro/v2/usage")
-async def usage_for_pro(auth_key: str = Form(...)):
-    print(f"Received request: auth_key={auth_key}")
-    if auth_key == "":
-        return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+@app.get("/pro/v2/usage")
+async def usage_for_pro(request: Request):
+    auth_header = request.headers.get("Authorization", "")
+    print(f"Received request: auth_key={auth_header}")
+    if not auth_header.startswith("DeepL-Auth-Key "):
+        return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
     global character_count
     return usage_response(
         character_count=character_count,
@@ -281,18 +291,22 @@ class LanguagesResponseElement(BaseModel):
     language: str
     name: str
 
-@app.post("/free/v2/languages")
-async def languages_for_free(type: str = Form(...), auth_key: str = Form(...)):
-    print(f"Received request: type={type}, auth_key={auth_key}")
-    if auth_key == "":
-        return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+@app.get("/free/v2/languages")
+async def languages_for_free(request: Request, type: Optional[str] = Query(None)):
+    auth_header = request.headers.get("Authorization", "")
+    print(f"Received request: auth_key={auth_header}")
+    print(f"Type parameter: {type}")
+    if not auth_header.startswith("DeepL-Auth-Key "):
+        return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
     return languages_response(type)
 
-@app.post("/pro/v2/languages")
-async def languages_for_pro(type: str = Form(...), auth_key: str = Form(...)):
-    print(f"Received request: type={type}, auth_key={auth_key}")
-    if auth_key == "":
-        return JSONResponse(content={"error": "auth_key is required"}, status_code=400)
+@app.get("/pro/v2/languages")
+async def languages_for_pro(request: Request, type: Optional[str] = Query(None)):
+    auth_header = request.headers.get("Authorization", "")
+    print(f"Received request: auth_key={auth_header}")
+    print(f"Type parameter: {type}")
+    if not auth_header.startswith("DeepL-Auth-Key "):
+        return JSONResponse(content={"error": "Invalid or missing Authorization header"}, status_code=401)
     return languages_response(type)
 
 @app.get("/")
