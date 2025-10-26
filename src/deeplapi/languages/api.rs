@@ -120,4 +120,118 @@ pub mod tests {
             }
         }
     }
+
+    #[test]
+    fn api_sorted_languages_test() {
+        // get_language_codes test
+        let (api_key, api_key_type) = super::super::super::tests::get_api_key();
+        let api = DpTran::with_endpoint(&api_key, &api_key_type, super::super::super::tests::get_endpoint());
+        // Get language codes for source languages
+        let res = get_language_codes(&api, "source".to_string());
+        match res {
+            Ok(res) => {
+                if res.len() == 0 {
+                    panic!("Error: language codes is empty");
+                }
+
+                // Check if the language codes are sorted
+                for i in 0..res.len()-1 {
+                    if res[i].0 > res[i+1].0 {
+                        panic!("Error: language codes are not sorted");
+                    }
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+        // Are there extended language codes?
+        let res = get_language_codes(&api, "source".to_string());
+        match res {
+            Ok(res) => {
+                let mut found = false;
+                for i in 0..EXTENDED_LANG_CODES.len() {
+                    if res.iter().any(|x| x.0 == EXTENDED_LANG_CODES[i].0 && x.1 == EXTENDED_LANG_CODES[i].1) {
+                        found = true;
+                        break;
+                    }
+                }
+                if !found {
+                    panic!("Error: extended language codes not found");
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+        // Are they sorted?
+        let res = get_language_codes(&api, "source".to_string());
+        match res {
+            Ok(res) => {
+                // Check if the language codes are sorted
+                for i in 0..res.len()-1 {
+                    if res[i].0 > res[i+1].0 {
+                        panic!("Error: language codes are not sorted");
+                    }
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+        
+        // Get language codes for target languages
+        let res = get_language_codes(&api, "target".to_string());
+        match res {
+            Ok(res) => {
+                if res.len() == 0 {
+                    panic!("Error: language codes is empty");
+                }
+
+                // Check if the language codes are sorted
+                for i in 0..res.len()-1 {
+                    if res[i].0 > res[i+1].0 {
+                        panic!("Error: language codes are not sorted");
+                    }
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+        // Are there extended language codes?
+        let res = get_language_codes(&api, "target".to_string());
+        match res {
+            Ok(res) => {
+                let mut found = false;
+                for i in 0..EXTENDED_LANG_CODES.len() {
+                    if res.iter().any(|x| x.0 == EXTENDED_LANG_CODES[i].0 && x.1 == EXTENDED_LANG_CODES[i].1) {
+                        found = true;
+                        break;
+                    }
+                }
+                if !found {
+                    panic!("Error: extended language codes not found");
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+        // Are they sorted?
+        let res = get_language_codes(&api, "target".to_string());
+        match res {
+            Ok(res) => {
+                // Check if the language codes are sorted
+                for i in 0..res.len()-1 {
+                    if res[i].0 > res[i+1].0 {
+                        panic!("Error: language codes are not sorted");
+                    }
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+    }
 }

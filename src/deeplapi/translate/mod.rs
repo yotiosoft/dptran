@@ -38,7 +38,7 @@ pub fn translate_with_options(api: &DpTran, request: &api::TranslateRequest) -> 
 #[cfg(test)]
 pub mod tests {
     use super::*;
-
+    
     fn do_api_translate_test(times: u8) {
         // translate test
         let (api_key, api_key_type) = super::super::tests::get_api_key();
@@ -65,5 +65,32 @@ pub mod tests {
     fn api_translate_test() {
         // translate test
         do_api_translate_test(0);
+    }
+
+    #[test]
+    fn api_translate_with_options_test() {
+        // translate_with_options test
+        let (api_key, api_key_type) = super::super::tests::get_api_key();
+        let api = DpTran::with_endpoint(&api_key, &api_key_type, super::super::tests::get_endpoint());
+        let request = api::TranslateRequest {
+            text: vec!["Good morning".to_string()],
+            source_lang: Some("EN".to_string()),
+            target_lang: "FR".to_string(),
+            formality: Some(api::Formality::More),
+            ..Default::default()
+        };
+        let res = translate_with_options(&api, &request);
+        match res {
+            Ok(res) => {
+                assert_eq!(res.translations[0].detected_source_language.to_ascii_uppercase(), "EN");
+            },
+            Err(e) => {
+                if super::super::tests::retry_or_panic_for_api_tests(&e, 0) {
+                    // retry
+                    api_translate_with_options_test();
+                    return;
+                }
+            }
+        }
     }
 }
