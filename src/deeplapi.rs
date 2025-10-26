@@ -125,6 +125,7 @@ pub enum DeeplAPIError {
     GlossaryIsNotRegisteredError,
     LimitError,
     GetLanguageCodesError,
+    InvalidLangTypeError(String),
 }
 impl fmt::Display for DeeplAPIError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -136,6 +137,7 @@ impl fmt::Display for DeeplAPIError {
             DeeplAPIError::GlossaryIsNotRegisteredError => write!(f, "The specified glossary is not registered."),
             DeeplAPIError::LimitError => write!(f, "The translation limit of your account has been reached. Consider upgrading your subscription."),
             DeeplAPIError::GetLanguageCodesError => write!(f, "Could not get language codes"),
+            DeeplAPIError::InvalidLangTypeError(ref e) => write!(f, "Invalid language type: {}", e),
         }
     }
 }

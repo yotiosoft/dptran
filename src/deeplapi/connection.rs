@@ -111,26 +111,6 @@ fn handle_error(response_code: u32) -> ConnectionError {
     }
 }
 
-/// Communicate with the DeepL API.
-pub fn post(url: String, post_data: String) -> Result<String, ConnectionError> {
-    let easy = match make_post_session(url, post_data) {
-        Ok(easy) => easy,
-        Err(e) => return Err(ConnectionError::CurlError(e)),
-    };
-    let (dst, response_code) = match transfer(easy) {
-        Ok((dst, response_code)) => (dst, response_code),
-        Err(e) => return Err(ConnectionError::CurlError(e)),
-    };
-
-    if dst.len() > 0 {
-        let s = str::from_utf8(&dst).expect("Invalid UTF-8");
-        Ok(s.to_string())
-    } else {
-        // HTTP Error Handling
-        Err(handle_error(response_code))
-    }
-}
-
 /// Communicate with the DeepL API with header
 pub fn post_with_headers(url: String, post_data: String, header: &Vec<String>) -> Result<String, ConnectionError> {
     let mut easy = match make_post_session(url, post_data) {
@@ -241,14 +221,6 @@ pub fn patch_with_headers(url: String, patch_data: String, header: &Vec<String>)
 #[cfg(test)]
 pub mod tests {
     use super::*;
-
-    #[test]
-    fn access_post_test() {
-        let url = "http://localhost:8000/".to_string();
-        let post_data = "test".to_string();
-        let result = post(url, post_data);
-        assert!(result.is_ok());
-    }
 
     #[test]
     fn access_post_with_headers_test() {

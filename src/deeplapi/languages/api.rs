@@ -6,6 +6,14 @@ use super::connection;
 use super::DeeplAPIError;
 use super::ApiKeyType;
 
+/// Language information
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
+pub struct Language {
+    pub language: String,
+    pub name: String,
+    pub supports_formality: bool,
+}
+
 /// Language code and language name
 pub type LangCodeName = (String, String);
 
@@ -32,13 +40,23 @@ pub static EXTENDED_LANG_CODES: [(&str, &str, LangType); 2] = [
 
 /// Parses the translation results passed in json format,
 /// stores the translation in a vector, and returns it.
+fn get_languages_list(json: &String) -> Result<Vec<Language>, DeeplAPIError> {
+    // Add got language codes
+    let langs: Vec<Language> = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
+    Ok(langs)
+}
+
+/// Parses the translation results passed in json format,
+/// stores the translation in a vector, and returns it.
 fn json_to_vec(json: &String, type_name: &String) -> Result<Vec<LangCodeName>, DeeplAPIError> {
     let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
 
     let lang_type = if type_name == "source" { 
         LangType::Source 
-    } else { 
+    } else if type_name == "target" {
         LangType::Target 
+    } else {
+        return Err(DeeplAPIError::InvalidLangTypeError(type_name.clone()));
     };
 
     let mut lang_codes: Vec<LangCodeName> = Vec::new();
@@ -50,15 +68,16 @@ fn json_to_vec(json: &String, type_name: &String) -> Result<Vec<LangCodeName>, D
         return Err(DeeplAPIError::JsonError(v.to_string(), json.clone()));
     }
     // Add got language codes
-    for value in v_array.unwrap() {
-        value.get("language").ok_or(format!("Invalid response: {}", value)).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
-        // Remove quotation marks
-        let lang_code_with_quote = value["language"].to_string();
-        let lang_code = &lang_code_with_quote[1..lang_code_with_quote.len()-1];
-        let lang_name_with_quote = value["name"].to_string();
-        let lang_name = &lang_name_with_quote[1..lang_name_with_quote.len()-1];
-        let lang_code_pair = (lang_code.to_string(), lang_name.to_string());
-        lang_codes.push(lang_code_pair);
+    let langs = get_languages_list(&json)?;
+    for lang in langs.iter() {
+        match lang_type {
+            LangType::Source => {
+                lang_codes.push((lang.language.clone(), lang.name.clone()));
+            },
+            LangType::Target => {
+                lang_codes.push((lang.language.clone(), lang.name.clone()));
+            },
+        }
     }
     // Add extended language codes
     for i in 0..EXTENDED_LANG_CODES.len() {
@@ -82,8 +101,8 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
     } else {
         api.api_urls.languages_for_pro.clone()
     };
-    let query = format!("type={}&auth_key={}", type_name, api.api_key);
-    let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let header = format!("Authentication: DeepL-Auth-Key {}", api.api_key);
+    let res = connection::get_with_headers(url, &vec![header]).map_err(|e| DeeplAPIError::ConnectionError(e))?;
 
     let mut lang_codes = json_to_vec(&res, &type_name)?;    
 
@@ -95,6 +114,22 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
     } else {
         Ok(lang_codes)
     }
+}
+
+/// Get language code list and return as Language struct vector.
+/// Retrieved from <https://api-free.deepl.com/v2/languages>.
+pub fn get_languages_as_struct(api: &DpTran) -> Result<Vec<Language>, DeeplAPIError> {
+    let url = if api.api_key_type == ApiKeyType::Free {
+        api.api_urls.languages_for_free.clone()
+    } else {
+        api.api_urls.languages_for_pro.clone()
+    };
+    let header = format!("Authentication: DeepL-Auth-Key {}", api.api_key);
+    let res = connection::get_with_headers(url, &vec![header]).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+
+    let result = get_languages_list(&res)?;
+
+    Ok(result)
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
@@ -226,6 +261,38 @@ pub mod tests {
                 for i in 0..res.len()-1 {
                     if res[i].0 > res[i+1].0 {
                         panic!("Error: language codes are not sorted");
+                    }
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn api_get_languages_as_struct_test() {
+        // get_languages_as_struct test
+        let (api_key, api_key_type) = super::super::super::tests::get_api_key();
+        let api = DpTran::with_endpoint(&api_key, &api_key_type, super::super::super::tests::get_endpoint());
+        let res = get_languages_as_struct(&api);
+        match res {
+            Ok(res) => {
+                if res.len() == 0 {
+                    panic!("Error: languages is empty");
+                }
+            },
+            Err(e) => {
+                panic!("Error: {}", e);
+            }
+        }
+        // Check if the languages are sorted
+        let res = get_languages_as_struct(&api);
+        match res {
+            Ok(res) => {
+                for i in 0..res.len()-1 {
+                    if res[i].language > res[i+1].language {
+                        panic!("Error: languages are not sorted");
                     }
                 }
             },
