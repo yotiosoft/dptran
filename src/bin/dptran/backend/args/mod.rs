@@ -535,6 +535,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     Ok(arg_struct)
 }
 
+#[cfg(test)]
 pub mod tests {
     use super::*;
 
