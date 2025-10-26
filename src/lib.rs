@@ -10,8 +10,8 @@ pub use deeplapi::LangCode;
 
 pub use deeplapi::translate::api::DEEPL_API_TRANSLATE;
 pub use deeplapi::translate::api::DEEPL_API_TRANSLATE_PRO;
-pub use deeplapi::usage::DEEPL_API_USAGE;
-pub use deeplapi::usage::DEEPL_API_USAGE_PRO;
+pub use deeplapi::usage::api::DEEPL_API_USAGE;
+pub use deeplapi::usage::api::DEEPL_API_USAGE_PRO;
 pub use deeplapi::languages::DEEPL_API_LANGUAGES;
 pub use deeplapi::languages::DEEPL_API_LANGUAGES_PRO;
 pub use deeplapi::glossaries::api::DEEPL_API_GLOSSARIES;
@@ -80,8 +80,8 @@ impl Default for EndpointUrls {
         EndpointUrls {
             translate_for_free: deeplapi::translate::api::DEEPL_API_TRANSLATE.to_string(),
             translate_for_pro: deeplapi::translate::api::DEEPL_API_TRANSLATE_PRO.to_string(),
-            usage_for_free: deeplapi::usage::DEEPL_API_USAGE.to_string(),
-            usage_for_pro: deeplapi::usage::DEEPL_API_USAGE_PRO.to_string(),
+            usage_for_free: deeplapi::usage::api::DEEPL_API_USAGE.to_string(),
+            usage_for_pro: deeplapi::usage::api::DEEPL_API_USAGE_PRO.to_string(),
             languages_for_free: deeplapi::languages::DEEPL_API_LANGUAGES.to_string(),
             languages_for_pro: deeplapi::languages::DEEPL_API_LANGUAGES_PRO.to_string(),
             glossaries_for_free: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES.to_string(),
@@ -210,7 +210,7 @@ impl DpTran {
     /// Returns an error if acquisition fails.  
     /// api_key: DeepL API key  
     pub fn get_usage(&self) -> Result<DpTranUsage, DpTranError> {
-        let (count, limit) = deeplapi::get_usage(&self).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let (count, limit) = deeplapi::usage::get_usage(&self).map_err(|e| DpTranError::DeeplApiError(e))?;
         let limit = if limit == deeplapi::UNLIMITED_CHARACTERS_NUMBER {
             None
         } else {

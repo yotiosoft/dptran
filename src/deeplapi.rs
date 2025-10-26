@@ -61,14 +61,6 @@ pub struct DeeplAPIMessage {
     pub message: String,
 }
 
-/// For the usage API.  
-/// Get the number of characters remaining to be translated.  
-/// Retrieved from <https://api-free.deepl.com/v2/usage>.  
-/// Returns an error if acquisition fails.  
-pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
-    usage::get_usage(api)
-}
-
 /// For the languages API.  
 /// Get language code list  
 /// Retrieved from <https://api-free.deepl.com/v2/languages>.  
@@ -139,20 +131,6 @@ pub mod tests {
         }
     }
 
-    fn do_api_usage_test(times: u8) {
-        // usage test
-        let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with_endpoint(&api_key, &api_key_type, get_endpoint());
-        let res = get_usage(&api);
-        if res.is_err() {
-            if retry_or_panic(&res.err().unwrap(), times) {
-                // retry
-                do_api_usage_test(times + 1);
-                return;
-            }
-        }
-    }
-
     fn do_api_get_language_codes_test(times: u8) {
         // get_language_codes test
         let (api_key, api_key_type) = get_api_key();
@@ -185,12 +163,6 @@ pub mod tests {
                 }
             }
         }
-    }
-
-    #[test]
-    fn api_usage_test() {
-        // usage test
-        do_api_usage_test(0);
     }
 
     #[test]
