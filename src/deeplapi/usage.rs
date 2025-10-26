@@ -26,7 +26,7 @@ pub mod tests {
         let api = DpTran::with_endpoint(&api_key, &api_key_type, super::super::tests::get_endpoint());
         let res = get_usage(&api);
         if res.is_err() {
-            if super::super::tests::retry_or_panic(&res.err().unwrap(), times) {
+            if super::super::tests::retry_or_panic_for_api_tests(&res.err().unwrap(), times) {
                 // retry
                 do_api_usage_test(times + 1);
                 return;

@@ -52,7 +52,7 @@ pub mod tests {
                 assert_eq!(res[0], "ハロー、ワールド！");
             },
             Err(e) => {
-                if super::super::tests::retry_or_panic(&e, 0) {
+                if super::super::tests::retry_or_panic_for_api_tests(&e, 0) {
                     // retry
                     do_api_translate_test(times + 1);
                     return;

@@ -3,7 +3,6 @@ use serde_json::Value;
 use super::DpTran;
 
 use super::connection;
-use connection::ConnectionError;
 use super::DeeplAPIError;
 use super::ApiKeyType;
 

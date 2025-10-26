@@ -47,7 +47,7 @@ pub mod tests {
                 }
             },
             Err(e) => {
-                if super::super::tests::retry_or_panic(&e, times) {
+                if super::super::tests::retry_or_panic_for_api_tests(&e, times) {
                     // retry
                     do_api_get_language_codes_test(times + 1);
                     return;
