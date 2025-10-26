@@ -148,7 +148,7 @@ pub mod tests {
 
     #[test]
     fn impl_json_to_vec() {
-        let json = r#"[{"language":"EN","name":"English"},{"language":"DE","name":"German"}]"#.to_string();
+        let json = r#"[{"language":"EN","name":"English","supports_formality":false},{"language":"DE","name":"German","supports_formality":true}]"#.to_string();
         let res = json_to_vec(&json, &"source".to_string());
         match res {
             Ok(res) => {
