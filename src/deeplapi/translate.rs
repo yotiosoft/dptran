@@ -1,7 +1,8 @@
 use super::DpTran;
 
-use super::connection;
 use super::DeeplAPIError;
+use super::connection;
+use super::ApiKeyType;
 
 pub mod api;
 

@@ -3,7 +3,7 @@ use super::DpTran;
 use super::connection;
 use connection::ConnectionError;
 use super::DeeplAPIError;
-use super::super::ApiKeyType;
+use super::ApiKeyType;
 
 pub const DEEPL_API_TRANSLATE: &str = "https://api-free.deepl.com/v2/translate";
 pub const DEEPL_API_TRANSLATE_PRO: &str = "https://api.deepl.com/v2/translate";

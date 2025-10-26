@@ -3,6 +3,8 @@ pub mod api;
 use super::LangCode;
 use super::DpTran;
 use super::DeeplAPIError;
+use super::connection;
+use super::ApiKeyType;
 
 /// Glossary ID
 pub type GlossaryID = String;

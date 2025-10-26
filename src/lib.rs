@@ -1,7 +1,7 @@
 mod deeplapi;
 
 pub use deeplapi::ApiKeyType;
-pub use deeplapi::languages::LangCodeName;
+pub use deeplapi::languages::api::LangCodeName;
 pub use deeplapi::DeeplAPIError;
 pub use deeplapi::ConnectionError;
 pub use deeplapi::translate;
@@ -12,8 +12,8 @@ pub use deeplapi::translate::api::DEEPL_API_TRANSLATE;
 pub use deeplapi::translate::api::DEEPL_API_TRANSLATE_PRO;
 pub use deeplapi::usage::api::DEEPL_API_USAGE;
 pub use deeplapi::usage::api::DEEPL_API_USAGE_PRO;
-pub use deeplapi::languages::DEEPL_API_LANGUAGES;
-pub use deeplapi::languages::DEEPL_API_LANGUAGES_PRO;
+pub use deeplapi::languages::api::DEEPL_API_LANGUAGES;
+pub use deeplapi::languages::api::DEEPL_API_LANGUAGES_PRO;
 pub use deeplapi::glossaries::api::DEEPL_API_GLOSSARIES;
 pub use deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PRO;
 
@@ -82,8 +82,8 @@ impl Default for EndpointUrls {
             translate_for_pro: deeplapi::translate::api::DEEPL_API_TRANSLATE_PRO.to_string(),
             usage_for_free: deeplapi::usage::api::DEEPL_API_USAGE.to_string(),
             usage_for_pro: deeplapi::usage::api::DEEPL_API_USAGE_PRO.to_string(),
-            languages_for_free: deeplapi::languages::DEEPL_API_LANGUAGES.to_string(),
-            languages_for_pro: deeplapi::languages::DEEPL_API_LANGUAGES_PRO.to_string(),
+            languages_for_free: deeplapi::languages::api::DEEPL_API_LANGUAGES.to_string(),
+            languages_for_pro: deeplapi::languages::api::DEEPL_API_LANGUAGES_PRO.to_string(),
             glossaries_for_free: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES.to_string(),
             glossaries_for_pro: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PRO.to_string(),
             glossaries_language_pairs_for_free: deeplapi::glossaries::api::DEEPL_API_GLOSSARIES_PAIRS.to_string(),
@@ -166,7 +166,7 @@ impl DpTran {
             LangType::Target => "target".to_string(),
             LangType::Source => "source".to_string(),
         };
-        let lang_codes = deeplapi::get_language_codes(&self, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let lang_codes = deeplapi::languages::get_language_codes(&self, type_name).map_err(|e| DpTranError::DeeplApiError(e))?;
         Ok(lang_codes)
     }
 

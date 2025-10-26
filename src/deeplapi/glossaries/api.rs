@@ -4,10 +4,10 @@ use crate::deeplapi::DeeplAPIMessage;
 
 use super::DpTran;
 
-use super::super::connection;
+use super::connection;
 use connection::ConnectionError;
 use super::DeeplAPIError;
-use super::super::ApiKeyType;
+use super::ApiKeyType;
 
 pub const DEEPL_API_GLOSSARIES: &str = "https://api-free.deepl.com/v3/glossaries";
 pub const DEEPL_API_GLOSSARIES_PRO: &str = "https://api.deepl.com/v3/glossaries";
