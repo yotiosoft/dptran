@@ -8,8 +8,8 @@ pub use deeplapi::translate;
 pub use deeplapi::glossaries::api::{ GlossariesApiFormat, GlossariesApiPostData };
 pub use deeplapi::LangCode;
 
-pub use deeplapi::translate::DEEPL_API_TRANSLATE;
-pub use deeplapi::translate::DEEPL_API_TRANSLATE_PRO;
+pub use deeplapi::translate::api::DEEPL_API_TRANSLATE;
+pub use deeplapi::translate::api::DEEPL_API_TRANSLATE_PRO;
 pub use deeplapi::usage::DEEPL_API_USAGE;
 pub use deeplapi::usage::DEEPL_API_USAGE_PRO;
 pub use deeplapi::languages::DEEPL_API_LANGUAGES;
@@ -78,8 +78,8 @@ pub struct EndpointUrls {
 impl Default for EndpointUrls {
     fn default() -> Self {
         EndpointUrls {
-            translate_for_free: deeplapi::translate::DEEPL_API_TRANSLATE.to_string(),
-            translate_for_pro: deeplapi::translate::DEEPL_API_TRANSLATE_PRO.to_string(),
+            translate_for_free: deeplapi::translate::api::DEEPL_API_TRANSLATE.to_string(),
+            translate_for_pro: deeplapi::translate::api::DEEPL_API_TRANSLATE_PRO.to_string(),
             usage_for_free: deeplapi::usage::DEEPL_API_USAGE.to_string(),
             usage_for_pro: deeplapi::usage::DEEPL_API_USAGE_PRO.to_string(),
             languages_for_free: deeplapi::languages::DEEPL_API_LANGUAGES.to_string(),
@@ -229,13 +229,13 @@ impl DpTran {
     /// target_lang: Target language  
     /// source_lang: Source language (optional)  
     pub fn translate(&self, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
-        deeplapi::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
+        deeplapi::translate::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Translate with options. Using DeepL API.  
     /// You need to create a TranslateRequest instance first.
-    pub fn translate_with_options(&self, request: &translate::TranslateRequest) -> Result<translate::TranslateResult, DpTranError> {
-        deeplapi::translate_with_options(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
+    pub fn translate_with_options(&self, request: &translate::api::TranslateRequest) -> Result<translate::api::TranslateResult, DpTranError> {
+        deeplapi::translate::translate_with_options(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Send glossary to DeepL API and create a glossary.  

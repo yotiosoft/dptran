@@ -35,7 +35,7 @@ impl fmt::Display for GlossaryError {
 /// Glossary file format  
 /// TSV: Tab-Separated Values  
 /// CSV: Comma-Separated Values
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum GlossariesApiFormat {
     Tsv,
     Csv,
@@ -399,5 +399,13 @@ pub mod tests {
         // Delete the created glossary
         let delete_res = delete_glossary(&api, &created_glossary.glossary_id);
         assert!(delete_res.is_ok());
+    }
+
+    #[test]
+    fn impl_glossaries_api_format_debug() {
+        let format_tsv = GlossariesApiFormat::Tsv;
+        let format_csv = GlossariesApiFormat::Csv;
+        assert_eq!(format!("{:?}", format_tsv), "Tsv");
+        assert_eq!(format!("{:?}", format_csv), "Csv");
     }
 }

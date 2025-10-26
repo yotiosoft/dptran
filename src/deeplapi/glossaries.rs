@@ -8,6 +8,7 @@ use super::DeeplAPIError;
 pub type GlossaryID = String;
 
 /// Glossaries dictionary struct
+#[derive(Debug, Clone)]
 pub struct GlossaryDictionary {
     pub source_lang: LangCode,
     pub target_lang: LangCode,
@@ -169,5 +170,48 @@ impl Glossary {
         } else {
             Err(DeeplAPIError::GlossaryIsNotRegisteredError)
         }
+    }
+}
+
+/// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
+/// You should run these tests with ``cargo test -- --test-threads=1``
+/// because the DeepL API has a limit on the number of requests per second.
+/// And also, you need to run the dummy server for the DeepL API to test the API endpoints.
+///   $ pip3 install -r requirements.txt
+///   $ uvicorn dummy_api_server.main:app --reload
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn impl_glossary_dictionary_new() {
+        let entries = vec![
+            ("Hello".to_string(), "こんにちは".to_string()),
+            ("World".to_string(), "世界".to_string()),
+        ];
+        let dict = GlossaryDictionary::new("EN".to_string(), "JA".to_string(), entries.clone(), api::GlossariesApiFormat::Tsv);
+        assert_eq!(dict.source_lang, "EN");
+        assert_eq!(dict.target_lang, "JA");
+        assert_eq!(dict.entries, entries);
+        assert_eq!(dict.entries_format, api::GlossariesApiFormat::Tsv);
+        assert_eq!(dict.entry_count, 2);
+    }
+
+    #[test]
+    fn impl_glossary_new() {
+        let entries = vec![
+            ("Hello".to_string(), "こんにちは".to_string()),
+            ("World".to_string(), "世界".to_string()),
+        ];
+        let dict = GlossaryDictionary::new("EN".to_string(), "JA".to_string(), entries.clone(), api::GlossariesApiFormat::Tsv);
+        let glossary = Glossary::new("Test Glossary".to_string(), vec![dict.clone()]);
+        assert_eq!(glossary.name, "Test Glossary");
+        assert_eq!(glossary.dictionaries.len(), 1);
+        assert_eq!(glossary.dictionaries[0].source_lang, "EN");
+        assert_eq!(glossary.dictionaries[0].target_lang, "JA");
+        assert_eq!(glossary.dictionaries[0].entries, entries);
+        assert_eq!(glossary.dictionaries[0].entries_format, api::GlossariesApiFormat::Tsv);
+        assert_eq!(glossary.dictionaries[0].entry_count, 2);
+        assert_eq!(glossary.id, None);
     }
 }

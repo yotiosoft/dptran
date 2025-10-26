@@ -61,29 +61,6 @@ pub struct DeeplAPIMessage {
     pub message: String,
 }
 
-/// For the translation API.  
-/// Return translation results.  
-/// Receive translation results in json format and display translation results.  
-/// Return error if json parsing fails.
-pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
-    let translations = translate::TranslateRequest {
-        text: text.clone(),
-        target_lang: target_lang.clone(),
-        source_lang: source_lang.clone(),
-        ..Default::default()
-    };
-    let results = translations.translate(api)?;
-    let translated_texts = results.get_translation_strings()?;
-    Ok(translated_texts)
-}
-
-/// For the translation API.  
-/// Translate with detailed options.  
-/// Return detailed translation results.
-pub fn translate_with_options(api: &DpTran, request: &translate::TranslateRequest) -> Result<translate::TranslateResult, DeeplAPIError> {
-    request.translate(api)
-}
-
 /// For the usage API.  
 /// Get the number of characters remaining to be translated.  
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.  
@@ -113,7 +90,7 @@ pub mod tests {
     use super::*;
     use languages::EXTENDED_LANG_CODES;
 
-    fn retry_or_panic(e: &DeeplAPIError, times: u8) -> bool {
+    pub fn retry_or_panic(e: &DeeplAPIError, times: u8) -> bool {
         if e == &DeeplAPIError::ConnectionError(ConnectionError::TooManyRequests) && times < 3 {
             // Because the DeepL API has a limit on the number of requests per second, retry after 2 seconds if the error is TooManyRequests.
             std::thread::sleep(std::time::Duration::from_secs(2));
@@ -159,28 +136,6 @@ pub mod tests {
             glossaries_for_pro: TEST_DEEPL_API_GLOSSARIES_PRO.to_string(),
             glossaries_language_pairs_for_free: TEST_DEEPL_API_GLOSSARIES_LANGUAGE_PAIRS.to_string(),
             glossaries_language_pairs_for_pro: TEST_DEEPL_API_GLOSSARIES_PRO_LANGUAGE_PAIRS.to_string(),
-        }
-    }
-
-    fn do_api_translate_test(times: u8) {
-        // translate test
-        let (api_key, api_key_type) = get_api_key();
-        let api = DpTran::with_endpoint(&api_key, &api_key_type, get_endpoint());
-        let text = vec!["Hello, World!".to_string()];
-        let target_lang = "JA".to_string();
-        let source_lang = None;
-        let res = translate(&api, &text, &target_lang, &source_lang);
-        match res {
-            Ok(res) => {
-                assert_eq!(res[0], "ハロー、ワールド！");
-            },
-            Err(e) => {
-                if retry_or_panic(&e, 0) {
-                    // retry
-                    do_api_translate_test(times + 1);
-                    return;
-                }
-            }
         }
     }
 
@@ -230,12 +185,6 @@ pub mod tests {
                 }
             }
         }
-    }
-
-    #[test]
-    fn api_translate_test() {
-        // translate test
-        do_api_translate_test(0);
     }
 
     #[test]
