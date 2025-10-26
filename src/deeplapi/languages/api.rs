@@ -103,8 +103,7 @@ pub fn get_language_codes(api: &DpTran, type_name: String) -> Result<Vec<LangCod
     };
     let url = format!("{}?type={}", url, type_name);
     let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
-    let header_content_type = "Content-Type: application/json";
-    let headers = vec![header_auth_key, header_content_type.to_string()];
+    let headers = vec![header_auth_key];
     let res = connection::get_with_headers(url, &headers).map_err(|e| DeeplAPIError::ConnectionError(e))?;
     let mut lang_codes = json_to_vec(&res, &type_name)?;
 
@@ -128,8 +127,7 @@ pub fn get_languages_as_struct(api: &DpTran, type_name: String) -> Result<Vec<La
     };
     let url = format!("{}?type={}", url, type_name);
     let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
-    let header_content_type = "Content-Type: application/json";
-    let headers = vec![header_auth_key, header_content_type.to_string()];
+    let headers = vec![header_auth_key];
     let res = connection::get_with_headers(url, &headers).map_err(|e| DeeplAPIError::ConnectionError(e))?;
 
     let result = get_languages_list(&res)?;
