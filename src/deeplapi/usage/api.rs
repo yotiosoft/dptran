@@ -1,5 +1,3 @@
-use serde_json::Value;
-
 use super::DpTran;
 
 use super::super::connection;
@@ -9,31 +7,32 @@ use super::super::ApiKeyType;
 pub const DEEPL_API_USAGE: &str = "https://api-free.deepl.com/v2/usage";
 pub const DEEPL_API_USAGE_PRO: &str = "https://api.deepl.com/v2/usage";
 
-/// Parses the translation results passed in json format,
-/// stores the translation in a vector, and returns it.
-fn json_to_vec(json: &String) -> Result<(u64, u64), DeeplAPIError> {
-    let v: Value = serde_json::from_str(&json).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
-    v.get("character_count").ok_or(format!("failed to get character_count: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
-    v.get("character_limit").ok_or(format!("failed to get character_limit: {}", v).to_string()).map_err(|e| DeeplAPIError::JsonError(e.to_string(), json.clone()))?;
-    let character_count = v["character_count"].as_u64().expect("failed to get character_count");
-    let character_limit = v["character_limit"].as_u64().expect("failed to get character_limit");
-    Ok((character_count, character_limit))
+/// Usage struct
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
+pub struct Usage {
+    pub character_count: u64,
+    pub character_limit: u64,
 }
 
 /// Get the number of characters remaining to be translated.  
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.  
 /// Returns an error if acquisition fails.  
 pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
+    let usage = get_usage_as_struct(api)?;
+    Ok((usage.character_count, usage.character_limit))
+}
+
+/// Get the number of characters remaining to be translated and return as Usage struct.
+pub fn get_usage_as_struct(api: &DpTran) -> Result<Usage, DeeplAPIError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         api.api_urls.usage_for_free.clone()
     } else {
         api.api_urls.usage_for_pro.clone()
     };
-    let query = format!("auth_key={}", api.api_key);
-    let res = connection::post(url, query).map_err(|e| DeeplAPIError::ConnectionError(e))?;
-    
-    let (character_count, character_limit) = json_to_vec(&res)?;
-    Ok((character_count, character_limit))
+    let header = format!("Authentication: DeepL-Auth-Key {}", api.api_key);
+    let res = connection::get_with_headers(url, &vec![header]).map_err(|e| DeeplAPIError::ConnectionError(e))?;
+    let usage: Usage = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
+    Ok(usage)
 }
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
@@ -46,12 +45,10 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn impl_json_to_vec() {
-        let json = r#"{"character_count":12345,"character_limit":500000}"#.to_string();
-        let res = json_to_vec(&json);
-        assert!(res.is_ok());
-        let (character_count, character_limit) = res.unwrap();
-        assert_eq!(character_count, 12345);
-        assert_eq!(character_limit, 500000);
+    fn impl_deserialize_usage() {
+        let json = r#"{"character_count":12345,"character_limit":1000000}"#.to_string();
+        let usage: Usage = serde_json::from_str(&json).unwrap();
+        assert_eq!(usage.character_count, 12345);
+        assert_eq!(usage.character_limit, 1000000);
     }
 }
