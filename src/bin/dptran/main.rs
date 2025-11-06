@@ -445,6 +445,10 @@ fn handle_cache_settings(cache_setting_struct: backend::args::CacheSettingsStruc
     Ok(())
 }
 
+fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySettingsStruct) -> Result<(), RuntimeError> {
+    Ok(())
+}
+
 fn handle_show_list(list_target_langs: backend::args::ListTargetLangs) -> Result<(), RuntimeError> {
     match list_target_langs {
         backend::args::ListTargetLangs::SourceLangs => {
@@ -817,6 +821,11 @@ fn main() -> Result<(), RuntimeError> {
         ExecutionMode::CacheSettings => {
             // Handle cache settings
             handle_cache_settings(arg_struct.cache_setting.unwrap())?;
+            return Ok(());
+        }
+        ExecutionMode::GlossarySettings => {
+            // Handle glossary settings
+            handle_glossary_settings(arg_struct.glossary_setting.unwrap())?;
             return Ok(());
         }
         ExecutionMode::List => {

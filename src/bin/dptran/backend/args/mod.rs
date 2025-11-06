@@ -54,6 +54,7 @@ pub enum CacheSettingsTarget {
 pub enum GlossarySettingsTarget {
     CreateGlossary,
     DeleteGlossary,
+    AddWordPairs,
     ShowGlossaries,
     ShowSupportedLanguages,
     SetDefaultGlossary,
@@ -72,6 +73,7 @@ pub struct ArgStruct {
     pub general_setting: Option<GeneralSettingsStruct>,
     pub api_setting: Option<ApiSettingsStruct>,
     pub cache_setting: Option<CacheSettingsStruct>,
+    pub glossary_setting: Option<GlossarySettingsStruct>,
 }
 
 #[derive(Clone, Debug)]
@@ -97,6 +99,18 @@ pub struct ApiSettingsStruct {
 pub struct CacheSettingsStruct {
     pub setting_target: Option<CacheSettingsTarget>,
     pub max_entries: Option<usize>,
+}
+
+#[derive(Clone, Debug)]
+pub struct GlossarySettingsStruct {
+    pub setting_target: Option<GlossarySettingsTarget>,
+    pub target_glossary: Option<String>,
+    pub create: bool,
+    pub delete: bool,
+    pub add_word_pairs: Option<(String, String)>,
+    pub show_glossaries: bool,
+    pub show_supported_languages: bool,
+    pub set_default_glossary: bool,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -268,6 +282,38 @@ enum SubCommands {
         #[arg(short, long)]
         clear: bool,
     },
+
+    /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
+    #[command(group(
+        ArgGroup::new("glossary_vers")
+            .required(true)
+            .args(["create_glossary", "delete_glossary", "show_glossaries", "show_supported_languages", "set_default_glossary"]),
+    ))]
+    Glossary {
+        /// Create a new glossary.
+        #[arg(short, long)]
+        create_glossary: String,
+
+        /// Delete a glossary.
+        #[arg(short, long)]
+        delete_glossary: String,
+
+        /// Add word pairs to a glossary.
+        #[arg(short, long)]
+        add_word_pairs: Vec<String>,
+
+        /// Show all glossaries.
+        #[arg(short='g', long)]
+        show_glossaries: bool,
+
+        /// Show supported languages for glossaries.
+        #[arg(short='l', long)]
+        show_supported_languages: bool,
+
+        /// Set the default glossary.
+        #[arg(short='e', long)]
+        set_default_glossary: String,
+    }
 }
 
 fn load_stdin() -> io::Result<Option<String>> {
@@ -348,6 +394,16 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         cache_setting: Some(CacheSettingsStruct {
             setting_target: None,
             max_entries: None,
+        }),
+        glossary_setting: Some(GlossarySettingsStruct {
+            setting_target: None,
+            target_glossary: None,
+            create: false,
+            delete: false,
+            add_word_pairs: None,
+            show_glossaries: false,
+            show_supported_languages: false,
+            set_default_glossary: false,
         }),
     };
 
@@ -499,6 +555,42 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                         setting_target: Some(CacheSettingsTarget::Clear),
                         max_entries: None,
                     });
+                }
+                return Ok(arg_struct);
+            }
+            SubCommands::Glossary { create_glossary, delete_glossary, add_word_pairs, show_glossaries, show_supported_languages, set_default_glossary } => {
+                if create_glossary.len() > 0 {
+                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::CreateGlossary);
+                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(create_glossary);
+                    arg_struct.glossary_setting.as_mut().unwrap().create = true;
+                }
+                if delete_glossary.len() > 0 {
+                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::DeleteGlossary);
+                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(delete_glossary);
+                    arg_struct.glossary_setting.as_mut().unwrap().delete = true;
+                }
+                if add_word_pairs.len() == 2 {
+                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::AddWordPairs);
+                    arg_struct.glossary_setting.as_mut().unwrap().add_word_pairs = Some((add_word_pairs[0].clone(), add_word_pairs[1].clone()));
+                }
+                if show_glossaries == true {
+                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowGlossaries);
+                    arg_struct.glossary_setting.as_mut().unwrap().show_glossaries = true;
+                }
+                if show_supported_languages == true {
+                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowSupportedLanguages);
+                    arg_struct.glossary_setting.as_mut().unwrap().show_supported_languages = true;
+                }
+                if set_default_glossary.len() > 0 {
+                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
+                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(set_default_glossary);
+                    arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
                 }
                 return Ok(arg_struct);
             }
