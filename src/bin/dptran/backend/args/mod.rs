@@ -14,9 +14,10 @@ pub enum ExecutionMode {
     GeneralSettings,
     ApiSettings,
     CacheSettings,
+    GlossarySettings,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub enum SettingTarget {
+pub enum GeneralSettingTarget {
     DefaultTargetLang,
     EditorCommand,
     ShowSettings,
@@ -43,11 +44,19 @@ pub enum ApiSettingsTarget {
     ClearSettings,
 }
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub enum CacheTarget {
+pub enum CacheSettingsTarget {
     EnableCache,
     DisableCache,
     MaxEntries,
     Clear,
+}
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum GlossarySettingsTarget {
+    CreateGlossary,
+    DeleteGlossary,
+    ShowGlossaries,
+    ShowSupportedLanguages,
+    SetDefaultGlossary,
 }
 
 #[derive(Clone, Debug)]
@@ -67,7 +76,7 @@ pub struct ArgStruct {
 
 #[derive(Clone, Debug)]
 pub struct GeneralSettingsStruct {
-    pub setting_target: Option<SettingTarget>,
+    pub setting_target: Option<GeneralSettingTarget>,
     pub default_target_lang: Option<String>,
     pub editor_command: Option<String>,
 }
@@ -86,7 +95,7 @@ pub struct ApiSettingsStruct {
 
 #[derive(Clone, Debug)]
 pub struct CacheSettingsStruct {
-    pub setting_target: Option<CacheTarget>,
+    pub setting_target: Option<CacheSettingsTarget>,
     pub max_entries: Option<usize>,
 }
 
@@ -370,21 +379,21 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     editor_command, show, clear_all } => {
                 if let Some(default_lang) = default_lang {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
-                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::DefaultTargetLang);
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(GeneralSettingTarget::DefaultTargetLang);
                     arg_struct.general_setting.as_mut().unwrap().default_target_lang = Some(default_lang);
                 }
                 if let Some(editor_command) = editor_command {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
-                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::EditorCommand);
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(GeneralSettingTarget::EditorCommand);
                     arg_struct.general_setting.as_mut().unwrap().editor_command = Some(editor_command);
                 }
                 if show == true {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
-                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::ShowSettings);
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(GeneralSettingTarget::ShowSettings);
                 }
                 if clear_all == true {
                     arg_struct.execution_mode = ExecutionMode::GeneralSettings;
-                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(SettingTarget::ClearSettings);
+                    arg_struct.general_setting.as_mut().unwrap().setting_target = Some(GeneralSettingTarget::ClearSettings);
                 }
                 return Ok(arg_struct);
             }
@@ -466,28 +475,28 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if enable_cache == true {
                     arg_struct.execution_mode = ExecutionMode::CacheSettings;
                     arg_struct.cache_setting = Some(CacheSettingsStruct {
-                        setting_target: Some(CacheTarget::EnableCache),
+                        setting_target: Some(CacheSettingsTarget::EnableCache),
                         max_entries: None,
                     });
                 }
                 if disable_cache == true {
                     arg_struct.execution_mode = ExecutionMode::CacheSettings;
                     arg_struct.cache_setting = Some(CacheSettingsStruct {
-                        setting_target: Some(CacheTarget::DisableCache),
+                        setting_target: Some(CacheSettingsTarget::DisableCache),
                         max_entries: None,
                     });
                 }
                 if let Some(max_entries) = max_entries {
                     arg_struct.execution_mode = ExecutionMode::CacheSettings;
                     arg_struct.cache_setting = Some(CacheSettingsStruct {
-                        setting_target: Some(CacheTarget::MaxEntries),
+                        setting_target: Some(CacheSettingsTarget::MaxEntries),
                         max_entries: Some(max_entries),
                     });
                 }
                 if clear == true {
                     arg_struct.execution_mode = ExecutionMode::CacheSettings;
                     arg_struct.cache_setting = Some(CacheSettingsStruct {
-                        setting_target: Some(CacheTarget::Clear),
+                        setting_target: Some(CacheSettingsTarget::Clear),
                         max_entries: None,
                     });
                 }

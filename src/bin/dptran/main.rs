@@ -5,8 +5,8 @@ use backend::RuntimeError;
 use backend::ExecutionMode;
 
 use dptran::{DpTranError, LangType};
-use crate::backend::args::CacheTarget;
-use crate::backend::args::SettingTarget;
+use crate::backend::args::CacheSettingsTarget;
+use crate::backend::args::GeneralSettingTarget;
 
 /// Initialization of settings.
 fn clear_general_settings() -> Result<(), RuntimeError> {
@@ -264,7 +264,7 @@ fn handle_general_settings(setting_struct: backend::args::GeneralSettingsStruct)
     }
     let mut config = backend::configure::ConfigureWrapper::get("configure").map_err(|e| RuntimeError::ConfigError(e))?;
     match setting_target.unwrap() {
-        SettingTarget::DefaultTargetLang => {
+        GeneralSettingTarget::DefaultTargetLang => {
             if let Some(s) = setting_struct.default_target_lang {
                 let validated_language_code = backend::set_default_target_language(&s)?;
                 println!("Default target language has been set to {}.", validated_language_code);
@@ -273,7 +273,7 @@ fn handle_general_settings(setting_struct: backend::args::GeneralSettingsStruct)
                 return Err(RuntimeError::DeeplApiError(DpTranError::NoTargetLanguageSpecified));
             }
         }
-        SettingTarget::EditorCommand => {
+        GeneralSettingTarget::EditorCommand => {
             if let Some(s) = setting_struct.editor_command {
                 config.set_editor_command(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -281,11 +281,11 @@ fn handle_general_settings(setting_struct: backend::args::GeneralSettingsStruct)
                 return Err(RuntimeError::EditorCommandIsNotSet);
             }
         }
-        SettingTarget::ShowSettings => {
+        GeneralSettingTarget::ShowSettings => {
             display_general_settings()?;
             return Ok(());
         }
-        SettingTarget::ClearSettings => {
+        GeneralSettingTarget::ClearSettings => {
             clear_general_settings()?;
             return Ok(());
         }
@@ -419,15 +419,15 @@ fn handle_cache_settings(cache_setting_struct: backend::args::CacheSettingsStruc
         return Err(RuntimeError::ArgInvalidTarget);
     }
     match cache_target.unwrap() {
-        CacheTarget::EnableCache => {
+        CacheSettingsTarget::EnableCache => {
             config.set_cache_enabled(true).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
-        CacheTarget::DisableCache => {
+        CacheSettingsTarget::DisableCache => {
             config.set_cache_enabled(false).map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
-        CacheTarget::MaxEntries => {
+        CacheSettingsTarget::MaxEntries => {
             if let Some(s) = cache_setting_struct.max_entries {
                 config.set_cache_max_entries(s).map_err(|e| RuntimeError::ConfigError(e))?;
                 return Ok(());
@@ -435,7 +435,7 @@ fn handle_cache_settings(cache_setting_struct: backend::args::CacheSettingsStruc
                 return Err(RuntimeError::CacheMaxEntriesIsNotSet);
             }
         }
-        CacheTarget::Clear => {
+        CacheSettingsTarget::Clear => {
             // Clear the cache
             backend::cache::get_cache_data("cache").map_err(|e| RuntimeError::CacheError(e))?
                 .clear_cache().map_err(|e| RuntimeError::CacheError(e))?;
