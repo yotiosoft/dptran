@@ -13,7 +13,22 @@ pub type StoredGlossary = dptran::glossaries::Glossary;
 // Stored glossaries (Vec)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StoredGlossaries {
+    pub saved_version: String,
     glossaries: Vec<StoredGlossary>
+}
+impl Default for StoredGlossaries {
+    fn default() -> Self {
+        Self {
+            saved_version: env!("CARGO_PKG_VERSION").to_string(),
+            glossaries: Vec::new()
+        }
+    }
+}
+
+// Stored glossaries wrapper
+pub struct StoredGlossariesWrapper {
+    glossaries_name: String,
+    stored_glossaries: StoredGlossaries,
 }
 
 /// Cache error
@@ -29,17 +44,17 @@ impl fmt::Display for GlossariesError {
     }
 }
 
-pub fn get_cache_data(cache_name: &str) -> Result<CacheWrapper, CacheError> {
-    let cache = confy::load::<Cache>("dptran", cache_name).map_err(|e| CacheError::FailToReadCache(e.to_string()))?;
-    Ok(CacheWrapper {
-        cache_name: cache_name.to_string(),
-        cache,
+pub fn get_glossaries_data(glossaries_name: &str) -> Result<StoredGlossariesWrapper, GlossariesError> {
+    let stored_glossaries = confy::load::<StoredGlossaries>("dptran", glossaries_name).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))?;
+    Ok(StoredGlossariesWrapper { 
+        glossaries_name: glossaries_name.to_string().clone(),
+        stored_glossaries 
     })
 }
 
-impl CacheWrapper {
-    fn save_cache_data(&self) -> Result<(), CacheError> {
-        confy::store("dptran", self.cache_name.as_str(), self.cache.clone()).map_err(|e| CacheError::FailToReadCache(e.to_string()))
+impl StoredGlossariesWrapper {
+    fn save_glossaries_data(&self) -> Result<(), GlossariesError> {
+        confy::store("dptran", self.glossaries_name.as_str(), self.stored_glossaries.clone()).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))
     }
 
     fn cache_hash(&self, text: &String, source_lang: &Option<String>, target_lang: &String) -> String {
