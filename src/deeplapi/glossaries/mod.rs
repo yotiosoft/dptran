@@ -6,11 +6,13 @@ use super::DeeplAPIError;
 use super::connection;
 use super::ApiKeyType;
 
+use serde::{Deserialize, Serialize};
+
 /// Glossary ID
 pub type GlossaryID = String;
 
 /// Glossaries dictionary struct
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GlossaryDictionary {
     pub source_lang: LangCode,
     pub target_lang: LangCode,
@@ -20,6 +22,7 @@ pub struct GlossaryDictionary {
 }
 
 /// Glossary struct
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Glossary {
     pub name: String,
     pub id: Option<GlossaryID>,

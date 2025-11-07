@@ -1,6 +1,7 @@
 pub mod args;
 pub mod configure;
 pub mod cache;
+pub mod glossaries;
 use configure::ConfigError;
 pub use configure::ApiKey;
 use cache::CacheError;

@@ -9,6 +9,8 @@ use connection::ConnectionError;
 use super::DeeplAPIError;
 use super::ApiKeyType;
 
+use serde::{Deserialize, Serialize};
+
 pub const DEEPL_API_GLOSSARIES: &str = "https://api-free.deepl.com/v3/glossaries";
 pub const DEEPL_API_GLOSSARIES_PRO: &str = "https://api.deepl.com/v3/glossaries";
 pub const DEEPL_API_GLOSSARIES_PAIRS: &str = "https://api-free.deepl.com/v2/glossary-language-pairs";
@@ -35,7 +37,7 @@ impl fmt::Display for GlossaryError {
 /// Glossary file format  
 /// TSV: Tab-Separated Values  
 /// CSV: Comma-Separated Values
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq)]
 pub enum GlossariesApiFormat {
     Tsv,
     Csv,
