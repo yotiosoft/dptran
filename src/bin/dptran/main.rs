@@ -474,14 +474,6 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             return Ok(());
         },
         backend::args::GlossarySettingsTarget::CreateGlossary => {
-            let source_lang = match glossary_setting_struct.source_lang {
-                Some(lang) => lang,
-                None => return Err(RuntimeError::SourceLanguageIsNotSet),
-            };
-            let target_lang = match glossary_setting_struct.target_lang {
-                Some(lang) => lang,
-                None => return Err(RuntimeError::TargetLanguageIsNotSet),
-            };
             let target_glossary_name = match glossary_setting_struct.target_name {
                 Some(name) => name,
                 None => return Err(RuntimeError::TargetGlossaryNotSpecified),
@@ -490,8 +482,8 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             let glossary_id = backend::create_glossary(&dptran, 
                 target_glossary_name,
                 &glossary_setting_struct.add_word_pairs,
-                &source_lang,
-                &target_lang,
+                &glossary_setting_struct.source_lang,
+                &glossary_setting_struct.target_lang,
             )?;
 
             println!("Glossary created with ID: {}", glossary_id);

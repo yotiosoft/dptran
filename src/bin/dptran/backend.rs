@@ -249,23 +249,33 @@ pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::
 }
 
 /// Create a new glossary.
-pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: &Option<Vec<String>>, source_lang: &String, target_lang: &String) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
+pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: &Option<Vec<String>>, source_lang: &Option<String>, target_lang: &Option<String>) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
     // Create glossary
-    // i % 2 == 0: source word, i % 2 == 1: target word
-    let entries = if let Some(word_pairs) = word_pairs {
-        glossaries::vec_string_to_word_pairs(&word_pairs).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
+    // If word_pairs is Some, create GlossaryDictionary
+    let glossary_dict = if let Some(word_pairs) = word_pairs {
+        let source_lang = match source_lang {
+            Some(lang) => lang.clone(),
+            None => return Err(RuntimeError::SourceLanguageIsNotSet),
+        };
+        let target_lang = match target_lang {
+            Some(lang) => lang.clone(),
+            None => return Err(RuntimeError::TargetLanguageIsNotSet),
+        };
+        // i % 2 == 0: source word, i % 2 == 1: target word
+        let entries = glossaries::vec_string_to_word_pairs(&word_pairs).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+        
+        vec![dptran::glossaries::GlossaryDictionary::new(
+            source_lang.clone(),
+            target_lang.clone(),
+            entries,
+            dptran::glossaries::api::GlossariesApiFormat::Tsv,
+        )]
     } else {
         vec![]
     };
-    let glossary_dict = dptran::glossaries::GlossaryDictionary::new(
-        source_lang.clone(),
-        target_lang.clone(),
-        entries,
-        dptran::glossaries::api::GlossariesApiFormat::Tsv,
-    );
     let glossary = dptran::glossaries::Glossary::new(
         glossary_name,
-        vec![glossary_dict],
+        glossary_dict,
     );
 
     // Get current glossaries
