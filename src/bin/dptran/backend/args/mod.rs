@@ -290,28 +290,32 @@ enum SubCommands {
             .args(["create_glossary", "delete_glossary", "show_glossaries", "show_supported_languages", "set_default_glossary"]),
     ))]
     Glossary {
-        /// Create a new glossary.
+        /// A glossary that is being targeted.
         #[arg(short, long)]
-        create_glossary: String,
+        target_glossary: Option<String>,
 
-        /// Delete a glossary.
+        /// Create a new glossary with the targeted glossary name.
         #[arg(short, long)]
-        delete_glossary: String,
+        create: bool,
 
-        /// Add word pairs to a glossary.
+        /// Remove the targeted glossary.
+        #[arg(short, long)]
+        remove: bool,
+
+        /// Add word pairs to the targeted glossary.
         #[arg(short, long)]
         add_word_pairs: Vec<String>,
 
-        /// Show all glossaries.
-        #[arg(short='g', long)]
-        show_glossaries: bool,
+        /// Show all glossaries in the targeted glossary storage.
+        #[arg(short, long)]
+        list: bool,
 
         /// Show supported languages for glossaries.
-        #[arg(short='l', long)]
+        #[arg(short, long)]
         show_supported_languages: bool,
 
         /// Set the default glossary.
-        #[arg(short='e', long)]
+        #[arg(short='d', long)]
         set_default_glossary: String,
     }
 }
@@ -558,38 +562,41 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 return Ok(arg_struct);
             }
-            SubCommands::Glossary { create_glossary, delete_glossary, add_word_pairs, show_glossaries, show_supported_languages, set_default_glossary } => {
-                if create_glossary.len() > 0 {
-                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+            SubCommands::Glossary { target_glossary, create, remove, add_word_pairs,
+                    list, show_supported_languages, set_default_glossary } => {
+                arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                if let Some(target_glossary) = target_glossary {
+                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(target_glossary);
+                }
+                if create == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::CreateGlossary);
-                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(create_glossary);
                     arg_struct.glossary_setting.as_mut().unwrap().create = true;
                 }
-                if delete_glossary.len() > 0 {
-                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                if remove == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::DeleteGlossary);
-                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(delete_glossary);
                     arg_struct.glossary_setting.as_mut().unwrap().delete = true;
                 }
-                if add_word_pairs.len() == 2 {
-                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                if add_word_pairs.len() > 0 {
+                    if add_word_pairs.len() % 2 != 0 {
+                        return Err(RuntimeError::ArgError("The number of word pairs to add must be even.".to_string()));
+                    }
+                    let mut word_pairs_vec: Vec<(String, String)> = Vec::new();
+                    for i in (0..add_word_pairs.len()).step_by(2) {
+                        word_pairs_vec.push((add_word_pairs[i].clone(), add_word_pairs[i+1].clone()));
+                    }
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::AddWordPairs);
-                    arg_struct.glossary_setting.as_mut().unwrap().add_word_pairs = Some((add_word_pairs[0].clone(), add_word_pairs[1].clone()));
+                    arg_struct.glossary_setting.as_mut().unwrap().add_word_pairs = Some(word_pairs_vec[0].clone()); // For simplicity, only the first pair is stored here.
                 }
-                if show_glossaries == true {
-                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
+                if list == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowGlossaries);
                     arg_struct.glossary_setting.as_mut().unwrap().show_glossaries = true;
                 }
                 if show_supported_languages == true {
-                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowSupportedLanguages);
                     arg_struct.glossary_setting.as_mut().unwrap().show_supported_languages = true;
                 }
                 if set_default_glossary.len() > 0 {
-                    arg_struct.execution_mode = ExecutionMode::GlossarySettings;
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
-                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(set_default_glossary);
                     arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
                 }
                 return Ok(arg_struct);

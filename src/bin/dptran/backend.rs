@@ -26,6 +26,7 @@ pub enum RuntimeError {
     CacheError(CacheError),
     CacheMaxEntriesIsNotSet,
     ArgInvalidTarget,
+    ArgError(String),
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -56,6 +57,7 @@ impl ToString for RuntimeError {
             RuntimeError::CacheError(e) => format!("Cache error: {}", e),
             RuntimeError::CacheMaxEntriesIsNotSet => "Cache max entries is not specified.".to_string(),
             RuntimeError::ArgInvalidTarget => "An invalid target setting specified.".to_string(),
+            RuntimeError::ArgError(e) => format!("Argument error: {}", e),
         }
     }
 }

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
+use dptran::glossaries::api::GlossariesApiError;
 use serde::{Deserialize, Serialize};
 use confy;
 use md5;
@@ -57,66 +58,44 @@ impl StoredGlossariesWrapper {
         confy::store("dptran", self.glossaries_name.as_str(), self.stored_glossaries.clone()).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))
     }
 
-    fn cache_hash(&self, text: &String, source_lang: &Option<String>, target_lang: &String) -> String {
-        let mut s = format!("text:{}:", text);
-        if source_lang.is_some() {
-            s.push_str(format!(":source:{}", target_lang).as_str());
-        }
-        s.push_str(format!("target:{}", target_lang).as_str());
-        let hash = md5::compute(s.as_bytes());
-        format!("{:x}", hash)
+    /// Get stored glossaries
+    /// Returns a reference to the vector of stored glossaries.
+    pub fn get_glossaries(&self) -> &Vec<StoredGlossary> {
+        &self.stored_glossaries.glossaries
     }
 
-    pub fn into_cache_element(&mut self, source_text: &String, value: &String, source_lang: &Option<String>, target_lang: &String, max_entries: usize) -> Result<(), CacheError> {
-        // if caches are more than max_entries, remove the oldest one
-        if self.cache.elements.len() >= max_entries {
-            // Find the oldest key
-            if let Some(oldest_key) = self.cache.elements.keys().next().cloned() {
-                self.cache.elements.remove(&oldest_key);
+    /// Get stored glossary by name
+    /// Returns an Option containing a reference to the glossary if found.
+    pub fn get_glossary_by_name(&self, name: &str) -> Option<&StoredGlossary> {
+        for glossary in &self.stored_glossaries.glossaries {
+            if glossary.name == name {
+                return Some(glossary);
             }
         }
-        // clone source_text and value
-        let s = source_text.clone();
-        let v = value.clone();
-        // create key by md5
-        let key = self.cache_hash(&s, source_lang, target_lang);
-        // create cache element
-        let element = CacheElement {
-            key: key.clone(),
-            source_langcode: source_lang.clone(),
-            target_langcode: target_lang.clone(),
-            value: v,
-        };
-        // insert element into cache_data
-        self.cache.elements.insert(key, element);
-        // save cache data
-        self.save_cache_data()?;
-        Ok(())
+        None
     }
 
-    pub fn search_cache(&self, value: &String, source_lang: &Option<String>, target_lang: &String) -> Result<Option<String>, CacheError> {
-        let v = value.clone();
-        let key = self.cache_hash(&v, source_lang, target_lang);
-
-        if let Some(element) = self.cache.elements.get(&key) {
-            if source_lang.is_none() {
-                if element.target_langcode == *target_lang && element.source_langcode.is_none() {
-                    return Ok(Some(element.value.clone()));
-                }
-            }
-            else if element.source_langcode.is_some() {
-                if element.target_langcode == *target_lang && element.source_langcode.as_ref().unwrap() == source_lang.as_ref().unwrap() {
-                    return Ok(Some(element.value.clone()));
-                }
-            }
+    /// Add a new glossary to the stored glossaries.
+    /// Returns nothing.
+    /// # Arguments
+    /// * `glossary` - The glossary to be added.
+    pub fn add_glossary(&mut self, glossary: dptran::glossaries::Glossary) -> Result<(), GlossariesError> {
+        // If there is a glossary with the same name, replace it.
+        if let Some(existing_glossary) = self.stored_glossaries.glossaries.iter_mut().find(|g| g.name == glossary.name) {
+            *existing_glossary = glossary;
+        } else {
+            self.stored_glossaries.glossaries.push(glossary);
         }
-
-        Ok(None)
+        self.save_glossaries_data()
     }
 
-    pub fn clear_cache(&mut self) -> Result<(), CacheError> {
-        self.cache = Cache::default();
-        self.save_cache_data()
+    /// Remove a glossary by name.
+    /// Returns nothing.
+    /// # Arguments
+    /// * `name` - The name of the glossary to be removed.
+    pub fn remove_glossary_by_name(&mut self, name: &str) -> Result<(), GlossariesError> {
+        self.stored_glossaries.glossaries.retain(|g| g.name != name);
+        self.save_glossaries_data()
     }
 }
 

@@ -17,19 +17,19 @@ pub const DEEPL_API_GLOSSARIES_PAIRS: &str = "https://api-free.deepl.com/v2/glos
 pub const DEEPL_API_GLOSSARIES_PRO_PAIRS: &str = "https://api.deepl.com/v2/glossary-language-pairs";
 
 #[derive(Debug, PartialEq)]
-pub enum GlossaryError {
+pub enum GlossariesApiError {
     ConnectionError(ConnectionError),
     JsonError(String, String),
     CouldNotCreateGlossary,
     QuotaExceeded,
 }
-impl fmt::Display for GlossaryError {
+impl fmt::Display for GlossariesApiError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            GlossaryError::ConnectionError(e) => write!(f, "Connection error: {}", e),
-            GlossaryError::JsonError(e, j) => write!(f, "JSON error: {}\nJSON: {}", e, j),
-            GlossaryError::CouldNotCreateGlossary => write!(f, "Could not create glossary on DeepL API by some reason"),
-            GlossaryError::QuotaExceeded => write!(f, "Glossary quota exceeded on DeepL API"),
+            GlossariesApiError::ConnectionError(e) => write!(f, "Connection error: {}", e),
+            GlossariesApiError::JsonError(e, j) => write!(f, "JSON error: {}\nJSON: {}", e, j),
+            GlossariesApiError::CouldNotCreateGlossary => write!(f, "Could not create glossary on DeepL API by some reason"),
+            GlossariesApiError::QuotaExceeded => write!(f, "Glossary quota exceeded on DeepL API"),
         }
     }
 }
@@ -117,7 +117,7 @@ impl GlossariesApiPostData {
     }
 
     /// Create a curl session.
-    pub fn send(&self, api: &DpTran) -> Result<GlossariesApiResponseData, GlossaryError> {
+    pub fn send(&self, api: &DpTran) -> Result<GlossariesApiResponseData, GlossariesApiError> {
         let url = if api.api_key_type == ApiKeyType::Free {
             DEEPL_API_GLOSSARIES.to_string()
         } else {
@@ -140,18 +140,18 @@ impl GlossariesApiPostData {
                 let ret: Result<DeeplAPIMessage, serde_json::Error> = serde_json::from_str(&res);
                 if let Ok(ret) = ret {
                     if ret.message == "Quota exceeded" {
-                        return Err(GlossaryError::QuotaExceeded);
+                        return Err(GlossariesApiError::QuotaExceeded);
                     } else {
-                        return Err(GlossaryError::CouldNotCreateGlossary);
+                        return Err(GlossariesApiError::CouldNotCreateGlossary);
                     }
                 }
 
                 // If there is no error, the response is GlossaryResponseData.
                 // Parse response
-                let ret: GlossariesApiResponseData = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string(), res.clone()))?;
+                let ret: GlossariesApiResponseData = serde_json::from_str(&res).map_err(|e| GlossariesApiError::JsonError(e.to_string(), res.clone()))?;
                 Ok(ret)
             },
-            Err(e) => Err(GlossaryError::ConnectionError(e)),
+            Err(e) => Err(GlossariesApiError::ConnectionError(e)),
         }
     }
 
@@ -211,7 +211,7 @@ impl GlossariesApiList {
 }
 
 /// Delete the glossary via DeepL API.
-pub fn delete_glossary(api: &DpTran, glossary_id: &String) -> Result<(), GlossaryError> {
+pub fn delete_glossary(api: &DpTran, glossary_id: &String) -> Result<(), GlossariesApiError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
     } else {
@@ -226,12 +226,12 @@ pub fn delete_glossary(api: &DpTran, glossary_id: &String) -> Result<(), Glossar
     let ret = connection::delete_with_headers(url, &headers);
     match ret {
         Ok(_) => Ok(()),
-        Err(e) => Err(GlossaryError::ConnectionError(e)),
+        Err(e) => Err(GlossariesApiError::ConnectionError(e)),
     }
 }
 
 /// Patch the glossary via DeepL API.
-pub fn patch_glossary(api: &DpTran, glossary_id: &String, patch_data: &GlossariesApiPostData) -> Result<(), GlossaryError> {
+pub fn patch_glossary(api: &DpTran, glossary_id: &String, patch_data: &GlossariesApiPostData) -> Result<(), GlossariesApiError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
     } else {
@@ -248,13 +248,13 @@ pub fn patch_glossary(api: &DpTran, glossary_id: &String, patch_data: &Glossarie
     let ret = connection::patch_with_headers(url, patch_data_json, &headers);
     match ret {
         Ok(_) => Ok(()),
-        Err(e) => Err(GlossaryError::ConnectionError(e)),
+        Err(e) => Err(GlossariesApiError::ConnectionError(e)),
     }
 }
 
 impl GlossariesApiSupportedLanguages {
     /// Get supported languages for Glossaries API.
-    pub fn get(api: &DpTran) -> Result<GlossariesApiSupportedLanguages, GlossaryError> {
+    pub fn get(api: &DpTran) -> Result<GlossariesApiSupportedLanguages, GlossariesApiError> {
         let url = if api.api_key_type == ApiKeyType::Free {
             DEEPL_API_GLOSSARIES_PAIRS.to_string()
         } else {
@@ -271,10 +271,10 @@ impl GlossariesApiSupportedLanguages {
         // Handle response
         match ret {
             Ok(res) => {
-                let ret: GlossariesApiSupportedLanguages = serde_json::from_str(&res).map_err(|e| GlossaryError::JsonError(e.to_string(), res.clone()))?;
+                let ret: GlossariesApiSupportedLanguages = serde_json::from_str(&res).map_err(|e| GlossariesApiError::JsonError(e.to_string(), res.clone()))?;
                 Ok(ret)
             },
-            Err(e) => Err(GlossaryError::ConnectionError(e)),
+            Err(e) => Err(GlossariesApiError::ConnectionError(e)),
         }
     }
 
