@@ -318,6 +318,8 @@ pub fn get_all_glossaries(api: &dptran::DpTran) -> Result<Vec<dptran::glossaries
 
 /// Add a new word pairs to a glossary.
 pub fn add_word_pairs_to_glossary(api: &dptran::DpTran, glossary: &mut dptran::glossaries::Glossary, word_pairs: &Vec<(String, String)>, source_lang: &String, target_lang: &String) -> Result<(), RuntimeError> {
+    let source_lang = source_lang.clone().to_ascii_lowercase();
+    let target_lang = target_lang.clone().to_ascii_lowercase();
     // If there is corresponding GlossaryDictionary, add word pairs to it.
     let mut found = false;
     for dict in glossary.dictionaries.iter_mut() {
@@ -331,8 +333,8 @@ pub fn add_word_pairs_to_glossary(api: &dptran::DpTran, glossary: &mut dptran::g
     // If there is no corresponding GlossaryDictionary, create a new one.
     if !found {
         let new_dict = dptran::glossaries::GlossaryDictionary::new(
-            source_lang.clone(),
-            target_lang.clone(),
+            source_lang,
+            target_lang,
             word_pairs.clone(),
             dptran::glossaries::api::GlossariesApiFormat::Tsv,
         );
