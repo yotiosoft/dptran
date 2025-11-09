@@ -238,6 +238,39 @@ pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::
     glossaries::get_glossary_supported_languages(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))
 }
 
+/// Create a new glossary.
+pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: Option<Vec<String>>, source_lang: &String, target_lang: &String) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
+    // i % 2 == 0: source word, i % 2 == 1: target word
+    let mut entries: Vec<(String, String)> = Vec::new();
+    if let Some(word_pairs) = word_pairs {
+        for i in (0..word_pairs.len()).step_by(2) {
+            entries.push((word_pairs[i].clone(), word_pairs[i+1].clone()));
+        }
+    }
+    let glossary_dict = dptran::glossaries::GlossaryDictionary::new(
+        source_lang.clone(),
+        target_lang.clone(),
+        entries,
+        dptran::glossaries::api::GlossariesApiFormat::Tsv,
+    );
+    let mut glossary = dptran::glossaries::Glossary::new(
+        glossary_name,
+        vec![glossary_dict],
+    );
+    let glossary_id = glossary.send(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))?;
+    Ok(glossary_id)
+}
+
+/// Delete a glossary.
+pub fn delete_glossary(api: &dptran::DpTran, glossary: &dptran::glossaries::Glossary) -> Result<(), RuntimeError> {
+    dptran::glossaries::delete_glossary(api, glossary).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))
+}
+
+/// Get stored glossaries data.
+pub fn get_glossaries_data(glossaries_name: &str) -> Result<glossaries::StoredGlossariesWrapper, RuntimeError> {
+    glossaries::get_glossaries_data(glossaries_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))
+}
+
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.  
 /// And also, you need to run the dummy server for the DeepL API to test the API endpoints.

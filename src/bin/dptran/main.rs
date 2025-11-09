@@ -457,29 +457,27 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
         },
     };
     let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
-
-    if glossary_setting_struct.supported_languages {
-        let list = backend::get_glossary_supported_languages(&dptran)?;
-        println!("Supported languages for Glossaries API (source_lang: target_lang):");
-        // Print in a table format with 6 columns
-        let mut i = 0;
-        for lang in list.supported_languages {
-            print!(" {lc:<cl$}: {ln:<lnl$}", lc=lang.source_lang.trim_matches('"'), ln=lang.target_lang.trim_matches('"'), cl=2, lnl=5);
-            i += 1;
-            if (i % 6) == 0 {
-                println!();
-            }
-        }
-        return Ok(());
-    }
-    /* 
+    
     match glossary_setting_target.unwrap() {
-        backend::args::GlossarySettingsTarget::ShowList => {
-            backend::show_glossary_list().map_err(|e| RuntimeError::DeeplApiError(e))?;
+        backend::args::GlossarySettingsTarget::ShowSupportedLanguages => {
+            let list = backend::get_glossary_supported_languages(&dptran)?;
+            println!("Supported languages for Glossaries API (source_lang: target_lang):");
+            // Print in a table format with 6 columns
+            let mut i = 0;
+            for lang in list.supported_languages {
+                print!(" {lc:<cl$}: {ln:<lnl$}", lc=lang.source_lang.trim_matches('"'), ln=lang.target_lang.trim_matches('"'), cl=2, lnl=5);
+                i += 1;
+                if (i % 6) == 0 {
+                    println!();
+                }
+            }
             return Ok(());
-        }
+        },
+        backend::args::GlossarySettingsTarget::CreateGlossary => {
+            return backend::handle_create_glossary(&dptran, &glossary_setting_struct);
+        },
     }
-    */
+    
     Ok(())  /* Placeholder */
 }
 

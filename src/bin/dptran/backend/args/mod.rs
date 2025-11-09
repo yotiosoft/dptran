@@ -107,7 +107,7 @@ pub struct GlossarySettingsStruct {
     pub target_glossary: Option<String>,
     pub create: bool,
     pub delete: bool,
-    pub add_word_pairs: Option<(String, String)>,
+    pub add_word_pairs: Option<Vec<String>>,
     pub show_glossaries: bool,
     pub supported_languages: bool,
     pub set_default_glossary: bool,
@@ -580,12 +580,8 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     if add_word_pairs.len() % 2 != 0 {
                         return Err(RuntimeError::ArgError("The number of word pairs to add must be even.".to_string()));
                     }
-                    let mut word_pairs_vec: Vec<(String, String)> = Vec::new();
-                    for i in (0..add_word_pairs.len()).step_by(2) {
-                        word_pairs_vec.push((add_word_pairs[i].clone(), add_word_pairs[i+1].clone()));
-                    }
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::AddWordPairs);
-                    arg_struct.glossary_setting.as_mut().unwrap().add_word_pairs = Some(word_pairs_vec[0].clone()); // For simplicity, only the first pair is stored here.
+                    arg_struct.glossary_setting.as_mut().unwrap().add_word_pairs = Some(add_word_pairs);
                 }
                 if list == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowGlossaries);
