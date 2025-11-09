@@ -104,6 +104,18 @@ fn display_api_settings() -> Result<(), RuntimeError> {
         println!("Endpoint of languages: not set");
     }
 
+    if let Some(endpoint_of_glossaries) = config.get_endpoint_of_glossaries().map_err(|e| RuntimeError::ConfigError(e))? {
+        println!("Endpoint of glossaries: {}", endpoint_of_glossaries);
+    } else {
+        println!("Endpoint of glossaries: not set");
+    }
+
+    if let Some(endpoint_of_glossaries_langs) = config.get_endpoint_of_glossaries_langs().map_err(|e| RuntimeError::ConfigError(e))? {
+        println!("Endpoint of glossaries languages: {}", endpoint_of_glossaries_langs);
+    } else {
+        println!("Endpoint of glossaries languages: not set");
+    }
+
     Ok(())
 }
 
@@ -399,6 +411,8 @@ fn handle_api_settings(api_setting_struct: backend::args::ApiSettingsStruct) -> 
             config.reset_endpoint_of_translation().map_err(|e| RuntimeError::ConfigError(e))?;
             config.reset_endpoint_of_usage().map_err(|e| RuntimeError::ConfigError(e))?;
             config.reset_endpoint_of_languages().map_err(|e| RuntimeError::ConfigError(e))?;
+            config.reset_endpoint_of_glossaries().map_err(|e| RuntimeError::ConfigError(e))?;
+            config.reset_endpoint_of_glossaries_langs().map_err(|e| RuntimeError::ConfigError(e))?;
             return Ok(());
         }
         backend::args::ApiSettingsTarget::ShowSettings => {
