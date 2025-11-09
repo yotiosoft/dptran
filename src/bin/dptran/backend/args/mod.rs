@@ -288,11 +288,6 @@ enum SubCommands {
     },
 
     /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
-    #[command(group(
-        ArgGroup::new("glossary_vers")
-            .required(true)
-            .args(["name", "id", "create", "remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary"])
-    ))]
     Glossary {
         /// A glossary that is being targeted.
         #[arg(short, long)]
@@ -311,7 +306,7 @@ enum SubCommands {
         remove: bool,
 
         /// Add word pairs to the targeted glossary.
-        #[arg(short, long)]
+        #[arg(short, long, num_args = 1..)]
         add_word_pairs: Vec<String>,
 
         /// Show all glossaries in the targeted glossary storage.

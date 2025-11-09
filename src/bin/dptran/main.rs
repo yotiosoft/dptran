@@ -533,7 +533,17 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             } else {
                 vec![]
             };
-            backend::add_word_pairs_to_glossary(&dptran, &mut glossary, &word_vec)?;
+            let source_lang = if let Some(source_lang) = &glossary_setting_struct.source_lang {
+                source_lang.clone()
+            } else {
+                glossary.dictionaries.first().ok_or(RuntimeError::SourceLanguageIsNotSet)?.source_lang.clone()
+            };
+            let target_lang = if let Some(target_lang) = &glossary_setting_struct.target_lang {
+                target_lang.clone()
+            } else {
+                glossary.dictionaries.first().ok_or(RuntimeError::TargetLanguageIsNotSet)?.target_lang.clone()
+            };
+            backend::add_word_pairs_to_glossary(&dptran, &mut glossary, &word_vec, &source_lang, &target_lang)?;
         },
         backend::args::GlossarySettingsTarget::SetDefaultGlossary => {
             // Is the glossary specified?

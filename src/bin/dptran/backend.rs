@@ -317,13 +317,29 @@ pub fn get_all_glossaries(api: &dptran::DpTran) -> Result<Vec<dptran::glossaries
 }
 
 /// Add a new word pairs to a glossary.
-pub fn add_word_pairs_to_glossary(api: &dptran::DpTran, glossary: &mut dptran::glossaries::Glossary, word_pairs: &Vec<(String, String)>) -> Result<(), RuntimeError> {
+pub fn add_word_pairs_to_glossary(api: &dptran::DpTran, glossary: &mut dptran::glossaries::Glossary, word_pairs: &Vec<(String, String)>, source_lang: &String, target_lang: &String) -> Result<(), RuntimeError> {
+    // If there is corresponding GlossaryDictionary, add word pairs to it.
+    let mut found = false;
     for dict in glossary.dictionaries.iter_mut() {
-        dict.entries.extend(word_pairs.clone());
-        dict.entry_count = dict.entries.len();
+        if dict.source_lang == *source_lang && dict.target_lang == *target_lang {
+            dict.entries.extend_from_slice(word_pairs);
+            dict.entry_count = dict.entries.len();
+            found = true;
+            break;
+        }
+    }
+    // If there is no corresponding GlossaryDictionary, create a new one.
+    if !found {
+        let new_dict = dptran::glossaries::GlossaryDictionary::new(
+            source_lang.clone(),
+            target_lang.clone(),
+            word_pairs.clone(),
+            dptran::glossaries::api::GlossariesApiFormat::Tsv,
+        );
+        glossary.dictionaries.push(new_dict);
     }
     // Resend glossary to DeepL API
-    let _glossary_id = glossary.send(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))?;
+    glossary.update(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
     Ok(())
 }
 

@@ -243,7 +243,6 @@ pub fn patch_glossary(api: &DpTran, glossary_id: &String, patch_data: &Glossarie
     let header_content_type = "Content-Type: application/json";
     let headers = vec![header_auth_key, header_content_type.to_string()];
     let patch_data_json = serde_json::to_string(patch_data).unwrap();
-
     // Send request
     let ret = connection::patch_with_headers(url, patch_data_json, &headers);
     match ret {
