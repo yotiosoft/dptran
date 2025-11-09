@@ -52,7 +52,7 @@ impl fmt::Display for GlossariesApiFormat {
 }
 
 /// Data structures for glossary API.
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Clone, Debug)]
 pub struct GlossariesApiDictionaryPostData {
     source_lang: String,
     target_lang: String,
@@ -223,8 +223,14 @@ impl GlossariesApiDictionaryPostData {
         match ret {
             Ok(res) => {
                 // Parse response
-                let ret: GlossariesApiDictionaryPostData = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
-                Ok(ret)
+                // For now, DeepL API returns the entries as a child object of "dictionaries" (not documented.. why??), so we need to extract it.
+                #[derive(serde::Deserialize, Debug)]
+                struct EntriesResponse {
+                    dictionaries: Vec<GlossariesApiDictionaryPostData>,
+                }
+                let ret: EntriesResponse = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
+                let dictionary = &ret.dictionaries[0];
+                Ok(dictionary.clone())
             },
             Err(e) => Err(DeeplAPIError::ConnectionError(e)),
         }

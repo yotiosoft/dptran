@@ -507,9 +507,9 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             backend::delete_glossary(&dptran, &glossary)?;
         },
         backend::args::GlossarySettingsTarget::ShowGlossaries => {
-            let glossaries = backend::get_all_glossaries(&dptran)?;
+            let mut glossaries = backend::get_all_glossaries(&dptran)?;
             
-            for glossary in glossaries {
+            for glossary in &mut glossaries {
                 println!("------------------------------");
 
                 if let Some(id) = &glossary.id {
@@ -517,11 +517,15 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
                 }
                 println!("Glossary Name: {}", glossary.name);
 
-                for dictionary in &glossary.dictionaries {
+                for dictionary in &mut glossary.dictionaries {
                     println!("  Dictionary: {} -> {}", dictionary.source_lang, dictionary.target_lang);
-
-                    for entry in &dictionary.entries {
-                        println!("    {} => {}", entry.0, entry.1);
+                    
+                    if let Some(id) = &glossary.id {
+                        dictionary.retrieve_entries(&dptran, id).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))?;
+                        println!("  Entries:");
+                        for entry in &dictionary.entries {
+                            println!("    {} => {}", entry.0, entry.1);
+                        }
                     }
                 }
             }

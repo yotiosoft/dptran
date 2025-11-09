@@ -97,7 +97,7 @@ impl GlossaryDictionary {
             &String::new(),  // entries will be retrieved
             &self.entries_format.to_string(),
         );
-        dictionary.retrieve_entries(api, glossary_id).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))?;
+        let dictionary = dictionary.retrieve_entries(api, glossary_id).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))?;
         self.entries = Vec::new();
         for (source, target) in dictionary.get_entries_iter() {
             self.entries.push((source, target));
