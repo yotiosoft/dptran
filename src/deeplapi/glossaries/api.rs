@@ -161,6 +161,35 @@ impl GlossariesApiPostData {
     }
 }
 
+impl GlossariesApiResponseData {
+    /// Get glossary details by glossary ID.
+    /// `api`: DpTran instance
+    /// `glossary_id`: Glossary ID
+    pub fn get_glossary_details(api: &DpTran, glossary_id: &super::GlossaryID) -> Result<Self, DeeplAPIError> {
+        let url = if api.api_key_type == ApiKeyType::Free {
+            format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
+        } else {
+            format!("{}/{}", DEEPL_API_GLOSSARIES_PRO, glossary_id)
+        };
+
+        // Prepare headers
+        let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+        let headers = vec![header_auth_key];
+
+        // Send request
+        let ret = connection::get_with_headers(url, &headers);
+
+        // Handle response
+        match ret {
+            Ok(res) => {
+                let ret: GlossariesApiResponseData = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
+                Ok(ret)
+            },
+            Err(e) => Err(DeeplAPIError::ConnectionError(e)),
+        }
+    }
+}
+
 impl GlossariesApiDictionaryPostData {
     /// Make a new GlossariesApiDictionaryPostData.
     pub fn new(source_lang: &String, target_lang: &String, entries: &String, entries_format: &String) -> Self {
@@ -172,6 +201,35 @@ impl GlossariesApiDictionaryPostData {
         }
     }
 
+    /// Retrive entries from DeepL API.
+    /// 
+    /// `api`: DpTran instance
+    /// `glossary_id`: GlossaryID
+    pub fn retrieve_entries(&mut self, api: &DpTran, glossary_id: &String) -> Result<Self, DeeplAPIError> {
+        let url = if api.api_key_type == ApiKeyType::Free {
+            format!("{}/{}/entries?source_lang={}&target_lang={}", DEEPL_API_GLOSSARIES, glossary_id, self.source_lang, self.target_lang)
+        } else {
+            format!("{}/{}/entries?source_lang={}&target_lang={}", DEEPL_API_GLOSSARIES_PRO, glossary_id, self.source_lang, self.target_lang)
+        };
+
+        // Prepare headers
+        let header_auth_key = format!("Authorization: DeepL-Auth-Key {}", api.api_key);
+        let headers = vec![header_auth_key];
+
+        // Send request
+        let ret = connection::get_with_headers(url, &headers);
+
+        // Handle response
+        match ret {
+            Ok(res) => {
+                // Parse response
+                let ret: GlossariesApiDictionaryPostData = serde_json::from_str(&res).map_err(|e| DeeplAPIError::JsonError(e.to_string(), res.clone()))?;
+                Ok(ret)
+            },
+            Err(e) => Err(DeeplAPIError::ConnectionError(e)),
+        }
+    }
+
     /// Get source language.
     pub fn get_source_lang(&self) -> &String {
         &self.source_lang
@@ -180,6 +238,23 @@ impl GlossariesApiDictionaryPostData {
     /// Get target language.
     pub fn get_target_lang(&self) -> &String {
         &self.target_lang
+    }
+
+    /// Get entries vector.
+    pub fn get_entries_iter(&self) -> impl Iterator<Item = (String, String)> + '_ {
+        let lines = self.entries.lines();
+        lines.filter_map(|line| {
+            let mut parts = if self.entries_format == "tsv" {
+                line.split('\t')
+            } else {
+                line.split(',')
+            };
+            if let (Some(source), Some(target)) = (parts.next(), parts.next()) {
+                Some((source.to_string(), target.to_string()))
+            } else {
+                None
+            }
+        })
     }
 }
 

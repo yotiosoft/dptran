@@ -85,6 +85,26 @@ impl GlossaryDictionary {
             entry_count: entry_count,
         }
     }
+
+    /// Retrive glossary entries from DeepL API.
+    /// 
+    /// `api`: DpTran instance
+    /// `glossary_id`: GlossaryID
+    pub fn retrieve_entries(&mut self, api: &DpTran, glossary_id: &GlossaryID) -> Result<(), DeeplAPIError> {
+        let mut dictionary = api::GlossariesApiDictionaryPostData::new(
+            &self.source_lang,
+            &self.target_lang,
+            &String::new(),  // entries will be retrieved
+            &self.entries_format.to_string(),
+        );
+        dictionary.retrieve_entries(api, glossary_id).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))?;
+        self.entries = Vec::new();
+        for (source, target) in dictionary.get_entries_iter() {
+            self.entries.push((source, target));
+        }
+        self.entry_count = self.entries.len();
+        Ok(())
+    }
 }
 
 impl Glossary {
@@ -98,6 +118,25 @@ impl Glossary {
             dictionaries,
             id: None,
         }
+    }
+
+    /// Retrive glossary details from DeepL API without entries.
+    ///
+    /// `api`: DpTran instance
+    /// `id`: GlossaryID
+    pub fn retrieve_details(&mut self, api: &DpTran, id: &GlossaryID) -> Result<(), DeeplAPIError> {
+        let glossary_data = api::GlossariesApiResponseData::get_glossary_details(api, id).map_err(|e| DeeplAPIError::GlossaryError(e.to_string()))?;
+        self.name = glossary_data.name;
+        self.dictionaries = glossary_data.dictionaries.iter().map(|dict_data| {
+            GlossaryDictionary {
+                source_lang: dict_data.source_lang.clone(),
+                target_lang: dict_data.target_lang.clone(),
+                entries: Vec::new(),  // Entries are not included in the details API response
+                entries_format: api::GlossariesApiFormat::Tsv,  // Default to Tsv
+                entry_count: dict_data.entry_count as usize,
+            }
+        }).collect();
+        Ok(())
     }
 
     /// Send glossary to DeepL API and create a glossary.  
