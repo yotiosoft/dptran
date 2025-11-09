@@ -104,13 +104,16 @@ pub struct CacheSettingsStruct {
 #[derive(Clone, Debug)]
 pub struct GlossarySettingsStruct {
     pub setting_target: Option<GlossarySettingsTarget>,
-    pub target_glossary: Option<String>,
+    pub target_name: Option<String>,
+    pub target_id: Option<dptran::glossaries::GlossaryID>,
     pub create: bool,
     pub delete: bool,
     pub add_word_pairs: Option<Vec<String>>,
     pub show_glossaries: bool,
     pub supported_languages: bool,
     pub set_default_glossary: bool,
+    pub source_lang: Option<String>,
+    pub target_lang: Option<String>,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -287,12 +290,16 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("glossary_vers")
             .required(true)
-            .args(["target_glossary", "create", "remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary"]),
+            .args(["target_glossary", "create", "remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary", "source_lang", "target_lang"]),
     ))]
     Glossary {
         /// A glossary that is being targeted.
         #[arg(short, long)]
-        target_glossary: Option<String>,
+        name: Option<String>,
+
+        /// The ID of the glossary that is being targeted.
+        #[arg(short, long)]
+        id: Option<dptran::glossaries::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
         #[arg(short, long)]
@@ -311,12 +318,20 @@ enum SubCommands {
         list: bool,
 
         /// Show supported languages for glossaries.
-        #[arg(short='s', long)]
+        #[arg(long)]
         supported_languages: bool,
 
         /// Set the default glossary.
         #[arg(short='d', long)]
         set_default_glossary: Option<String>,
+
+        /// Source language for the glossary.
+        #[arg(short, long)]
+        source_lang: Option<String>,
+
+        /// Target language for the glossary.
+        #[arg(short, long)]
+        target_lang: Option<String>,
     }
 }
 
@@ -401,13 +416,16 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         }),
         glossary_setting: Some(GlossarySettingsStruct {
             setting_target: None,
-            target_glossary: None,
+            target_name: None,
+            target_id: None,
             create: false,
             delete: false,
             add_word_pairs: None,
             show_glossaries: false,
             supported_languages: false,
             set_default_glossary: false,
+            source_lang: None,
+            target_lang: None,
         }),
     };
 
@@ -562,11 +580,14 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 }
                 return Ok(arg_struct);
             }
-            SubCommands::Glossary { target_glossary, create, remove, add_word_pairs,
-                    list, supported_languages, set_default_glossary } => {
+            SubCommands::Glossary { name, id, create, remove, add_word_pairs,
+                    list, supported_languages, set_default_glossary, source_lang, target_lang } => {
                 arg_struct.execution_mode = ExecutionMode::GlossarySettings;
-                if let Some(target_glossary) = target_glossary {
-                    arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(target_glossary);
+                if let Some(name) = name {
+                    arg_struct.glossary_setting.as_mut().unwrap().target_name = Some(name);
+                }
+                if let Some(id) = id {
+                    arg_struct.glossary_setting.as_mut().unwrap().target_id = Some(id);
                 }
                 if create == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::CreateGlossary);
@@ -591,9 +612,16 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowSupportedLanguages);
                     arg_struct.glossary_setting.as_mut().unwrap().supported_languages = true;
                 }
-                if let Some(set_default_glossary) = set_default_glossary {
+                if let Some(default_glossary) = set_default_glossary {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
                     arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
+                    arg_struct.glossary_setting.as_mut().unwrap().target_name = Some(default_glossary);
+                }
+                if let Some(source_lang) = source_lang {
+                    arg_struct.glossary_setting.as_mut().unwrap().source_lang = Some(source_lang);
+                }
+                if let Some(target_lang) = target_lang {
+                    arg_struct.glossary_setting.as_mut().unwrap().target_lang = Some(target_lang);
                 }
                 return Ok(arg_struct);
             }

@@ -474,10 +474,46 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             return Ok(());
         },
         backend::args::GlossarySettingsTarget::CreateGlossary => {
-            return backend::create_glossary(&dptran, &glossary_setting_struct.target_glossary,
+            let source_lang = match glossary_setting_struct.source_lang {
+                Some(lang) => lang,
+                None => return Err(RuntimeError::SourceLanguageIsNotSet),
+            };
+            let target_lang = match glossary_setting_struct.target_lang {
+                Some(lang) => lang,
+                None => return Err(RuntimeError::TargetLanguageIsNotSet),
+            };
+            let target_glossary_name = match glossary_setting_struct.target_name {
+                Some(name) => name,
+                None => return Err(RuntimeError::TargetGlossaryNotSpecified),
+            };
+
+            let glossary_id = backend::create_glossary(&dptran, 
+                target_glossary_name,
                 &glossary_setting_struct.add_word_pairs,
-                &glossary_setting_struct
+                &source_lang,
+                &target_lang,
+            )?;
         },
+        backend::args::GlossarySettingsTarget::DeleteGlossary => {
+            let glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
+            backend::delete_glossary(&dptran, &glossary)?;
+        },
+        backend::args::GlossarySettingsTarget::ShowGlossaries => {
+            let glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
+            
+            if let Some(id) = &glossary.id {
+                println!("Glossary ID: {}", id);
+            }
+            println!("Glossary Name: {}", glossary.name);
+
+            for dictionary in &glossary.dictionaries {
+                println!("  Dictionary: {} -> {}", dictionary.source_lang, dictionary.target_lang);
+
+                for entry in &dictionary.entries {
+                    println!("    {} => {}", entry.0, entry.1);
+                }
+            }
+        }
     }
     
     Ok(())  /* Placeholder */

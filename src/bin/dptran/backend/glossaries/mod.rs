@@ -46,6 +46,19 @@ impl GlossariesWrapper {
         }
         Ok(None)
     }
+
+    /// Get registered glossaries data by glossary ID.
+    /// Returns a reference to the glossary if found.
+    pub fn search_by_id(&self, glossary_id: &dptran::glossaries::GlossaryID) -> Result<Option<dptran::glossaries::Glossary>, GlossariesError> {
+        for glossary in self.glossaries.iter() {
+            if let Some(id) = &glossary.id {
+                if id == glossary_id {
+                    return Ok(Some(glossary.clone()));
+                }
+            }
+        }
+        Ok(None)
+    }
     
     /// Add a new glossary to the stored glossaries.
     /// Returns nothing.

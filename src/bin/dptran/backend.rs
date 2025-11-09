@@ -27,6 +27,9 @@ pub enum RuntimeError {
     CacheMaxEntriesIsNotSet,
     ArgInvalidTarget,
     ArgError(String),
+    SourceLanguageIsNotSet,
+    TargetLanguageIsNotSet,
+    TargetGlossaryNotSpecified,
 }
 impl ToString for RuntimeError {
     fn to_string(&self) -> String {
@@ -58,6 +61,9 @@ impl ToString for RuntimeError {
             RuntimeError::CacheMaxEntriesIsNotSet => "Cache max entries is not specified.".to_string(),
             RuntimeError::ArgInvalidTarget => "An invalid target setting specified.".to_string(),
             RuntimeError::ArgError(e) => format!("Argument error: {}", e),
+            RuntimeError::SourceLanguageIsNotSet => "Source language is not specified.".to_string(),
+            RuntimeError::TargetLanguageIsNotSet => "Target language is not specified.".to_string(),
+            RuntimeError::TargetGlossaryNotSpecified => "Target glossary is not specified.".to_string(),
         }
     }
 }
@@ -239,7 +245,7 @@ pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::
 }
 
 /// Create a new glossary.
-pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: Option<Vec<String>>, source_lang: &String, target_lang: &String) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
+pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: &Option<Vec<String>>, source_lang: &String, target_lang: &String) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
     // i % 2 == 0: source word, i % 2 == 1: target word
     let entries = if let Some(word_pairs) = word_pairs {
         glossaries::vec_string_to_word_pairs(&word_pairs).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
@@ -266,9 +272,15 @@ pub fn delete_glossary(api: &dptran::DpTran, glossary: &dptran::glossaries::Glos
 }
 
 /// Get stored glossaries data.
-pub fn get_glossaries_data(api: &dptran::DpTran, glossaries_name: &str) -> Result<dptran::glossaries::Glossary, RuntimeError> {
+pub fn get_glossaries_data(api: &dptran::DpTran, glossary_name: &Option<String>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<dptran::glossaries::Glossary, RuntimeError> {
     let registered_glossaries = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
-    let glossary = registered_glossaries.search_by_name(glossaries_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+    let glossary = if let Some(glossary_name) = glossary_name {
+        registered_glossaries.search_by_name(glossary_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
+    } else if let Some(glossary_id) = glossary_id {
+        registered_glossaries.search_by_id(glossary_id).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
+    } else {
+        return Err(RuntimeError::TargetGlossaryNotSpecified);
+    };
     match glossary {
         Some(glossary) => Ok(glossary),
         None => Err(RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryIsNotRegisteredError))),
