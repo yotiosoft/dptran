@@ -531,7 +531,7 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             }
         },
         backend::args::GlossarySettingsTarget::AddWordPairs => {
-            let mut glossary = backend::get_glossaries_data_and_entries(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
+            let mut glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
             let word_vec = if let Some(word_pairs) = &glossary_setting_struct.add_word_pairs {
                 backend::glossaries::vec_string_to_word_pairs(word_pairs).map_err(|e| RuntimeError::GlossariesError(e))?
             } else {
@@ -540,12 +540,12 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             let source_lang = if let Some(source_lang) = &glossary_setting_struct.source_lang {
                 source_lang.clone()
             } else {
-                glossary.dictionaries.first().ok_or(RuntimeError::SourceLanguageIsNotSet)?.source_lang.clone()
+                return Err(RuntimeError::SourceLanguageIsNotSet);
             };
             let target_lang = if let Some(target_lang) = &glossary_setting_struct.target_lang {
                 target_lang.clone()
             } else {
-                glossary.dictionaries.first().ok_or(RuntimeError::TargetLanguageIsNotSet)?.target_lang.clone()
+                return Err(RuntimeError::TargetLanguageIsNotSet);
             };
             backend::add_word_pairs_to_glossary(&dptran, &mut glossary, &word_vec, &source_lang, &target_lang)?;
         },
