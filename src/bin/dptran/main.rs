@@ -446,7 +446,41 @@ fn handle_cache_settings(cache_setting_struct: backend::args::CacheSettingsStruc
 }
 
 fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySettingsStruct) -> Result<(), RuntimeError> {
-    Ok(())
+    let glossary_setting_target = glossary_setting_struct.setting_target;
+    
+    // API Key confirmation
+    let api_key = match backend::get_api_key()? {
+        Some(api_key) => api_key,
+        None => {
+            print_api_key_error();
+            return Ok(());
+        },
+    };
+    let dptran = dptran::DpTran::with(&api_key.api_key, &api_key.api_key_type);
+
+    if glossary_setting_struct.supported_languages {
+        let list = backend::get_glossary_supported_languages(&dptran)?;
+        println!("Supported languages for Glossaries API (source_lang: target_lang):");
+        // Print in a table format with 6 columns
+        let mut i = 0;
+        for lang in list.supported_languages {
+            print!(" {lc:<cl$}: {ln:<lnl$}", lc=lang.source_lang.trim_matches('"'), ln=lang.target_lang.trim_matches('"'), cl=2, lnl=5);
+            i += 1;
+            if (i % 6) == 0 {
+                println!();
+            }
+        }
+        return Ok(());
+    }
+    /* 
+    match glossary_setting_target.unwrap() {
+        backend::args::GlossarySettingsTarget::ShowList => {
+            backend::show_glossary_list().map_err(|e| RuntimeError::DeeplApiError(e))?;
+            return Ok(());
+        }
+    }
+    */
+    Ok(())  /* Placeholder */
 }
 
 fn handle_show_list(list_target_langs: backend::args::ListTargetLangs) -> Result<(), RuntimeError> {

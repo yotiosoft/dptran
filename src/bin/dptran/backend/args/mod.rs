@@ -109,7 +109,7 @@ pub struct GlossarySettingsStruct {
     pub delete: bool,
     pub add_word_pairs: Option<(String, String)>,
     pub show_glossaries: bool,
-    pub show_supported_languages: bool,
+    pub supported_languages: bool,
     pub set_default_glossary: bool,
 }
 
@@ -287,7 +287,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("glossary_vers")
             .required(true)
-            .args(["create_glossary", "delete_glossary", "show_glossaries", "show_supported_languages", "set_default_glossary"]),
+            .args(["target_glossary", "create", "remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary"]),
     ))]
     Glossary {
         /// A glossary that is being targeted.
@@ -311,12 +311,12 @@ enum SubCommands {
         list: bool,
 
         /// Show supported languages for glossaries.
-        #[arg(short, long)]
-        show_supported_languages: bool,
+        #[arg(short='s', long)]
+        supported_languages: bool,
 
         /// Set the default glossary.
         #[arg(short='d', long)]
-        set_default_glossary: String,
+        set_default_glossary: Option<String>,
     }
 }
 
@@ -406,7 +406,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             delete: false,
             add_word_pairs: None,
             show_glossaries: false,
-            show_supported_languages: false,
+            supported_languages: false,
             set_default_glossary: false,
         }),
     };
@@ -563,7 +563,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 return Ok(arg_struct);
             }
             SubCommands::Glossary { target_glossary, create, remove, add_word_pairs,
-                    list, show_supported_languages, set_default_glossary } => {
+                    list, supported_languages, set_default_glossary } => {
                 arg_struct.execution_mode = ExecutionMode::GlossarySettings;
                 if let Some(target_glossary) = target_glossary {
                     arg_struct.glossary_setting.as_mut().unwrap().target_glossary = Some(target_glossary);
@@ -591,11 +591,11 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowGlossaries);
                     arg_struct.glossary_setting.as_mut().unwrap().show_glossaries = true;
                 }
-                if show_supported_languages == true {
+                if supported_languages == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowSupportedLanguages);
-                    arg_struct.glossary_setting.as_mut().unwrap().show_supported_languages = true;
+                    arg_struct.glossary_setting.as_mut().unwrap().supported_languages = true;
                 }
-                if set_default_glossary.len() > 0 {
+                if let Some(set_default_glossary) = set_default_glossary {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
                     arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
                 }

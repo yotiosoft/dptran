@@ -233,6 +233,11 @@ pub fn append_to_file(ofile: &std::fs::File, text: &str) -> Result<(), RuntimeEr
     Ok(())
 }
 
+/// Get supported languages for Glossaries API.
+pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::glossaries::api::GlossariesApiSupportedLanguages, RuntimeError> {
+    glossaries::get_glossary_supported_languages(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))
+}
+
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.  
 /// And also, you need to run the dummy server for the DeepL API to test the API endpoints.

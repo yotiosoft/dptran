@@ -99,5 +99,10 @@ impl StoredGlossariesWrapper {
     }
 }
 
+/// Get supported languages for Glossaries API.
+pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::glossaries::api::GlossariesApiSupportedLanguages, GlossariesError> {
+    dptran::glossaries::get_glossary_supported_languages(api).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))
+}
+
 //#[cfg(test)]
 //include!("./tests.rs");
