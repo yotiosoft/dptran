@@ -20,6 +20,7 @@ pub struct Configure {
     pub cache_max_entries: usize,
     pub editor_command: Option<String>,
     pub cache_enabled: bool,
+    pub default_glossary: Option<String>,
     pub endpoint_of_translation: Option<String>,
     pub endpoint_of_usage: Option<String>,
     pub endpoint_of_languages: Option<String>,
@@ -36,6 +37,7 @@ impl Default for Configure {
             cache_max_entries: 100,
             editor_command: None,
             cache_enabled: true,
+            default_glossary: None,
             endpoint_of_translation: None,
             endpoint_of_usage: None,
             endpoint_of_languages: None,
@@ -58,6 +60,7 @@ pub enum ConfigError {
     FailToSetDefaultTargetLanguage(String),
     FailToSetCacheMaxEntries(String),
     FailToSetEditor(String),
+    FailToSetDefaultGlossary(String),
     FailToClearSettings(String),
     FailToFixSettings,
     FailToSetCacheEnabled(String),
@@ -70,6 +73,7 @@ impl fmt::Display for ConfigError {
             ConfigError::FailToSetDefaultTargetLanguage(ref e) => write!(f, "Failed to set default target language: {}", e),
             ConfigError::FailToSetCacheMaxEntries(ref e) => write!(f, "Failed to set cache max entries: {}", e),
             ConfigError::FailToSetEditor(ref e) => write!(f, "Failed to set editor: {}", e),
+            ConfigError::FailToSetDefaultGlossary(ref e) => write!(f, "Failed to set default glossary: {}", e),
             ConfigError::FailToClearSettings(ref e) => write!(f, "Failed to clear settings: {}", e),
             ConfigError::FailToFixSettings => write!(f, "Failed to fix settings"),
             ConfigError::FailToSetCacheEnabled(ref e) => write!(f, "Failed to set cache enabled: {}", e),
@@ -148,6 +152,25 @@ impl ConfigureWrapper {
     pub fn set_cache_enabled(&mut self, cache_enabled: bool) -> Result<(), ConfigError> {
         self.configure.cache_enabled = cache_enabled;
         self.save().map_err(|e| ConfigError::FailToSetCacheEnabled(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Set default glossary
+    pub fn set_default_glossary(&mut self, glossary_name: String) -> Result<(), ConfigError> {
+        self.configure.default_glossary = Some(glossary_name);
+        self.save().map_err(|e| ConfigError::FailToSetDefaultGlossary(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Get default glossary
+    pub fn get_default_glossary(&self) -> Result<Option<String>, ConfigError> {
+        Ok(self.configure.default_glossary.clone())
+    }
+
+    /// Reset default glossary
+    pub fn reset_default_glossary(&mut self) -> Result<(), ConfigError> {
+        self.configure.default_glossary = None;
+        self.save().map_err(|e| ConfigError::FailToSetDefaultGlossary(e.to_string()))?;
         Ok(())
     }
 
@@ -365,6 +388,7 @@ mod older_configure {
                 cache_max_entries: 100,
                 editor_command: None,
                 cache_enabled: true,
+                default_glossary: None,
                 endpoint_of_translation: None,
                 endpoint_of_usage: None,
                 endpoint_of_languages: None,

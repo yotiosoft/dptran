@@ -474,7 +474,9 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             return Ok(());
         },
         backend::args::GlossarySettingsTarget::CreateGlossary => {
-            return backend::handle_create_glossary(&dptran, &glossary_setting_struct);
+            return backend::create_glossary(&dptran, &glossary_setting_struct.target_glossary,
+                &glossary_setting_struct.add_word_pairs,
+                &glossary_setting_struct
         },
     }
     

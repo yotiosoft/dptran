@@ -241,12 +241,11 @@ pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::
 /// Create a new glossary.
 pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: Option<Vec<String>>, source_lang: &String, target_lang: &String) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
     // i % 2 == 0: source word, i % 2 == 1: target word
-    let mut entries: Vec<(String, String)> = Vec::new();
-    if let Some(word_pairs) = word_pairs {
-        for i in (0..word_pairs.len()).step_by(2) {
-            entries.push((word_pairs[i].clone(), word_pairs[i+1].clone()));
-        }
-    }
+    let entries = if let Some(word_pairs) = word_pairs {
+        glossaries::vec_string_to_word_pairs(&word_pairs).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
+    } else {
+        vec![]
+    };
     let glossary_dict = dptran::glossaries::GlossaryDictionary::new(
         source_lang.clone(),
         target_lang.clone(),
@@ -267,9 +266,16 @@ pub fn delete_glossary(api: &dptran::DpTran, glossary: &dptran::glossaries::Glos
 }
 
 /// Get stored glossaries data.
-pub fn get_glossaries_data(glossaries_name: &str) -> Result<glossaries::StoredGlossariesWrapper, RuntimeError> {
-    glossaries::get_glossaries_data(glossaries_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))
+pub fn get_glossaries_data(api: &dptran::DpTran, glossaries_name: &str) -> Result<dptran::glossaries::Glossary, RuntimeError> {
+    let registered_glossaries = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+    let glossary = registered_glossaries.search_by_name(glossaries_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+    match glossary {
+        Some(glossary) => Ok(glossary),
+        None => Err(RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryIsNotRegisteredError))),
+    }
 }
+
+/// Add a new word pairs to a glossary.
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.  

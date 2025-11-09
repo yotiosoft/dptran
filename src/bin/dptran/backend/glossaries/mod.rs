@@ -1,92 +1,61 @@
-use std::collections::HashMap;
 use std::fmt;
-use dptran::glossaries::api::GlossariesApiError;
-use serde::{Deserialize, Serialize};
-use confy;
-use md5;
-
-// An alias of dptran::glossaries::GlossaryDictionary
-pub type StoredGlossaryDictionary = dptran::glossaries::GlossaryDictionary;
-
-// An alias of dptran::Glossary
-pub type StoredGlossary = dptran::glossaries::Glossary;
 
 // Stored glossaries (Vec)
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct StoredGlossaries {
-    pub saved_version: String,
-    glossaries: Vec<StoredGlossary>
-}
-impl Default for StoredGlossaries {
-    fn default() -> Self {
-        Self {
-            saved_version: env!("CARGO_PKG_VERSION").to_string(),
-            glossaries: Vec::new()
-        }
-    }
+pub struct GlossariesWrapper {
+    glossaries: Vec<dptran::glossaries::Glossary>
 }
 
-// Stored glossaries wrapper
-pub struct StoredGlossariesWrapper {
-    glossaries_name: String,
-    stored_glossaries: StoredGlossaries,
-}
-
-/// Cache error
 #[derive(Debug, PartialEq)]
 pub enum GlossariesError {
     FailToReadCache(String),
+    WordPairMustBeEven,
 }
 impl fmt::Display for GlossariesError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             GlossariesError::FailToReadCache(ref e) => write!(f, "Failed to read glossaries data: {}", e),
+            GlossariesError::WordPairMustBeEven => write!(f, "The number of word pairs to add must be even."),
         }
     }
 }
 
-pub fn get_glossaries_data(glossaries_name: &str) -> Result<StoredGlossariesWrapper, GlossariesError> {
-    let stored_glossaries = confy::load::<StoredGlossaries>("dptran", glossaries_name).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))?;
-    Ok(StoredGlossariesWrapper { 
-        glossaries_name: glossaries_name.to_string().clone(),
-        stored_glossaries 
-    })
-}
-
-impl StoredGlossariesWrapper {
-    fn save_glossaries_data(&self) -> Result<(), GlossariesError> {
-        confy::store("dptran", self.glossaries_name.as_str(), self.stored_glossaries.clone()).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))
+impl GlossariesWrapper {
+    /// Create a new GlossariesWrapper
+    pub fn new() -> Self {
+        Self {
+            glossaries: Vec::new(),
+        }
     }
 
-    /// Get stored glossaries
+    /// Get registered glossaries in the DeepL API.
     /// Returns a reference to the vector of stored glossaries.
-    pub fn get_glossaries(&self) -> &Vec<StoredGlossary> {
-        &self.stored_glossaries.glossaries
+    pub fn get_glossaries(dptran: &dptran::DpTran) -> Result<Self, GlossariesError> {
+        let ret = dptran::glossaries::get_registered_glossaries(dptran).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))?;
+        Ok(Self {
+            glossaries: ret,
+        })
     }
 
-    /// Get stored glossary by name
-    /// Returns an Option containing a reference to the glossary if found.
-    pub fn get_glossary_by_name(&self, name: &str) -> Option<&StoredGlossary> {
-        for glossary in &self.stored_glossaries.glossaries {
+    /// Get registered glossaries data by name.
+    /// Returns a reference to the glossary if found.
+    pub fn search_by_name(&self, name: &str) -> Result<Option<dptran::glossaries::Glossary>, GlossariesError> {
+        for glossary in self.glossaries.iter() {
             if glossary.name == name {
-                return Some(glossary);
+                return Ok(Some(glossary.clone()));
             }
         }
-        None
+        Ok(None)
     }
-
+    
     /// Add a new glossary to the stored glossaries.
     /// Returns nothing.
     /// # Arguments
     /// * `glossary` - The glossary to be added.
     pub fn add_glossary(&mut self, glossary: dptran::glossaries::Glossary) -> Result<(), GlossariesError> {
         // If there is a glossary with the same name, replace it.
-        if let Some(existing_glossary) = self.stored_glossaries.glossaries.iter_mut().find(|g| g.name == glossary.name) {
-            *existing_glossary = glossary;
-        } else {
-            self.stored_glossaries.glossaries.push(glossary);
-        }
-        self.save_glossaries_data()
+        self.glossaries.retain(|g| g.name != glossary.name);
+        self.glossaries.push(glossary);
+        Ok(())
     }
 
     /// Remove a glossary by name.
@@ -94,14 +63,26 @@ impl StoredGlossariesWrapper {
     /// # Arguments
     /// * `name` - The name of the glossary to be removed.
     pub fn remove_glossary_by_name(&mut self, name: &str) -> Result<(), GlossariesError> {
-        self.stored_glossaries.glossaries.retain(|g| g.name != name);
-        self.save_glossaries_data()
+        self.glossaries.retain(|g| g.name != name);
+        Ok(())
     }
 }
 
 /// Get supported languages for Glossaries API.
 pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::glossaries::api::GlossariesApiSupportedLanguages, GlossariesError> {
     dptran::glossaries::get_glossary_supported_languages(api).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))
+}
+
+/// Vec<String> to Vec<(String, String)>
+pub fn vec_string_to_word_pairs(vec: &Vec<String>) -> Result<Vec<(String, String)>, GlossariesError> {
+    if vec.len() % 2 != 0 {
+        return Err(GlossariesError::WordPairMustBeEven);
+    }
+    let mut word_pairs: Vec<(String, String)> = Vec::new();
+    for i in (0..vec.len()).step_by(2) {
+        word_pairs.push((vec[i].clone(), vec[i+1].clone()));
+    }
+    Ok(word_pairs)
 }
 
 //#[cfg(test)]
