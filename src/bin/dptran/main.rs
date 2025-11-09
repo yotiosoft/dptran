@@ -493,6 +493,8 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
                 &source_lang,
                 &target_lang,
             )?;
+
+            println!("Glossary created with ID: {}", glossary_id);
         },
         backend::args::GlossarySettingsTarget::DeleteGlossary => {
             let glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
@@ -545,6 +547,11 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             // Set as default glossary
             config.set_default_glossary(&glossary).map_err(|e| RuntimeError::ConfigError(e))?;
             println!("The glossary \"{}\" has been set as the default glossary.", glossary.name);
+        },
+        backend::args::GlossarySettingsTarget::ClearDefaultGlossary => {
+            let mut config = backend::get_config()?;
+            config.reset_default_glossary().map_err(|e| RuntimeError::ConfigError(e))?;
+            println!("The default glossary has been cleared.");
         },
     }
     

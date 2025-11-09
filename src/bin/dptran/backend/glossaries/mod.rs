@@ -20,13 +20,6 @@ impl fmt::Display for GlossariesError {
 }
 
 impl GlossariesWrapper {
-    /// Create a new GlossariesWrapper
-    pub fn new() -> Self {
-        Self {
-            glossaries: Vec::new(),
-        }
-    }
-
     /// Get registered glossaries in the DeepL API.
     /// Returns a reference to the vector of stored glossaries.
     pub fn get_glossaries(dptran: &dptran::DpTran) -> Result<Self, GlossariesError> {
@@ -64,19 +57,23 @@ impl GlossariesWrapper {
     /// Returns nothing.
     /// # Arguments
     /// * `glossary` - The glossary to be added.
-    pub fn add_glossary(&mut self, glossary: dptran::glossaries::Glossary) -> Result<(), GlossariesError> {
+    pub fn add_glossary(&mut self, dptran: &dptran::DpTran, glossary: dptran::glossaries::Glossary) -> Result<dptran::glossaries::GlossaryID, GlossariesError> {
         // If there is a glossary with the same name, replace it.
         self.glossaries.retain(|g| g.name != glossary.name);
+        // Send glossary to DeepL API
+        let mut glossary = glossary.clone();
+        let glossary_id = glossary.send(dptran).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))?;
         self.glossaries.push(glossary);
-        Ok(())
+        Ok(glossary_id)
     }
 
     /// Remove a glossary by name.
     /// Returns nothing.
     /// # Arguments
     /// * `name` - The name of the glossary to be removed.
-    pub fn remove_glossary_by_name(&mut self, name: &str) -> Result<(), GlossariesError> {
-        self.glossaries.retain(|g| g.name != name);
+    pub fn remove_glossary_by_name(&mut self, dptran: &dptran::DpTran, glossary: &dptran::glossaries::Glossary) -> Result<(), GlossariesError> {
+        dptran::glossaries::delete_glossary(dptran, glossary).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))?;
+        self.glossaries.retain(|g| g.name != glossary.name);
         Ok(())
     }
 

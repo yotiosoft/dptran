@@ -250,6 +250,7 @@ pub fn get_glossary_supported_languages(api: &dptran::DpTran) -> Result<dptran::
 
 /// Create a new glossary.
 pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: &Option<Vec<String>>, source_lang: &String, target_lang: &String) -> Result<dptran::glossaries::GlossaryID, RuntimeError> {
+    // Create glossary
     // i % 2 == 0: source word, i % 2 == 1: target word
     let entries = if let Some(word_pairs) = word_pairs {
         glossaries::vec_string_to_word_pairs(&word_pairs).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
@@ -262,17 +263,25 @@ pub fn create_glossary(api: &dptran::DpTran, glossary_name: String, word_pairs: 
         entries,
         dptran::glossaries::api::GlossariesApiFormat::Tsv,
     );
-    let mut glossary = dptran::glossaries::Glossary::new(
+    let glossary = dptran::glossaries::Glossary::new(
         glossary_name,
         vec![glossary_dict],
     );
-    let glossary_id = glossary.send(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))?;
+
+    // Get current glossaries
+    let mut registered_glossaries = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+
+    // Add glossary
+    let glossary_id = registered_glossaries.add_glossary(api, glossary).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+
     Ok(glossary_id)
 }
 
 /// Delete a glossary.
 pub fn delete_glossary(api: &dptran::DpTran, glossary: &dptran::glossaries::Glossary) -> Result<(), RuntimeError> {
-    dptran::glossaries::delete_glossary(api, glossary).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))
+    let mut glossaries_wrapper = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+    glossaries_wrapper.remove_glossary_by_name(api, glossary).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+    Ok(())
 }
 
 /// Get stored glossaries data.

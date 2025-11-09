@@ -58,6 +58,7 @@ pub enum GlossarySettingsTarget {
     ShowGlossaries,
     ShowSupportedLanguages,
     SetDefaultGlossary,
+    ClearDefaultGlossary,
 }
 
 #[derive(Clone, Debug)]
@@ -325,6 +326,10 @@ enum SubCommands {
         #[arg(short='d', long)]
         set_default_glossary: Option<String>,
 
+        /// Clear the default glossary.
+        #[arg(short='e', long)]
+        clear_default_glossary: bool,
+
         /// Source language for the glossary.
         #[arg(short, long)]
         source_lang: Option<String>,
@@ -581,7 +586,8 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 return Ok(arg_struct);
             }
             SubCommands::Glossary { name, id, create, remove, add_word_pairs,
-                    list, supported_languages, set_default_glossary, source_lang, target_lang } => {
+                    list, supported_languages, set_default_glossary, clear_default_glossary,
+                    source_lang, target_lang } => {
                 arg_struct.execution_mode = ExecutionMode::GlossarySettings;
                 if let Some(name) = name {
                     arg_struct.glossary_setting.as_mut().unwrap().target_name = Some(name);
@@ -616,6 +622,9 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
                     arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
                     arg_struct.glossary_setting.as_mut().unwrap().target_name = Some(default_glossary);
+                }
+                if clear_default_glossary == true {
+                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ClearDefaultGlossary);
                 }
                 if let Some(source_lang) = source_lang {
                     arg_struct.glossary_setting.as_mut().unwrap().source_lang = Some(source_lang);
