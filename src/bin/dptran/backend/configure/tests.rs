@@ -153,9 +153,14 @@ fn storage_default_glossary_test() {
     // Can set and get default glossary?
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_default_glossary = "my_glossary".to_string();
-    config_wrapper.set_default_glossary(new_default_glossary.clone()).unwrap();
+    let glossary_data = dptran::glossaries::Glossary {
+        name: new_default_glossary.clone(),
+        id: "12345".to_string().into(),
+        dictionaries: vec![],
+    };
+    config_wrapper.set_default_glossary(&glossary_data).unwrap();
     let updated_config = ConfigureWrapper::get("configure_test").unwrap();
-    assert_eq!(updated_config.configure.default_glossary, Some(new_default_glossary));
+    assert_eq!(updated_config.configure.default_glossary, Some("12345".to_string().into()));
 
     // Can get None if not set?
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
@@ -167,9 +172,14 @@ fn storage_default_glossary_test() {
     // Can overwrite existing default glossary?
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let another_default_glossary = "another_glossary".to_string();
-    config_wrapper.set_default_glossary(another_default_glossary.clone()).unwrap();
+    let glossary_data = dptran::glossaries::Glossary {
+        name: another_default_glossary.clone(),
+        id: "67890".to_string().into(),
+        dictionaries: vec![],
+    };
+    config_wrapper.set_default_glossary(&glossary_data).unwrap();
     let updated_config = ConfigureWrapper::get("configure_test").unwrap();
-    assert_eq!(updated_config.configure.default_glossary, Some(another_default_glossary));
+    assert_eq!(updated_config.configure.default_glossary, Some("67890".to_string().into()));
 
     // Can remove default glossary by setting None?
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();

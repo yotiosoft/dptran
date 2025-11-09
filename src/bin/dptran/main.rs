@@ -499,21 +499,53 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             backend::delete_glossary(&dptran, &glossary)?;
         },
         backend::args::GlossarySettingsTarget::ShowGlossaries => {
-            let glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
+            let glossaries = backend::get_all_glossaries(&dptran)?;
             
-            if let Some(id) = &glossary.id {
-                println!("Glossary ID: {}", id);
-            }
-            println!("Glossary Name: {}", glossary.name);
+            for glossary in glossaries {
+                println!("------------------------------");
 
-            for dictionary in &glossary.dictionaries {
-                println!("  Dictionary: {} -> {}", dictionary.source_lang, dictionary.target_lang);
+                if let Some(id) = &glossary.id {
+                    println!("Glossary ID: {}", id);
+                }
+                println!("Glossary Name: {}", glossary.name);
 
-                for entry in &dictionary.entries {
-                    println!("    {} => {}", entry.0, entry.1);
+                for dictionary in &glossary.dictionaries {
+                    println!("  Dictionary: {} -> {}", dictionary.source_lang, dictionary.target_lang);
+
+                    for entry in &dictionary.entries {
+                        println!("    {} => {}", entry.0, entry.1);
+                    }
                 }
             }
-        }
+        },
+        backend::args::GlossarySettingsTarget::AddWordPairs => {
+            let mut glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
+            let word_vec = if let Some(word_pairs) = &glossary_setting_struct.add_word_pairs {
+                backend::glossaries::vec_string_to_word_pairs(word_pairs).map_err(|e| RuntimeError::GlossariesError(e))?
+            } else {
+                vec![]
+            };
+            backend::add_word_pairs_to_glossary(&dptran, &mut glossary, &word_vec)?;
+        },
+        backend::args::GlossarySettingsTarget::SetDefaultGlossary => {
+            // Is the glossary specified?
+            let glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
+
+            // Is the glossary already set as default?
+            let mut config = backend::get_config()?;
+            if let Some(default_glossary_id) = config.get_default_glossary().map_err(|e| RuntimeError::ConfigError(e))? {
+                if let Some(glossary_id) = &glossary.id {
+                    if default_glossary_id == *glossary_id {
+                        println!("The glossary \"{}\" is already set as the default glossary.", glossary.name);
+                        return Ok(());
+                    }
+                }
+            }
+
+            // Set as default glossary
+            config.set_default_glossary(&glossary).map_err(|e| RuntimeError::ConfigError(e))?;
+            println!("The glossary \"{}\" has been set as the default glossary.", glossary.name);
+        },
     }
     
     Ok(())  /* Placeholder */

@@ -14,6 +14,8 @@ use std::io::{Write, BufWriter};
 use std::fs::OpenOptions;
 use unicode_bidi::BidiInfo;
 
+use crate::backend::glossaries::GlossariesError;
+
 #[derive(PartialEq)]
 pub enum RuntimeError {
     DeeplApiError(dptran::DpTranError),
@@ -27,6 +29,7 @@ pub enum RuntimeError {
     CacheMaxEntriesIsNotSet,
     ArgInvalidTarget,
     ArgError(String),
+    GlossariesError(GlossariesError),
     SourceLanguageIsNotSet,
     TargetLanguageIsNotSet,
     TargetGlossaryNotSpecified,
@@ -61,6 +64,7 @@ impl ToString for RuntimeError {
             RuntimeError::CacheMaxEntriesIsNotSet => "Cache max entries is not specified.".to_string(),
             RuntimeError::ArgInvalidTarget => "An invalid target setting specified.".to_string(),
             RuntimeError::ArgError(e) => format!("Argument error: {}", e),
+            RuntimeError::GlossariesError(e) => format!("Glossaries error: {}", e),
             RuntimeError::SourceLanguageIsNotSet => "Source language is not specified.".to_string(),
             RuntimeError::TargetLanguageIsNotSet => "Target language is not specified.".to_string(),
             RuntimeError::TargetGlossaryNotSpecified => "Target glossary is not specified.".to_string(),
@@ -287,7 +291,22 @@ pub fn get_glossaries_data(api: &dptran::DpTran, glossary_name: &Option<String>,
     }
 }
 
+/// Get all registered glossaries.
+pub fn get_all_glossaries(api: &dptran::DpTran) -> Result<Vec<dptran::glossaries::Glossary>, RuntimeError> {
+    let glossaries_wrap = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+    Ok(glossaries_wrap.get_all_glossaries().clone())
+}
+
 /// Add a new word pairs to a glossary.
+pub fn add_word_pairs_to_glossary(api: &dptran::DpTran, glossary: &mut dptran::glossaries::Glossary, word_pairs: &Vec<(String, String)>) -> Result<(), RuntimeError> {
+    for dict in glossary.dictionaries.iter_mut() {
+        dict.entries.extend(word_pairs.clone());
+        dict.entry_count = dict.entries.len();
+    }
+    // Resend glossary to DeepL API
+    let _glossary_id = glossary.send(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(e)))?;
+    Ok(())
+}
 
 /// To run these tests, you need to set the environment variable `DPTRAN_DEEPL_API_KEY` to your DeepL API key.  
 /// You should run these tests with ``cargo test -- --test-threads=1`` because the DeepL API has a limit on the number of requests per second.  

@@ -79,6 +79,11 @@ impl GlossariesWrapper {
         self.glossaries.retain(|g| g.name != name);
         Ok(())
     }
+
+    /// Get all glossaries.
+    pub fn get_all_glossaries(&self) -> &Vec<dptran::glossaries::Glossary> {
+        &self.glossaries
+    }
 }
 
 /// Get supported languages for Glossaries API.

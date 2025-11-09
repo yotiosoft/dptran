@@ -290,7 +290,7 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("glossary_vers")
             .required(true)
-            .args(["target_glossary", "create", "remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary", "source_lang", "target_lang"]),
+            .args(["name", "id", "create", "remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary"])
     ))]
     Glossary {
         /// A glossary that is being targeted.
@@ -318,7 +318,7 @@ enum SubCommands {
         list: bool,
 
         /// Show supported languages for glossaries.
-        #[arg(long)]
+        #[arg(short='u', long)]
         supported_languages: bool,
 
         /// Set the default glossary.
