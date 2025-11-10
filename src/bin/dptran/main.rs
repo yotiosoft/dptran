@@ -753,7 +753,8 @@ fn handle_interactive_commands_in_text(dptran: &dptran::DpTran, text: &str) -> O
 /// In normal mode, it will exit once after translation.
 /// Returns true if it continues the interactive mode, false if it exits.
 fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Option<String>, target_lang: &String, 
-                    multilines: bool, rm_line_breaks: bool, text: &Option<String>, mut ofile: &Option<std::fs::File>) -> Result<InteractiveCommand, RuntimeError> {
+                  multilines: bool, rm_line_breaks: bool, text: &Option<String>, mut ofile: &Option<std::fs::File>,
+                  glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<InteractiveCommand, RuntimeError> {
     // If in interactive mode, get from standard input
     // In normal mode, get from argument
     let input = get_input(&mode, multilines, rm_line_breaks, &text);
@@ -787,8 +788,13 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Op
     // If not in cache, translate and store in cache
     } else {
         // translate
-        let result = dptran.translate(&input, &target_lang, &source_lang)
-            .map_err(|e| RuntimeError::DeeplApiError(e))?;
+        let result = if let Some(glossary_id) = glossary_id {
+            dptran.translate_with_glossary(&input, &target_lang, &source_lang, glossary_id)
+                .map_err(|e| RuntimeError::DeeplApiError(e))?
+        } else {
+            dptran.translate(&input, &target_lang, &source_lang)
+                .map_err(|e| RuntimeError::DeeplApiError(e))?
+        };
         // replace \" with "
         let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
         // store in cache
@@ -823,7 +829,7 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Op
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
 fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-            multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>) -> Result<(), RuntimeError> {
+            multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -846,7 +852,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
     let mut target_lang = target_lang;
 
     loop {
-        match do_translation(dptran, mode, &source_lang, &target_lang, multilines, rm_line_breaks, &text, ofile) {
+        match do_translation(dptran, mode, &source_lang, &target_lang, multilines, rm_line_breaks, &text, ofile, glossary_id) {
             Ok(continue_mode) => {
                 match continue_mode {
                     InteractiveCommand::Continue => {
@@ -920,9 +926,16 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
         None
     };
 
+    // Glossary
+    let glossary_id = if let Some(default_glossary) = backend::get_config()?.get_default_glossary().map_err(|e| RuntimeError::ConfigError(e))? {
+        Some(default_glossary)
+    } else {
+        None
+    };
+
     // (Dialogue &) Translation
     translation_loop(&dptran, mode, source_lang, target_lang.unwrap(), 
-            multilines, remove_line_breaks, source_text, &ofile)?;
+            multilines, remove_line_breaks, source_text, &ofile, &glossary_id)?;
 
     Ok(())
 }
@@ -1034,7 +1047,7 @@ mod func_tests {
         let source_lang = Some("en".to_string());
         let target_lang = "fr".to_string();
         let ofile = None;
-        let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile);
+        let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile, &None);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
                 return do_app_deeplapi_process_test(times + 1);

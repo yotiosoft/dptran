@@ -310,33 +310,6 @@ pub fn get_glossaries_data(api: &dptran::DpTran, glossary_name: &Option<String>,
     }
 }
 
-/// Retrive glossaries data and entries.
-/* 
-pub fn get_glossaries_data_and_entries(api: &dptran::DpTran, glossary_name: &Option<String>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<dptran::glossaries::Glossary, RuntimeError> {
-    let registered_glossaries = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
-    let glossary = if let Some(glossary_name) = glossary_name {
-        registered_glossaries.search_by_name(glossary_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
-    } else if let Some(glossary_id) = glossary_id {
-        registered_glossaries.search_by_id(glossary_id).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
-    } else {
-        return Err(RuntimeError::TargetGlossaryNotSpecified);
-    };
-    match glossary {
-        Some(glossary) => {
-            let mut glossary = glossary.clone();
-            // Retrieve entries for each dictionary
-            if let Some(id) = &glossary.id {
-                for dictionary in glossary.dictionaries.iter_mut() {
-                    dictionary.retrieve_entries(api, id).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
-                }
-            }
-            Ok(glossary)
-        }
-        None => Err(RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryIsNotRegisteredError))),
-    }
-}
-*/
-
 /// Get all registered glossaries.
 pub fn get_all_glossaries(api: &dptran::DpTran) -> Result<Vec<dptran::glossaries::Glossary>, RuntimeError> {
     let glossaries_wrap = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
