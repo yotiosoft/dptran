@@ -11,7 +11,7 @@ use super::ApiKeyType;
 pub struct Language {
     pub language: String,
     pub name: String,
-    pub supports_formality: bool,
+    pub supports_formality: Option<bool>,
 }
 
 /// Language code and language name

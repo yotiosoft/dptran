@@ -285,7 +285,14 @@ impl DpTran {
     /// target_lang: Target language  
     /// source_lang: Source language (optional)  
     pub fn translate(&self, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DpTranError> {
-        translate::translate(&self, text, target_lang, source_lang).map_err(|e| DpTranError::DeeplApiError(e))
+        let translations = translate::api::TranslateRequest {
+            text: text.clone(),
+            target_lang: target_lang.clone(),
+            source_lang: source_lang.clone(),
+            ..Default::default()
+        };
+        translate::translate(&self, &translations).map_err(|e| DpTranError::DeeplApiError(e))?
+            .get_translation_strings().map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Get translation results with glossary. Using DeepL API.
@@ -303,14 +310,14 @@ impl DpTran {
             glossary_id: Some(glossary_id.clone()),
             ..Default::default()
         };
-        translate::translate_with_options(&self, &translate_request).map_err(|e| DpTranError::DeeplApiError(e))?
+        translate::translate(&self, &translate_request).map_err(|e| DpTranError::DeeplApiError(e))?
             .get_translation_strings().map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Translate with options. Using DeepL API.  
     /// You need to create a TranslateRequest instance first.
     pub fn translate_with_options(&self, request: &translate::api::TranslateRequest) -> Result<translate::api::TranslateResult, DpTranError> {
-        translate::translate_with_options(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
+        translate::translate(&self, request).map_err(|e| DpTranError::DeeplApiError(e))
     }
 
     /// Send glossary to DeepL API and create a glossary.  

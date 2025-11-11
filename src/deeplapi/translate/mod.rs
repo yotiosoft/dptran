@@ -7,25 +7,9 @@ use super::ApiKeyType;
 pub mod api;
 
 /// For the translation API.  
-/// Return translation results.  
-/// Receive translation results in json format and display translation results.  
-/// Return error if json parsing fails.
-pub fn translate(api: &DpTran, text: &Vec<String>, target_lang: &String, source_lang: &Option<String>) -> Result<Vec<String>, DeeplAPIError> {
-    let translations = api::TranslateRequest {
-        text: text.clone(),
-        target_lang: target_lang.clone(),
-        source_lang: source_lang.clone(),
-        ..Default::default()
-    };
-    let results = translations.translate(api)?;
-    let translated_texts = results.get_translation_strings()?;
-    Ok(translated_texts)
-}
-
-/// For the translation API.  
 /// Translate with detailed options.  
 /// Return detailed translation results.
-pub fn translate_with_options(api: &DpTran, request: &api::TranslateRequest) -> Result<api::TranslateResult, DeeplAPIError> {
+pub fn translate(api: &DpTran, request: &api::TranslateRequest) -> Result<api::TranslateResult, DeeplAPIError> {
     request.translate(api)
 }
 
@@ -46,9 +30,16 @@ pub mod tests {
         let text = vec!["Hello, World!".to_string()];
         let target_lang = "JA".to_string();
         let source_lang = None;
-        let res = translate(&api, &text, &target_lang, &source_lang);
+        let translations = api::TranslateRequest {
+            text: text.clone(),
+            source_lang: source_lang.clone(),
+            target_lang: target_lang.clone(),
+            ..Default::default()
+        };
+        let res = translate(&api, &translations);
         match res {
             Ok(res) => {
+                let res: Vec<String> = res.translations.iter().map(|t| t.text.clone()).collect();
                 assert_eq!(res[0], "ハロー、ワールド！");
             },
             Err(e) => {
@@ -79,7 +70,7 @@ pub mod tests {
             formality: Some(api::Formality::More),
             ..Default::default()
         };
-        let res = translate_with_options(&api, &request);
+        let res = translate(&api, &request);
         match res {
             Ok(res) => {
                 assert_eq!(res.translations[0].detected_source_language.to_ascii_uppercase(), "EN");
