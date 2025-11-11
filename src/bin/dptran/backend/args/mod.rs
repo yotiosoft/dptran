@@ -67,6 +67,7 @@ pub struct ArgStruct {
     pub translate_from: Option<String>,
     pub multilines: bool,
     pub remove_line_breaks: bool,
+    pub no_cache: bool,
     pub translate_to: Option<String>,
     pub source_text: Option<String>,
     pub ofile_path: Option<String>,
@@ -140,6 +141,10 @@ struct Args {
     /// Remove line breaks from the input text.
     #[arg(short, long)]
     remove_line_breaks: bool,
+
+    /// Do not cache translations.
+    #[arg(long)]
+    no_cache: bool,
 
     /// Print usage of DeepL API.
     #[arg(short, long)]
@@ -392,6 +397,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         translate_to: None,
         multilines: false,
         remove_line_breaks: false,
+        no_cache: false,
         source_text: None,
         ofile_path: None,
         list_target_langs: None,
@@ -437,6 +443,11 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
     // Remove line breaks
     if args.remove_line_breaks == true {
         arg_struct.remove_line_breaks = true;
+    }
+
+    // No cache
+    if args.no_cache == true {
+        arg_struct.no_cache = true;
     }
 
     // Usage

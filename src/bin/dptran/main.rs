@@ -753,7 +753,7 @@ fn handle_interactive_commands_in_text(dptran: &dptran::DpTran, text: &str) -> O
 /// In normal mode, it will exit once after translation.
 /// Returns true if it continues the interactive mode, false if it exits.
 fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Option<String>, target_lang: &String, 
-                  multilines: bool, rm_line_breaks: bool, text: &Option<String>, mut ofile: &Option<std::fs::File>,
+                  multilines: bool, rm_line_breaks: bool, no_cache: bool, text: &Option<String>, mut ofile: &Option<std::fs::File>,
                   glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<InteractiveCommand, RuntimeError> {
     // If in interactive mode, get from standard input
     // In normal mode, get from argument
@@ -798,8 +798,10 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Op
         // replace \" with "
         let result = result.iter().map(|x| x.replace(r#"\""#, "\"")).collect::<Vec<String>>();
         // store in cache
-        if backend::get_config()?.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))? {
-            backend::into_cache(&input, &result, &source_lang, &target_lang)?;
+        if no_cache == false {
+            if backend::get_config()?.get_cache_enabled().map_err(|e| RuntimeError::ConfigError(e))? {
+                backend::into_cache(&input, &result, &source_lang, &target_lang)?;
+            }
         }
         result
     };
@@ -829,7 +831,8 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Op
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
 fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-            multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<(), RuntimeError> {
+            multilines: bool, rm_line_breaks: bool, no_cache: bool,
+            text: Option<String>, ofile: &Option<std::fs::File>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 
@@ -852,7 +855,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
     let mut target_lang = target_lang;
 
     loop {
-        match do_translation(dptran, mode, &source_lang, &target_lang, multilines, rm_line_breaks, &text, ofile, glossary_id) {
+        match do_translation(dptran, mode, &source_lang, &target_lang, multilines, rm_line_breaks, no_cache, &text, ofile, glossary_id) {
             Ok(continue_mode) => {
                 match continue_mode {
                     InteractiveCommand::Continue => {
@@ -886,7 +889,8 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
 
 /// Start translation process.
 fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
-                            multilines: bool, remove_line_breaks: bool, source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
+                            multilines: bool, remove_line_breaks: bool, no_cache: bool, 
+                            source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
     let mut source_lang = translate_from;
     let mut target_lang = translate_to;
 
@@ -935,7 +939,7 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
 
     // (Dialogue &) Translation
     translation_loop(&dptran, mode, source_lang, target_lang.unwrap(), 
-            multilines, remove_line_breaks, source_text, &ofile, &glossary_id)?;
+            multilines, remove_line_breaks, no_cache, source_text, &ofile, &glossary_id)?;
 
     Ok(())
 }
@@ -980,6 +984,7 @@ fn main() -> Result<(), RuntimeError> {
                                 arg_struct.translate_to, 
                                 arg_struct.multilines, 
                                 arg_struct.remove_line_breaks, 
+                                arg_struct.no_cache,
                                 arg_struct.source_text, 
                                 arg_struct.ofile_path)?;
             return Ok(());
@@ -1043,11 +1048,12 @@ mod func_tests {
         let mode = ExecutionMode::TranslateNormal;
         let multilines = false;
         let rm_line_breaks = false;
+        let no_cache = false;
         let text = Some("Hello, world!".to_string());
         let source_lang = Some("en".to_string());
         let target_lang = "fr".to_string();
         let ofile = None;
-        let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, text, &ofile, &None);
+        let result = translation_loop(&dptran, mode, source_lang, target_lang, multilines, rm_line_breaks, no_cache, text, &ofile, &None);
         if let Err(e) = &result {
             if retry_or_panic(e, 1) {
                 return do_app_deeplapi_process_test(times + 1);
@@ -1340,6 +1346,89 @@ mod runtime_tests {
 
         // Check if the usage has not changed.
         assert!(usage_after == usage_before);
+    }
+
+    /// Test for the no cache option.
+    #[test]
+    fn runtime_deeplapi_with_no_cache_test() {
+        // Reset configuration.
+        reset_general_settings();
+        reset_api_settings();
+
+        // 1st run..
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Hello, world!")
+            .arg("-t")
+            .arg("ja")
+            .arg("--no-cache")
+            .output();
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Get usage..
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let usage = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-u")
+            .output();
+        let usage = usage.unwrap();
+        if usage.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&usage.stderr));
+        }
+        // to u32
+        let usage_before = usage.stdout
+            .split(|&b| b == b' ')
+            .filter_map(|s| std::str::from_utf8(s).ok())
+            .filter_map(|s| s.parse::<u32>().ok())
+            .next()
+            .unwrap();
+
+        // 2nd run.
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let mut cmd = Command::new("cargo");
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Hello, world!")
+            .arg("-t")
+            .arg("ja")
+            .arg("--no-cache")
+            .output();
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Get usage once again.
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let mut cmd = Command::new("cargo");
+        let usage = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("-u")
+            .output();
+
+        let usage = usage.unwrap();
+        if usage.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&usage.stderr));
+        }
+        // to u32
+        let usage_after = usage.stdout
+            .split(|&b| b == b' ')
+            .filter_map(|s| std::str::from_utf8(s).ok())
+            .filter_map(|s| s.parse::<u32>().ok())
+            .next()
+            .unwrap();
+        // Check if the usage has changed.
+        assert!(usage_after > usage_before);
     }
 
     /// Test for the interactive mode.
