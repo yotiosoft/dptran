@@ -2,12 +2,13 @@ use super::DpTran;
 use super::DeeplAPIError;
 
 pub mod api;
+pub use api::Usage;
 
 /// For the usage API.  
 /// Get the number of characters remaining to be translated.  
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.  
 /// Returns an error if acquisition fails.  
-pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
+pub fn get_usage(api: &DpTran) -> Result<Usage, DeeplAPIError> {
     api::get_usage(api)
 }
 
@@ -34,29 +35,9 @@ pub mod tests {
         }
     }
 
-    fn do_api_usage_struct_test(times: u8) {
-        // usage_as_struct test
-        let (api_key, api_key_type) = super::super::tests::get_api_key();
-        let api = DpTran::with_endpoint(&api_key, &api_key_type, super::super::tests::get_endpoint());
-        let res = api::get_usage_as_struct(&api);
-        if res.is_err() {
-            if super::super::tests::retry_or_panic_for_api_tests(&res.err().unwrap(), times) {
-                // retry
-                do_api_usage_struct_test(times + 1);
-                return;
-            }
-        }
-    }
-
     #[test]
     fn api_usage_test() {
         // usage test
         do_api_usage_test(0);
-    }
-
-    #[test]
-    fn api_usage_struct_test() {
-        // usage_as_struct test
-        do_api_usage_struct_test(0);
     }
 }

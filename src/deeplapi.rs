@@ -266,7 +266,9 @@ impl DpTran {
     /// Returns an error if acquisition fails.  
     /// api_key: DeepL API key  
     pub fn get_usage(&self) -> Result<DpTranUsage, DpTranError> {
-        let (count, limit) = usage::get_usage(&self).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let usage = usage::get_usage(&self).map_err(|e| DpTranError::DeeplApiError(e))?;
+        let count = usage.character_count;
+        let limit = usage.character_limit;
         let limit = if limit == UNLIMITED_CHARACTERS_NUMBER {
             None
         } else {
