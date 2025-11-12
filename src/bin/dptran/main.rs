@@ -754,7 +754,7 @@ fn handle_interactive_commands_in_text(dptran: &dptran::DpTran, text: &str) -> O
 /// Returns true if it continues the interactive mode, false if it exits.
 fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Option<String>, target_lang: &String, 
                   multilines: bool, rm_line_breaks: bool, text: &Option<String>, mut ofile: &Option<std::fs::File>,
-                  glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<InteractiveCommand, RuntimeError> {
+                  glossary_id: &Option<dptran::GlossaryID>) -> Result<InteractiveCommand, RuntimeError> {
     // If in interactive mode, get from standard input
     // In normal mode, get from argument
     let input = get_input(&mode, multilines, rm_line_breaks, &text);
@@ -829,7 +829,7 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Op
 /// Repeat input if in interactive mode
 /// In normal mode, it will be finished once
 fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: Option<String>, target_lang: String, 
-            multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<(), RuntimeError> {
+            multilines: bool, rm_line_breaks: bool, text: Option<String>, ofile: &Option<std::fs::File>, glossary_id: &Option<dptran::GlossaryID>) -> Result<(), RuntimeError> {
     // Translation
     // loop if in interactive mode; exit once in normal mode
 

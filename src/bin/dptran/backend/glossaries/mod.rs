@@ -2,7 +2,7 @@ use std::fmt;
 
 // Stored glossaries (Vec)
 pub struct GlossariesWrapper {
-    glossaries: Vec<dptran::glossaries::Glossary>
+    glossaries: Vec<dptran::Glossary>
 }
 
 #[derive(Debug, PartialEq)]
@@ -31,7 +31,7 @@ impl GlossariesWrapper {
 
     /// Get registered glossaries data by name.
     /// Returns a reference to the glossary if found.
-    pub fn search_by_name(&self, name: &str) -> Result<Option<dptran::glossaries::Glossary>, GlossariesError> {
+    pub fn search_by_name(&self, name: &str) -> Result<Option<dptran::Glossary>, GlossariesError> {
         for glossary in self.glossaries.iter() {
             if glossary.name == name {
                 return Ok(Some(glossary.clone()));
@@ -42,7 +42,7 @@ impl GlossariesWrapper {
 
     /// Get registered glossaries data by glossary ID.
     /// Returns a reference to the glossary if found.
-    pub fn search_by_id(&self, glossary_id: &dptran::glossaries::GlossaryID) -> Result<Option<dptran::glossaries::Glossary>, GlossariesError> {
+    pub fn search_by_id(&self, glossary_id: &dptran::GlossaryID) -> Result<Option<dptran::Glossary>, GlossariesError> {
         for glossary in self.glossaries.iter() {
             if let Some(id) = &glossary.id {
                 if id == glossary_id {
@@ -57,7 +57,7 @@ impl GlossariesWrapper {
     /// Returns nothing.
     /// # Arguments
     /// * `glossary` - The glossary to be added.
-    pub fn add_glossary(&mut self, dptran: &dptran::DpTran, glossary: dptran::glossaries::Glossary) -> Result<dptran::glossaries::GlossaryID, GlossariesError> {
+    pub fn add_glossary(&mut self, dptran: &dptran::DpTran, glossary: dptran::Glossary) -> Result<dptran::GlossaryID, GlossariesError> {
         // If there is a glossary with the same name, replace it.
         self.glossaries.retain(|g| g.name != glossary.name);
         // Send glossary to DeepL API
@@ -71,14 +71,14 @@ impl GlossariesWrapper {
     /// Returns nothing.
     /// # Arguments
     /// * `name` - The name of the glossary to be removed.
-    pub fn remove_glossary_by_name(&mut self, dptran: &dptran::DpTran, glossary: &dptran::glossaries::Glossary) -> Result<(), GlossariesError> {
+    pub fn remove_glossary_by_name(&mut self, dptran: &dptran::DpTran, glossary: &dptran::Glossary) -> Result<(), GlossariesError> {
         dptran::glossaries::delete_glossary(dptran, glossary).map_err(|e| GlossariesError::FailToReadCache(e.to_string()))?;
         self.glossaries.retain(|g| g.name != glossary.name);
         Ok(())
     }
 
     /// Get all glossaries.
-    pub fn get_all_glossaries(&self) -> &Vec<dptran::glossaries::Glossary> {
+    pub fn get_all_glossaries(&self) -> &Vec<dptran::Glossary> {
         &self.glossaries
     }
 }

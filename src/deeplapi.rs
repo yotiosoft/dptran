@@ -10,6 +10,7 @@ pub use languages::api::LangCodeName;
 pub use connection::ConnectionError;
 pub use translate::api::{ TranslateRequest, TranslateResult };
 pub use glossaries::api::{ GlossariesApiFormat, GlossariesApiPostData };
+pub use glossaries::{ Glossary, GlossaryID };
 
 pub use translate::api::DEEPL_API_TRANSLATE;
 pub use translate::api::DEEPL_API_TRANSLATE_PRO;

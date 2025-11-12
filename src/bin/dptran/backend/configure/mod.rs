@@ -20,7 +20,7 @@ pub struct Configure {
     pub cache_max_entries: usize,
     pub editor_command: Option<String>,
     pub cache_enabled: bool,
-    pub default_glossary: Option<dptran::glossaries::GlossaryID>,
+    pub default_glossary: Option<dptran::GlossaryID>,
     pub endpoint_of_translation: Option<String>,
     pub endpoint_of_usage: Option<String>,
     pub endpoint_of_languages: Option<String>,
@@ -156,7 +156,7 @@ impl ConfigureWrapper {
     }
 
     /// Set default glossary
-    pub fn set_default_glossary(&mut self, glossary_data: &dptran::glossaries::Glossary) -> Result<(), ConfigError> {
+    pub fn set_default_glossary(&mut self, glossary_data: &dptran::Glossary) -> Result<(), ConfigError> {
         let glossary_id = glossary_data.id.clone().ok_or(ConfigError::FailToSetDefaultGlossary("Glossary ID is not set".to_string()))?;
         self.configure.default_glossary = Some(glossary_id);
         self.save().map_err(|e| ConfigError::FailToSetDefaultGlossary(e.to_string()))?;

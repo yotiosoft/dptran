@@ -153,7 +153,7 @@ fn storage_default_glossary_test() {
     // Can set and get default glossary?
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let new_default_glossary = "my_glossary".to_string();
-    let glossary_data = dptran::glossaries::Glossary {
+    let glossary_data = dptran::Glossary {
         name: new_default_glossary.clone(),
         id: "12345".to_string().into(),
         dictionaries: vec![],
@@ -172,7 +172,7 @@ fn storage_default_glossary_test() {
     // Can overwrite existing default glossary?
     let mut config_wrapper = ConfigureWrapper::get("configure_test").unwrap();
     let another_default_glossary = "another_glossary".to_string();
-    let glossary_data = dptran::glossaries::Glossary {
+    let glossary_data = dptran::Glossary {
         name: another_default_glossary.clone(),
         id: "67890".to_string().into(),
         dictionaries: vec![],
