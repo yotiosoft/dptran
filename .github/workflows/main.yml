@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ "dev" ]
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build:
 
@@ -21,4 +18,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Print secret
-      run: echo $TEST_API_KEY
+      run: echo "Your secret API key is: ${TEST_API_KEY}"
