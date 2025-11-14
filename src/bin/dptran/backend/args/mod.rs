@@ -107,7 +107,7 @@ pub struct CacheSettingsStruct {
 pub struct GlossarySettingsStruct {
     pub setting_target: Option<GlossarySettingsTarget>,
     pub target_name: Option<String>,
-    pub target_id: Option<dptran::glossaries::GlossaryID>,
+    pub target_id: Option<dptran::GlossaryID>,
     pub create: bool,
     pub delete: bool,
     pub add_word_pairs: Option<Vec<String>>,
@@ -300,7 +300,7 @@ enum SubCommands {
 
         /// The ID of the glossary that is being targeted.
         #[arg(short, long)]
-        id: Option<dptran::glossaries::GlossaryID>,
+        id: Option<dptran::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
         #[arg(short, long)]

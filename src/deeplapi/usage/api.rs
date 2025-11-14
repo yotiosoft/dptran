@@ -17,13 +17,7 @@ pub struct Usage {
 /// Get the number of characters remaining to be translated.  
 /// Retrieved from <https://api-free.deepl.com/v2/usage>.  
 /// Returns an error if acquisition fails.  
-pub fn get_usage(api: &DpTran) -> Result<(u64, u64), DeeplAPIError> {
-    let usage = get_usage_as_struct(api)?;
-    Ok((usage.character_count, usage.character_limit))
-}
-
-/// Get the number of characters remaining to be translated and return as Usage struct.
-pub fn get_usage_as_struct(api: &DpTran) -> Result<Usage, DeeplAPIError> {
+pub fn get_usage(api: &DpTran) -> Result<Usage, DeeplAPIError> {
     let url = if api.api_key_type == ApiKeyType::Free {
         api.api_urls.usage_for_free.clone()
     } else {
