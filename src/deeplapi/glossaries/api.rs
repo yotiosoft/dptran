@@ -119,9 +119,9 @@ impl GlossariesApiPostData {
     /// Create a curl session.
     pub fn send(&self, api: &DpTran) -> Result<GlossariesApiResponseData, GlossariesApiError> {
         let url = if api.api_key_type == ApiKeyType::Free {
-            DEEPL_API_GLOSSARIES.to_string()
+            api.api_urls.glossaries_for_free.clone()
         } else {
-            DEEPL_API_GLOSSARIES_PRO.to_string()
+            api.api_urls.glossaries_for_pro.clone()
         };
         
         // Prepare headers
@@ -167,9 +167,9 @@ impl GlossariesApiResponseData {
     /// `glossary_id`: Glossary ID
     pub fn get_glossary_details(api: &DpTran, glossary_id: &super::GlossaryID) -> Result<Self, DeeplAPIError> {
         let url = if api.api_key_type == ApiKeyType::Free {
-            format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
+            format!("{}/{}", api.api_urls.glossaries_for_free.clone(), glossary_id)
         } else {
-            format!("{}/{}", DEEPL_API_GLOSSARIES_PRO, glossary_id)
+            format!("{}/{}", api.api_urls.glossaries_for_pro.clone(), glossary_id)
         };
 
         // Prepare headers
@@ -207,9 +207,9 @@ impl GlossariesApiDictionaryPostData {
     /// `glossary_id`: GlossaryID
     pub fn retrieve_entries(&mut self, api: &DpTran, glossary_id: &String) -> Result<Self, DeeplAPIError> {
         let url = if api.api_key_type == ApiKeyType::Free {
-            format!("{}/{}/entries?source_lang={}&target_lang={}", DEEPL_API_GLOSSARIES, glossary_id, self.source_lang, self.target_lang)
+            format!("{}/{}/entries?source_lang={}&target_lang={}", api.api_urls.glossaries_for_free.clone(), glossary_id, self.source_lang, self.target_lang)
         } else {
-            format!("{}/{}/entries?source_lang={}&target_lang={}", DEEPL_API_GLOSSARIES_PRO, glossary_id, self.source_lang, self.target_lang)
+            format!("{}/{}/entries?source_lang={}&target_lang={}", api.api_urls.glossaries_for_pro.clone(), glossary_id, self.source_lang, self.target_lang)
         };
 
         // Prepare headers
@@ -268,9 +268,9 @@ impl GlossariesApiList {
     /// Get a list of glossaries from the API server.
     pub fn get_registered_dictionaries(api: &DpTran) -> Result<Self, DeeplAPIError> {
         let url = if api.api_key_type == ApiKeyType::Free {
-            DEEPL_API_GLOSSARIES.to_string()
+            api.api_urls.glossaries_for_free.clone()
         } else {
-            DEEPL_API_GLOSSARIES_PRO.to_string()
+            api.api_urls.glossaries_for_pro.clone()
         };
 
         // Prepare headers
@@ -294,9 +294,9 @@ impl GlossariesApiList {
 /// Delete the glossary via DeepL API.
 pub fn delete_glossary(api: &DpTran, glossary_id: &String) -> Result<(), GlossariesApiError> {
     let url = if api.api_key_type == ApiKeyType::Free {
-        format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
+        format!("{}/{}", api.api_urls.glossaries_for_free.clone(), glossary_id)
     } else {
-        format!("{}/{}", DEEPL_API_GLOSSARIES_PRO, glossary_id)
+        format!("{}/{}", api.api_urls.glossaries_for_pro.clone(), glossary_id)
     };
 
     // Prepare headers
@@ -314,9 +314,9 @@ pub fn delete_glossary(api: &DpTran, glossary_id: &String) -> Result<(), Glossar
 /// Patch the glossary via DeepL API.
 pub fn patch_glossary(api: &DpTran, glossary_id: &String, patch_data: &GlossariesApiPostData) -> Result<(), GlossariesApiError> {
     let url = if api.api_key_type == ApiKeyType::Free {
-        format!("{}/{}", DEEPL_API_GLOSSARIES, glossary_id)
+        format!("{}/{}", api.api_urls.glossaries_for_free.clone(), glossary_id)
     } else {
-        format!("{}/{}", DEEPL_API_GLOSSARIES_PRO, glossary_id)
+        format!("{}/{}", api.api_urls.glossaries_for_pro.clone(), glossary_id)
     };
 
     // Prepare headers
@@ -336,9 +336,9 @@ impl GlossariesApiSupportedLanguages {
     /// Get supported languages for Glossaries API.
     pub fn get(api: &DpTran) -> Result<GlossariesApiSupportedLanguages, GlossariesApiError> {
         let url = if api.api_key_type == ApiKeyType::Free {
-            DEEPL_API_GLOSSARIES_PAIRS.to_string()
+            api.api_urls.glossaries_language_pairs_for_free.clone()
         } else {
-            DEEPL_API_GLOSSARIES_PRO_PAIRS.to_string()
+            api.api_urls.glossaries_language_pairs_for_pro.clone()
         };
         
         // Prepare headers
