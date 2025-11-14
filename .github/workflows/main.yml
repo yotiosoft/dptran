@@ -14,6 +14,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    environment: test
+    env:
+      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+
     steps:
     - uses: actions/checkout@v4
     - name: Print secret
