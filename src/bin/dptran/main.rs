@@ -1273,7 +1273,7 @@ mod runtime_tests {
         reset_general_settings();
         reset_api_settings();
 
-        // 1st run..
+        // 1st run.
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let text = cmd.arg("run")
@@ -1288,7 +1288,7 @@ mod runtime_tests {
             panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
         }
 
-        // Get usage..
+        // Get usage.
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
         let usage = cmd.arg("run")
