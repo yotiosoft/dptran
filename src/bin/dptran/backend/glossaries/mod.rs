@@ -100,5 +100,5 @@ pub fn vec_string_to_word_pairs(vec: &Vec<String>) -> Result<Vec<(String, String
     Ok(word_pairs)
 }
 
-//#[cfg(test)]
-//include!("./tests.rs");
+#[cfg(test)]
+include!("./tests.rs");
