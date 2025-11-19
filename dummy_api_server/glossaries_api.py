@@ -39,7 +39,7 @@ class GlossaryLangPair(BaseModel):
 class GlossaryLangPairsResponse(BaseModel):
     supported_languages: List[GlossaryLangPair]
 
-@router.post("/glossaries", response_model=GlossaryResponse)
+@router.post("/free/glossaries", response_model=GlossaryResponse)
 async def create_glossary(req: GlossaryCreateRequest):
     glossary_id = str(uuid.uuid4())
     creation_time = datetime.utcnow().isoformat() + "Z"
@@ -62,21 +62,33 @@ async def create_glossary(req: GlossaryCreateRequest):
     GLOSSARIES[glossary_id] = glossary
     return glossary
 
+@router.post("/pro/glossaries/{glossary_id}", response_model=GlossaryResponse)
+async def create_pro_glossary(req: GlossaryCreateRequest):
+    return await create_glossary(req)
 
-@router.get("/glossaries", response_model=GlossaryListResponse)
+
+@router.get("/free/glossaries", response_model=GlossaryListResponse)
 async def list_glossaries():
     return GlossaryListResponse(glossaries=list(GLOSSARIES.values()))
 
+@router.get("/pro/glossaries", response_model=GlossaryListResponse)
+async def list_pro_glossaries():
+    return GlossaryListResponse(glossaries=list(GLOSSARIES.values()))
 
-@router.delete("/glossaries/{glossary_id}")
+
+@router.delete("/free/glossaries/{glossary_id}")
 async def delete_glossary(glossary_id: str):
     if glossary_id not in GLOSSARIES:
         raise HTTPException(status_code=404, detail="Glossary not found")
     del GLOSSARIES[glossary_id]
     return {"status": "deleted"}
 
+@router.delete("/pro/glossaries/{glossary_id}")
+async def delete_pro_glossary(glossary_id: str):
+    return await delete_glossary(glossary_id)
 
-@router.patch("/glossaries/{glossary_id}")
+
+@router.patch("/free/glossaries/{glossary_id}")
 async def patch_glossary(glossary_id: str, req: GlossaryCreateRequest):
     if glossary_id not in GLOSSARIES:
         raise HTTPException(status_code=404, detail="Glossary not found")
@@ -93,8 +105,11 @@ async def patch_glossary(glossary_id: str, req: GlossaryCreateRequest):
     GLOSSARIES[glossary_id] = glossary
     return {"status": "updated"}
 
+@router.patch("/pro/glossaries/{glossary_id}")
+async def patch_pro_glossary(glossary_id: str, req: GlossaryCreateRequest):
+    return await patch_glossary(glossary_id, req)
 
-@router.get("/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
+@router.get("/free/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
 async def get_glossary_language_pairs():
     return GlossaryLangPairsResponse(
         supported_languages=[
@@ -103,3 +118,7 @@ async def get_glossary_language_pairs():
             GlossaryLangPair(source_lang="EN", target_lang="JA"),
         ]
     )
+
+@router.get("/pro/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
+async def get_pro_glossary_language_pairs():
+    return await get_glossary_language_pairs()
