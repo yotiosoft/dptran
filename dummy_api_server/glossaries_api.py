@@ -4,7 +4,7 @@ from typing import List
 import uuid
 from datetime import datetime
 
-router = APIRouter(prefix="/v3", tags=["glossaries"])
+router = APIRouter(tags=["glossaries"])
 
 GLOSSARIES = {}
 
