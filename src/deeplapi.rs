@@ -402,8 +402,8 @@ pub mod tests {
         pub const TEST_DEEPL_API_LANGUAGES_PRO: &str = "http://localhost:8000/pro/v2/languages";
         pub const TEST_DEEPL_API_GLOSSARIES: &str = "http://localhost:8000/free/v2/glossaries";
         pub const TEST_DEEPL_API_GLOSSARIES_PRO: &str = "http://localhost:8000/pro/v2/glossaries";
-        pub const TEST_DEEPL_API_GLOSSARIES_LANGUAGE_PAIRS: &str = "http://localhost:8000/free/v2/glossaries/supported-languages";
-        pub const TEST_DEEPL_API_GLOSSARIES_PRO_LANGUAGE_PAIRS: &str = "http://localhost:8000/pro/v2/glossaries/supported-languages";
+        pub const TEST_DEEPL_API_GLOSSARIES_LANGUAGE_PAIRS: &str = "http://localhost:8000/v2/glossary-language-pairs";
+        pub const TEST_DEEPL_API_GLOSSARIES_PRO_LANGUAGE_PAIRS: &str = "http://localhost:8000/v2/glossary-language-pairs";
 
         EndpointUrls {
             translate_for_free: TEST_DEEPL_API_TRANSLATE.to_string(),
