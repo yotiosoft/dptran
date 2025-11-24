@@ -1355,6 +1355,20 @@ mod runtime_tests {
         reset_general_settings();
         reset_api_settings();
 
+        // Clear cache first.
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("cache")
+            .arg("--clear")
+            .output();
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
         // 1st run..
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
