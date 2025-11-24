@@ -46,6 +46,7 @@ async def create_glossary(req: GlossaryCreateRequest):
     dict_responses = []
     for d in req.dictionaries:
         entry_count = len([line for line in d.entries.split("\n") if line.strip()])
+        print(f"Creating glossary dictionary from {d.source_lang} to {d.target_lang} with {entry_count} entries.")
         dict_responses.append(
             GlossaryDictionaryResponse(
                 source_lang=d.source_lang,
@@ -94,14 +95,25 @@ async def patch_glossary(glossary_id: str, req: GlossaryCreateRequest):
         raise HTTPException(status_code=404, detail="Glossary not found")
     glossary = GLOSSARIES[glossary_id]
     glossary.name = req.name
-    # Add to the dictionaries
-    glossary.dictionaries.extend(req.dictionaries)
-    # If there are duplicate language pairs, just overwrite by the new one
-    unique_dicts = {}
-    for d in glossary.dictionaries:
-        key = (d.source_lang, d.target_lang)
-        unique_dicts[key] = d
-    glossary.dictionaries = list(unique_dicts.values())
+    # Clear existing dictionaries
+    old_dictionaries = glossary.dictionaries.copy()
+    glossary.dictionaries = []
+    # Add new dictionaries
+    for d in req.dictionaries:
+        # If the same language pair exists in old dictionaries, keep the old entry count
+        matching_old = next((od for od in old_dictionaries if od.source_lang == d.source_lang and od.target_lang == d.target_lang), None)
+        if matching_old:
+            entry_count = matching_old.entry_count
+        else:
+            entry_count = len([line for line in d.entries.split("\n") if line.strip()])
+        glossary.dictionaries.append(
+            GlossaryDictionaryResponse(
+                source_lang=d.source_lang,
+                target_lang=d.target_lang,
+                entry_count=entry_count
+            )
+        )
+
     GLOSSARIES[glossary_id] = glossary
     return {"status": "updated"}
 
@@ -109,7 +121,7 @@ async def patch_glossary(glossary_id: str, req: GlossaryCreateRequest):
 async def patch_pro_glossary(glossary_id: str, req: GlossaryCreateRequest):
     return await patch_glossary(glossary_id, req)
 
-@router.get("/free/v2/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
+@router.get("/v2/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
 async def get_glossary_language_pairs():
     return GlossaryLangPairsResponse(
         supported_languages=[
@@ -118,7 +130,3 @@ async def get_glossary_language_pairs():
             GlossaryLangPair(source_lang="EN", target_lang="JA"),
         ]
     )
-
-@router.get("/pro/v2/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
-async def get_pro_glossary_language_pairs():
-    return await get_glossary_language_pairs()
