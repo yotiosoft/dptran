@@ -1,5 +1,5 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use std::io::{self, Read};
+use std::{io::{self, Read}, ops::Sub};
 use atty::Stream;
 use super::RuntimeError;
 use std::process::Command;
@@ -337,7 +337,10 @@ enum SubCommands {
         /// Target language for the glossary.
         #[arg(short, long)]
         target_lang: Option<String>,
-    }
+    },
+
+    /// Usage
+    Usage,
 }
 
 fn load_stdin() -> io::Result<Option<String>> {
@@ -638,6 +641,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if let Some(target_lang) = target_lang {
                     arg_struct.glossary_setting.as_mut().unwrap().target_lang = Some(target_lang);
                 }
+                return Ok(arg_struct);
+            }
+            SubCommands::Usage => {
+                arg_struct.execution_mode = ExecutionMode::PrintUsage;
                 return Ok(arg_struct);
             }
         }
