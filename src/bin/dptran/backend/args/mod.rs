@@ -146,7 +146,7 @@ struct Args {
     #[arg(long)]
     no_cache: bool,
 
-    /// Print usage of DeepL API.
+    /// Print usage of DeepL API. (This option will be deprecated in future versions. Please use `dptran usage` instead.)
     #[arg(short, long)]
     usage: bool,
 
@@ -339,7 +339,7 @@ enum SubCommands {
         target_lang: Option<String>,
     },
 
-    /// Usage
+    /// Print usage of DeepL API.
     Usage,
 }
 
@@ -455,6 +455,11 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
 
     // Usage
     if args.usage == true {
+        println!("----------------------------------------------------------
+Caution: This option will be deprecated in future versions. 
+Please use the subcommand `dptran usage` instead.
+----------------------------------------------------------");
+
         arg_struct.execution_mode = ExecutionMode::PrintUsage;
         return Ok(arg_struct);
     }
