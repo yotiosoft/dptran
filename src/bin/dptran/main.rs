@@ -220,9 +220,14 @@ fn get_input(mode: &backend::ExecutionMode, multilines: bool, rm_line_breaks: bo
             let mut input_vec = Vec::<String>::new();
             let mut input = String::new();
             while stdin.read_line(&mut input).unwrap() > 0 {
-                // If in multiline mode, it accepts input including newlines.
                 if multilines {
+                    // If in multiline mode, it accepts input including newlines.
                     if input == "\r\n" || input == "\n" {
+                        break;
+                    }
+                    // ...except interactive-mode commands.
+                    if input.starts_with("/") {
+                        input_vec.push(input.trim_end().to_string());
                         break;
                     }
                 }
@@ -872,6 +877,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
                     }
                     _ => {
                         // Should not reach here
+                        panic!("Invalid InteractiveCommand");
                     }
                 }
             }
