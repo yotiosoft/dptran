@@ -1,5 +1,5 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use std::io::{self, Read};
+use std::{io::{self, Read}, ops::Sub};
 use atty::Stream;
 use super::RuntimeError;
 use std::process::Command;
@@ -67,6 +67,7 @@ pub struct ArgStruct {
     pub translate_from: Option<String>,
     pub multilines: bool,
     pub remove_line_breaks: bool,
+    pub no_cache: bool,
     pub translate_to: Option<String>,
     pub source_text: Option<String>,
     pub ofile_path: Option<String>,
@@ -141,7 +142,11 @@ struct Args {
     #[arg(short, long)]
     remove_line_breaks: bool,
 
-    /// Print usage of DeepL API.
+    /// Do not cache translations.
+    #[arg(long)]
+    no_cache: bool,
+
+    /// Print usage of DeepL API. (This option will be deprecated in future versions. Please use `dptran usage` instead.)
     #[arg(short, long)]
     usage: bool,
 
@@ -332,7 +337,10 @@ enum SubCommands {
         /// Target language for the glossary.
         #[arg(short, long)]
         target_lang: Option<String>,
-    }
+    },
+
+    /// Print usage of DeepL API.
+    Usage,
 }
 
 fn load_stdin() -> io::Result<Option<String>> {
@@ -392,6 +400,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         translate_to: None,
         multilines: false,
         remove_line_breaks: false,
+        no_cache: false,
         source_text: None,
         ofile_path: None,
         list_target_langs: None,
@@ -439,8 +448,18 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         arg_struct.remove_line_breaks = true;
     }
 
+    // No cache
+    if args.no_cache == true {
+        arg_struct.no_cache = true;
+    }
+
     // Usage
     if args.usage == true {
+        println!("----------------------------------------------------------
+Caution: This option will be deprecated in future versions. 
+Please use the subcommand `dptran usage` instead.
+----------------------------------------------------------");
+
         arg_struct.execution_mode = ExecutionMode::PrintUsage;
         return Ok(arg_struct);
     }
@@ -627,6 +646,10 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if let Some(target_lang) = target_lang {
                     arg_struct.glossary_setting.as_mut().unwrap().target_lang = Some(target_lang);
                 }
+                return Ok(arg_struct);
+            }
+            SubCommands::Usage => {
+                arg_struct.execution_mode = ExecutionMode::PrintUsage;
                 return Ok(arg_struct);
             }
         }

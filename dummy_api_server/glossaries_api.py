@@ -4,7 +4,7 @@ from typing import List
 import uuid
 from datetime import datetime
 
-router = APIRouter(prefix="/v3", tags=["glossaries"])
+router = APIRouter(tags=["glossaries"])
 
 GLOSSARIES = {}
 
@@ -39,13 +39,14 @@ class GlossaryLangPair(BaseModel):
 class GlossaryLangPairsResponse(BaseModel):
     supported_languages: List[GlossaryLangPair]
 
-@router.post("/glossaries", response_model=GlossaryResponse)
+@router.post("/free/v2/glossaries", response_model=GlossaryResponse)
 async def create_glossary(req: GlossaryCreateRequest):
     glossary_id = str(uuid.uuid4())
     creation_time = datetime.utcnow().isoformat() + "Z"
     dict_responses = []
     for d in req.dictionaries:
         entry_count = len([line for line in d.entries.split("\n") if line.strip()])
+        print(f"Creating glossary dictionary from {d.source_lang} to {d.target_lang} with {entry_count} entries.")
         dict_responses.append(
             GlossaryDictionaryResponse(
                 source_lang=d.source_lang,
@@ -62,39 +63,65 @@ async def create_glossary(req: GlossaryCreateRequest):
     GLOSSARIES[glossary_id] = glossary
     return glossary
 
+@router.post("/pro/v2/glossaries/{glossary_id}", response_model=GlossaryResponse)
+async def create_pro_glossary(req: GlossaryCreateRequest):
+    return await create_glossary(req)
 
-@router.get("/glossaries", response_model=GlossaryListResponse)
+
+@router.get("/free/v2/glossaries", response_model=GlossaryListResponse)
 async def list_glossaries():
     return GlossaryListResponse(glossaries=list(GLOSSARIES.values()))
 
+@router.get("/pro/v2/glossaries", response_model=GlossaryListResponse)
+async def list_pro_glossaries():
+    return GlossaryListResponse(glossaries=list(GLOSSARIES.values()))
 
-@router.delete("/glossaries/{glossary_id}")
+
+@router.delete("/free/v2/glossaries/{glossary_id}")
 async def delete_glossary(glossary_id: str):
     if glossary_id not in GLOSSARIES:
         raise HTTPException(status_code=404, detail="Glossary not found")
     del GLOSSARIES[glossary_id]
     return {"status": "deleted"}
 
+@router.delete("/pro/v2/glossaries/{glossary_id}")
+async def delete_pro_glossary(glossary_id: str):
+    return await delete_glossary(glossary_id)
 
-@router.patch("/glossaries/{glossary_id}")
+
+@router.patch("/free/v2/glossaries/{glossary_id}")
 async def patch_glossary(glossary_id: str, req: GlossaryCreateRequest):
     if glossary_id not in GLOSSARIES:
         raise HTTPException(status_code=404, detail="Glossary not found")
     glossary = GLOSSARIES[glossary_id]
     glossary.name = req.name
-    # Add to the dictionaries
-    glossary.dictionaries.extend(req.dictionaries)
-    # If there are duplicate language pairs, just overwrite by the new one
-    unique_dicts = {}
-    for d in glossary.dictionaries:
-        key = (d.source_lang, d.target_lang)
-        unique_dicts[key] = d
-    glossary.dictionaries = list(unique_dicts.values())
+    # Clear existing dictionaries
+    old_dictionaries = glossary.dictionaries.copy()
+    glossary.dictionaries = []
+    # Add new dictionaries
+    for d in req.dictionaries:
+        # If the same language pair exists in old dictionaries, keep the old entry count
+        matching_old = next((od for od in old_dictionaries if od.source_lang == d.source_lang and od.target_lang == d.target_lang), None)
+        if matching_old:
+            entry_count = matching_old.entry_count
+        else:
+            entry_count = len([line for line in d.entries.split("\n") if line.strip()])
+        glossary.dictionaries.append(
+            GlossaryDictionaryResponse(
+                source_lang=d.source_lang,
+                target_lang=d.target_lang,
+                entry_count=entry_count
+            )
+        )
+
     GLOSSARIES[glossary_id] = glossary
     return {"status": "updated"}
 
+@router.patch("/pro/v2/glossaries/{glossary_id}")
+async def patch_pro_glossary(glossary_id: str, req: GlossaryCreateRequest):
+    return await patch_glossary(glossary_id, req)
 
-@router.get("/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
+@router.get("/v2/glossary-language-pairs", response_model=GlossaryLangPairsResponse)
 async def get_glossary_language_pairs():
     return GlossaryLangPairsResponse(
         supported_languages=[
