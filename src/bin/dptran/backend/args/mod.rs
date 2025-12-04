@@ -293,6 +293,14 @@ enum SubCommands {
     },
 
     /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
+    #[clap(group(ArgGroup::new("non-interactive")
+        .args(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
+            "set_default_glossary", "clear_default_glossary", "source_lang", "target_lang"])
+        .requires_all(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
+            "set_default_glossary", "clear_default_glossary", "source_lang", "target_lang"])
+        .multiple(true)
+        .conflicts_with("list"))
+    )]
     Glossary {
         /// A glossary that is being targeted.
         #[arg(short, long)]
