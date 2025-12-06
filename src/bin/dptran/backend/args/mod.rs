@@ -1,5 +1,5 @@
 use clap::{ArgGroup, Parser, Subcommand};
-use std::{io::{self, Read}, ops::Sub};
+use std::io::{self, Read};
 use atty::Stream;
 use super::RuntimeError;
 use std::process::Command;
