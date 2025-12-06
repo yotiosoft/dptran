@@ -293,13 +293,33 @@ enum SubCommands {
     },
 
     /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
-    #[clap(group(ArgGroup::new("non-interactive")
+    #[clap(group(ArgGroup::new("group_list")
         .args(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
-            "set_default_glossary", "clear_default_glossary", "source_lang", "target_lang"])
-        .requires_all(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
-            "set_default_glossary", "clear_default_glossary", "source_lang", "target_lang"])
+            "set_default_glossary", "clear_default_glossary"])
         .multiple(true)
-        .conflicts_with("list"))
+        .conflicts_with("list")),
+
+        group(ArgGroup::new("group_clear_default_glossary")
+        .args(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
+            "set_default_glossary", "list", "source_lang", "target_lang"])
+        .multiple(true)
+        .conflicts_with("clear_default_glossary")),
+
+        group(ArgGroup::new("group_name")
+        .args(&["id", "supported_languages", "clear_default_glossary"])
+        .multiple(true)
+        .conflicts_with("name")),
+
+        group(ArgGroup::new("group_id")
+        .args(&["name", "supported_languages", "clear_default_glossary"])
+        .multiple(true)
+        .conflicts_with("id")),
+
+        group(ArgGroup::new("group_supported_languages")
+        .args(&["name", "id", "create", "remove", "add_word_pairs",
+            "set_default_glossary", "clear_default_glossary", "list"])
+        .multiple(true)
+        .conflicts_with("supported_languages")),
     )]
     Glossary {
         /// A glossary that is being targeted.

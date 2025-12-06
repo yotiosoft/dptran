@@ -479,11 +479,24 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
     
     match glossary_setting_target.unwrap() {
         backend::args::GlossarySettingsTarget::ShowSupportedLanguages => {
+            let source_lang_filter = glossary_setting_struct.source_lang;
+            let target_lang_filter = glossary_setting_struct.target_lang;
             let list = backend::get_glossary_supported_languages(&dptran)?;
             println!("Supported languages for Glossaries API (source_lang: target_lang):");
             // Print in a table format with 6 columns
             let mut i = 0;
             for lang in list.supported_languages {
+                if let Some(source_lang) = &source_lang_filter {
+                    if lang.source_lang.to_ascii_lowercase() != source_lang.to_ascii_lowercase() {
+                        continue;
+                    }
+                }
+                if let Some(target_lang) = &target_lang_filter {
+                    if lang.target_lang.to_ascii_lowercase() != target_lang.to_ascii_lowercase() {
+                        continue;
+                    }
+                }
+
                 print!(" {lc:<cl$}: {ln:<lnl$}", lc=lang.source_lang.trim_matches('"'), ln=lang.target_lang.trim_matches('"'), cl=2, lnl=5);
                 i += 1;
                 if (i % 6) == 0 {
@@ -526,16 +539,16 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
 
                 for dictionary in &mut glossary.dictionaries {
                     if let Some(source_lang) = &source_lang_filter {
-                        if &dictionary.source_lang != source_lang {
+                        if dictionary.source_lang.to_ascii_lowercase() != source_lang.to_ascii_lowercase() {
                             continue;
                         }
                     }
                     if let Some(target_lang) = &target_lang_filter {
-                        if &dictionary.target_lang != target_lang {
+                        if dictionary.target_lang.to_ascii_lowercase() != target_lang.to_ascii_lowercase() {
                             continue;
                         }
                     }
-                    
+
                     println!("  Dictionary: {} -> {}", dictionary.source_lang, dictionary.target_lang);
                     
                     if let Some(id) = &glossary.id {
