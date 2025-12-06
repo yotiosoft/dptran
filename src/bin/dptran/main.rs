@@ -513,6 +513,8 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
         },
         backend::args::GlossarySettingsTarget::ShowGlossaries => {
             let mut glossaries = backend::get_all_glossaries(&dptran)?;
+            let source_lang_filter = glossary_setting_struct.source_lang;
+            let target_lang_filter = glossary_setting_struct.target_lang;
             
             for glossary in &mut glossaries {
                 println!("------------------------------");
@@ -523,6 +525,17 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
                 println!("Glossary Name: {}", glossary.name);
 
                 for dictionary in &mut glossary.dictionaries {
+                    if let Some(source_lang) = &source_lang_filter {
+                        if &dictionary.source_lang != source_lang {
+                            continue;
+                        }
+                    }
+                    if let Some(target_lang) = &target_lang_filter {
+                        if &dictionary.target_lang != target_lang {
+                            continue;
+                        }
+                    }
+                    
                     println!("  Dictionary: {} -> {}", dictionary.source_lang, dictionary.target_lang);
                     
                     if let Some(id) = &glossary.id {
