@@ -293,46 +293,76 @@ enum SubCommands {
     },
 
     /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
-    #[clap(group(ArgGroup::new("group_list")
-        .args(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
-            "set_default_glossary", "clear_default_glossary"])
+    #[clap(
+        group(ArgGroup::new("conflict_options_for_create")
+        .args(&["create"])
         .multiple(true)
-        .conflicts_with("list")),
+        .conflicts_with_all(&["remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary", 
+                "clear_default_glossary"])),
 
-        group(ArgGroup::new("group_clear_default_glossary")
-        .args(&["name", "id", "create", "remove", "add_word_pairs", "supported_languages", 
-            "set_default_glossary", "list", "source_lang", "target_lang"])
+        group(ArgGroup::new("conflict_options_for_remove")
+        .args(&["remove"])
         .multiple(true)
-        .conflicts_with("clear_default_glossary")),
+        .conflicts_with_all(&["create", "add_word_pairs", "list", "supported_languages", "set_default_glossary", 
+                "clear_default_glossary"])),
 
-        group(ArgGroup::new("group_name")
+        group(ArgGroup::new("conflict_options_for_add_word_pairs")
+        .args(&["add_word_pairs"])
+        .multiple(true)
+        .conflicts_with_all(&["create", "remove", "list", "supported_languages", "set_default_glossary", 
+                "clear_default_glossary"])),
+
+        group(ArgGroup::new("conflict_options_for_list")
+        .args(&["list"])
+        .multiple(true)
+        .conflicts_with_all(&["create", "remove", "add_word_pairs", "supported_languages", "set_default_glossary", 
+                "clear_default_glossary"])),
+
+        group(ArgGroup::new("conflict_options_for_supported_languages")
+        .args(&["supported_languages"])
+        .multiple(true)
+        .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "set_default_glossary", 
+                "clear_default_glossary"])),
+
+        group(ArgGroup::new("conflict_options_for_set_default_glossary")
+        .args(&["set_default_glossary"])
+        .multiple(true)
+        .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "supported_languages", 
+                "clear_default_glossary"])),
+
+        group(ArgGroup::new("conflict_options_for_clear_default_glossary")
+        .args(&["clear_default_glossary"])
+        .multiple(true)
+        .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "supported_languages", 
+                "set_default_glossary"])),
+
+        group(ArgGroup::new("conflicts_with_name")
         .args(&["id", "supported_languages", "clear_default_glossary"])
         .multiple(true)
         .conflicts_with("name")),
 
-        group(ArgGroup::new("group_id")
+        group(ArgGroup::new("conflicts_with_id")
         .args(&["name", "supported_languages", "clear_default_glossary"])
         .multiple(true)
         .conflicts_with("id")),
 
-        group(ArgGroup::new("group_supported_languages")
-        .args(&["name", "id", "create", "remove", "add_word_pairs",
-            "set_default_glossary", "clear_default_glossary", "list"])
+        group(ArgGroup::new("required_by_create")
+        .args(&["create"])
         .multiple(true)
-        .conflicts_with("supported_languages")),
+        .requires_all(&["name"])),
 
-        group(ArgGroup::new("required_by_name")
-        .args(&["name"])
+        group(ArgGroup::new("required_by_remove")
+        .args(&["remove"])
         .multiple(true)
-        .requires_all(&["create", "remove", "add_word_pairs", "list", "set_default_glossary"])),
+        .requires_all(&["name", "id"])),
 
-        group(ArgGroup::new("required_by_id")
-        .args(&["id"])
+        group(ArgGroup::new("required_by_add_word_pairs")
+        .args(&["add_word_pairs"])
         .multiple(true)
-        .requires_all(&["create", "remove", "add_word_pairs", "list", "set_default_glossary"])),
+        .requires_all(&["name", "id", "source_lang", "target_lang"])),
 
-        group(ArgGroup::new("name_or_id_is_required")
-        .args(&["create", "remove", "add_word_pairs", "set_default_glossary"])
+        group(ArgGroup::new("required_by_set_default_glossary")
+        .args(&["set_default_glossary"])
         .multiple(true)
         .requires_all(&["name", "id"])),
     )]
