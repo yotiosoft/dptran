@@ -335,34 +335,16 @@ enum SubCommands {
         .multiple(true)
         .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "supported_languages", 
                 "set_default_glossary"])),
-
-        group(ArgGroup::new("conflicts_with_name")
-        .args(&["id", "supported_languages", "clear_default_glossary"])
-        .multiple(true)
-        .conflicts_with("name")),
-
-        group(ArgGroup::new("conflicts_with_id")
-        .args(&["name", "supported_languages", "clear_default_glossary"])
-        .multiple(true)
-        .conflicts_with("id")),
-
-        group(ArgGroup::new("conflicts_with_source_lang")
-        .args(&["set_default_glossary", "clear_default_glossary"])
-        .multiple(true)
-        .conflicts_with("source_lang")),
-
-        group(ArgGroup::new("conflicts_with_target_lang")
-        .args(&["set_default_glossary", "clear_default_glossary"])
-        .multiple(true)
-        .conflicts_with("target_lang")),
     )]
     Glossary {
         /// A glossary that is being targeted.
-        #[arg(short, long, conflicts_with = "id")]
+        #[arg(short, long, conflicts_with = "id", requires = "create", requires = "remove", requires = "add_word_pairs", 
+                requires = "set_default_glossary")]
         name: Option<String>,
 
         /// The ID of the glossary that is being targeted.
-        #[arg(short, long, conflicts_with = "name")]
+        #[arg(short, long, conflicts_with = "name", requires = "create", requires = "remove", requires = "add_word_pairs", 
+                requires = "set_default_glossary")]
         id: Option<dptran::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
@@ -394,11 +376,11 @@ enum SubCommands {
         clear_default_glossary: bool,
 
         /// Source language for the glossary.
-        #[arg(short, long)]
+        #[arg(short, long, requires = "add_word_pairs", requires = "list")]
         source_lang: Option<String>,
 
         /// Target language for the glossary.
-        #[arg(short, long)]
+        #[arg(short, long, requires = "add_word_pairs", requires = "list")]
         target_lang: Option<String>,
     },
 
