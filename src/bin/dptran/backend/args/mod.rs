@@ -320,6 +320,21 @@ enum SubCommands {
             "set_default_glossary", "clear_default_glossary", "list"])
         .multiple(true)
         .conflicts_with("supported_languages")),
+
+        group(ArgGroup::new("required_by_name")
+        .args(&["name"])
+        .multiple(true)
+        .requires_all(&["create", "remove", "add_word_pairs", "list", "set_default_glossary"])),
+
+        group(ArgGroup::new("required_by_id")
+        .args(&["id"])
+        .multiple(true)
+        .requires_all(&["create", "remove", "add_word_pairs", "list", "set_default_glossary"])),
+
+        group(ArgGroup::new("name_or_id_is_required")
+        .args(&["create", "remove", "add_word_pairs", "set_default_glossary"])
+        .multiple(true)
+        .requires_all(&["name", "id"])),
     )]
     Glossary {
         /// A glossary that is being targeted.
@@ -352,7 +367,7 @@ enum SubCommands {
 
         /// Set the default glossary.
         #[arg(short='d', long)]
-        set_default_glossary: Option<String>,
+        set_default_glossary: bool,
 
         /// Clear the default glossary.
         #[arg(short='e', long)]
@@ -660,10 +675,9 @@ Please use the subcommand `dptran usage` instead.
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowSupportedLanguages);
                     arg_struct.glossary_setting.as_mut().unwrap().supported_languages = true;
                 }
-                if let Some(default_glossary) = set_default_glossary {
+                if set_default_glossary == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
                     arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
-                    arg_struct.glossary_setting.as_mut().unwrap().target_name = Some(default_glossary);
                 }
                 if clear_default_glossary == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ClearDefaultGlossary);
@@ -723,26 +737,4 @@ Please use the subcommand `dptran usage` instead.
 }
 
 #[cfg(test)]
-pub mod tests {
-    use super::*;
-
-    #[test]
-    fn parser_test() {
-        let args = vec![
-            "dptran",
-            "-f", "EN",
-            "-t", "FR",
-            "--multilines",
-            "--remove-line-breaks",
-            "-o", "output.txt",
-            "Hello, world!"
-        ];
-        let arg_struct = Args::parse_from(args);
-        assert_eq!(arg_struct.from.unwrap(), "EN".to_string());
-        assert_eq!(arg_struct.to.unwrap(), "FR".to_string());
-        assert_eq!(arg_struct.multilines, true);
-        assert_eq!(arg_struct.remove_line_breaks, true);
-        assert_eq!(arg_struct.output_file.unwrap(), "output.txt".to_string());
-        assert_eq!(arg_struct.source_text.unwrap().join(" "), "Hello, world!".to_string());
-    }
-}
+include!("tests.rs");
