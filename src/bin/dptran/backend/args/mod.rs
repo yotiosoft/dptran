@@ -358,19 +358,19 @@ enum SubCommands {
     )]
     Glossary {
         /// A glossary that is being targeted.
-        #[arg(short, long)]
+        #[arg(short, long, conflicts_with = "id")]
         name: Option<String>,
 
         /// The ID of the glossary that is being targeted.
-        #[arg(short, long)]
+        #[arg(short, long, conflicts_with = "name")]
         id: Option<dptran::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
-        #[arg(short, long, requires = "name")]
+        #[arg(short, long, requires = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
         create: bool,
 
         /// Remove the targeted glossary.
-        #[arg(short, long, requires = "name", requires = "id")]
+        #[arg(short, long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
         remove: bool,
 
         /// Add word pairs to the targeted glossary.
@@ -378,19 +378,19 @@ enum SubCommands {
         add_word_pairs: Vec<String>,
 
         /// Show all glossaries in the targeted glossary storage.
-        #[arg(short, long)]
+        #[arg(short, long, conflicts_with = "name", conflicts_with = "id")]
         list: bool,
 
         /// Show supported languages for glossaries.
-        #[arg(short='u', long)]
+        #[arg(short='u', long, conflicts_with = "name", conflicts_with = "id")]
         supported_languages: bool,
 
         /// Set the default glossary.
-        #[arg(short='d', long, requires = "name", requires = "id")]
+        #[arg(short='d', long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
         set_default_glossary: bool,
 
         /// Clear the default glossary.
-        #[arg(short='e', long)]
+        #[arg(short='e', long, conflicts_with = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
         clear_default_glossary: bool,
 
         /// Source language for the glossary.
