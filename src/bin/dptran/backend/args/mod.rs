@@ -346,25 +346,15 @@ enum SubCommands {
         .multiple(true)
         .conflicts_with("id")),
 
-        group(ArgGroup::new("required_by_create")
-        .args(&["create"])
+        group(ArgGroup::new("conflicts_with_source_lang")
+        .args(&["set_default_glossary", "clear_default_glossary"])
         .multiple(true)
-        .requires_all(&["name"])),
+        .conflicts_with("source_lang")),
 
-        group(ArgGroup::new("required_by_remove")
-        .args(&["remove"])
+        group(ArgGroup::new("conflicts_with_target_lang")
+        .args(&["set_default_glossary", "clear_default_glossary"])
         .multiple(true)
-        .requires_all(&["name", "id"])),
-
-        group(ArgGroup::new("required_by_add_word_pairs")
-        .args(&["add_word_pairs"])
-        .multiple(true)
-        .requires_all(&["name", "id", "source_lang", "target_lang"])),
-
-        group(ArgGroup::new("required_by_set_default_glossary")
-        .args(&["set_default_glossary"])
-        .multiple(true)
-        .requires_all(&["name", "id"])),
+        .conflicts_with("target_lang")),
     )]
     Glossary {
         /// A glossary that is being targeted.
@@ -376,15 +366,15 @@ enum SubCommands {
         id: Option<dptran::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
-        #[arg(short, long)]
+        #[arg(short, long, requires = "name")]
         create: bool,
 
         /// Remove the targeted glossary.
-        #[arg(short, long)]
+        #[arg(short, long, requires = "name", requires = "id")]
         remove: bool,
 
         /// Add word pairs to the targeted glossary.
-        #[arg(short, long, num_args = 1..)]
+        #[arg(short, long, num_args = 1.., requires = "name", requires = "id", requires = "source_lang", requires = "target_lang")]
         add_word_pairs: Vec<String>,
 
         /// Show all glossaries in the targeted glossary storage.
@@ -396,7 +386,7 @@ enum SubCommands {
         supported_languages: bool,
 
         /// Set the default glossary.
-        #[arg(short='d', long)]
+        #[arg(short='d', long, requires = "name", requires = "id")]
         set_default_glossary: bool,
 
         /// Clear the default glossary.
