@@ -217,3 +217,160 @@ fn illegal_args_of_glossary_test() {
     let result = Args::try_parse_from(args);
     assert!(result.is_err());
 }
+
+fn legal_args_of_glossary_test() {
+    // only --name
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--name",
+        "test_name",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // only --id
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--id",
+        "test_id",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --name with --source-lang and --target-lang
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--name",
+        "test_name",
+        "--source-lang",
+        "EN",
+        "--target-lang",
+        "JA"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --id with --source-lang and --target-lang
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--id",
+        "test_id",
+        "--source-lang",
+        "EN",
+        "--target-lang",
+        "JA"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --create with --name
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--create",
+        "--name",
+        "test_name"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --remove with --name
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--remove",
+        "--name",
+        "test_name"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --remove with --id
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--remove",
+        "--id",
+        "test_id"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --add-word-pairs with --name
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--add-word-pairs",
+        "TEST",
+        "テスト",
+        "--name",
+        "test-name",
+        "--source-lang",
+        "EN",
+        "--target-lang",
+        "JA"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --add-word-pairs with --id
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--add-word-pairs",
+        "TEST",
+        "テスト",
+        "--id",
+        "test-id",
+        "--source-lang",
+        "EN",
+        "--target-lang",
+        "JA"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --set-default-glossary with --name
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--set-default-glossary",
+        "--name",
+        "test_name"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --set-default-glossary with --id
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--set-default-glossary",
+        "--id",
+        "test_id"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --support-languages
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--support-languages",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --clear-default-glossary
+    let args = vec![
+        "dptran",
+        "glossary",
+        "--clear-default-glossary",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+}
