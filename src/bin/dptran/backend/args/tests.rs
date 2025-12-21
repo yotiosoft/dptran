@@ -218,6 +218,7 @@ fn illegal_args_of_glossary_test() {
     assert!(result.is_err());
 }
 
+#[test]
 fn legal_args_of_glossary_test() {
     // only --name
     let args = vec![
