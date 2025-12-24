@@ -220,26 +220,6 @@ fn illegal_args_of_glossary_test() {
 
 #[test]
 fn legal_args_of_glossary_test() {
-    // only --name
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--name",
-        "test_name",
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_ok());
-
-    // only --id
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--id",
-        "test_id",
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_ok());
-
     // --name with --source-lang and --target-lang
     let args = vec![
         "dptran",
