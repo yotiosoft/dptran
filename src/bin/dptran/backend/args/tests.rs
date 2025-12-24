@@ -220,7 +220,7 @@ fn illegal_args_of_glossary_test() {
 
 #[test]
 fn legal_args_of_glossary_test() {
-    // --name with --source-lang, --target-lang and --create
+    // --name with --source-lang, --target-lang and --add-word-pairs
     let args = vec![
         "dptran",
         "glossary",
@@ -230,12 +230,14 @@ fn legal_args_of_glossary_test() {
         "EN",
         "--target-lang",
         "JA",
-        "--create",
+        "--add-word-pairs",
+        "TEST",
+        "テスト"
     ];
     let result = Args::try_parse_from(args);
     assert!(result.is_ok());
 
-    // --id with --source-lang, --target-lang and --retrieve
+    // --id with --source-lang, --target-lang and --add-word-pairs
     let args = vec![
         "dptran",
         "glossary",
@@ -245,7 +247,9 @@ fn legal_args_of_glossary_test() {
         "EN",
         "--target-lang",
         "JA",
-        "--retrieve",
+        "--add-word-pairs",
+        "TEST",
+        "テスト"
     ];
     let result = Args::try_parse_from(args);
     assert!(result.is_ok());
@@ -343,7 +347,7 @@ fn legal_args_of_glossary_test() {
     let args = vec![
         "dptran",
         "glossary",
-        "--support-languages",
+        "--supported-languages",
     ];
     let result = Args::try_parse_from(args);
     assert!(result.is_ok());

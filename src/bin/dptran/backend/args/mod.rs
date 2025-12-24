@@ -318,12 +318,6 @@ enum SubCommands {
         .conflicts_with_all(&["create", "remove", "add_word_pairs", "supported_languages", "set_default_glossary", 
                 "clear_default_glossary"])),
 
-        group(ArgGroup::new("conflict_options_for_supported_languages")
-        .args(&["supported_languages"])
-        .multiple(true)
-        .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "set_default_glossary", 
-                "clear_default_glossary"])),
-
         group(ArgGroup::new("conflict_options_for_set_default_glossary")
         .args(&["set_default_glossary"])
         .multiple(true)
