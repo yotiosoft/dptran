@@ -490,4 +490,27 @@ pub mod tests {
         assert_eq!(format!("{:?}", format_tsv), "Tsv");
         assert_eq!(format!("{:?}", format_csv), "Csv");
     }
+
+    #[test]
+    fn impl_get_entries_iter() {
+        let tsv_data = "Hello\tこんにちは\nWorld\t世界";
+        let dict_post_data = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"JA".to_string(), &tsv_data.to_string(), &"tsv".to_string());
+        let mut iter = dict_post_data.get_entries_iter();
+        let first = iter.next().unwrap();
+        assert_eq!(first.0, "Hello".to_string());
+        assert_eq!(first.1, "こんにちは".to_string());
+        let second = iter.next().unwrap();
+        assert_eq!(second.0, "World".to_string());
+        assert_eq!(second.1, "世界".to_string());
+
+        let csv_data = "Hello,こんにちは\nWorld,世界";
+        let dict_post_data_csv = GlossariesApiDictionaryPostData::new(&"EN".to_string(), &"JA".to_string(), &csv_data.to_string(), &"csv".to_string());
+        let mut iter_csv = dict_post_data_csv.get_entries_iter();
+        let first_csv = iter_csv.next().unwrap();
+        assert_eq!(first_csv.0, "Hello".to_string());
+        assert_eq!(first_csv.1, "こんにちは".to_string());
+        let second_csv = iter_csv.next().unwrap();
+        assert_eq!(second_csv.0, "World".to_string());
+        assert_eq!(second_csv.1, "世界".to_string());
+    }
 }
