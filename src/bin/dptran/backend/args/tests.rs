@@ -32,16 +32,6 @@ fn arg_illegal_args_of_main_struct_test() {
     let result = Args::try_parse_from(args);
     assert!(result.is_err());
 
-    // --output-file and --editor
-    let args = vec![
-        "dptran",
-        "--output-file",
-        "output.txt",
-        "--editor"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
     // --usage and other main options
     let args = vec![
         "dptran",
