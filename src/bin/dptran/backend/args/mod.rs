@@ -120,6 +120,10 @@ pub struct GlossarySettingsStruct {
 
 #[derive(clap::Parser, Debug)]
 #[command(author, version, about, long_about = None)]
+#[command(group(
+    ArgGroup::new("main_opts")
+        .multiple(true)
+))]
 struct Args {
     /// Source text.
     source_text: Option<Vec<String>>,
