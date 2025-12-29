@@ -293,43 +293,6 @@ enum SubCommands {
     },
 
     /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
-    #[clap(
-        group(ArgGroup::new("conflict_options_for_create")
-        .args(&["create"])
-        .multiple(true)
-        .conflicts_with_all(&["remove", "add_word_pairs", "list", "supported_languages", "set_default_glossary", 
-                "clear_default_glossary"])),
-
-        group(ArgGroup::new("conflict_options_for_remove")
-        .args(&["remove"])
-        .multiple(true)
-        .conflicts_with_all(&["create", "add_word_pairs", "list", "supported_languages", "set_default_glossary", 
-                "clear_default_glossary"])),
-
-        group(ArgGroup::new("conflict_options_for_add_word_pairs")
-        .args(&["add_word_pairs"])
-        .multiple(true)
-        .conflicts_with_all(&["create", "remove", "list", "supported_languages", "set_default_glossary", 
-                "clear_default_glossary"])),
-
-        group(ArgGroup::new("conflict_options_for_list")
-        .args(&["list"])
-        .multiple(true)
-        .conflicts_with_all(&["create", "remove", "add_word_pairs", "supported_languages", "set_default_glossary", 
-                "clear_default_glossary"])),
-
-        group(ArgGroup::new("conflict_options_for_set_default_glossary")
-        .args(&["set_default_glossary"])
-        .multiple(true)
-        .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "supported_languages", 
-                "clear_default_glossary"])),
-
-        group(ArgGroup::new("conflict_options_for_clear_default_glossary")
-        .args(&["clear_default_glossary"])
-        .multiple(true)
-        .conflicts_with_all(&["create", "remove", "add_word_pairs", "list", "supported_languages", 
-                "set_default_glossary"])),
-    )]
     Glossary {
         /// A glossary that is being targeted.
         #[arg(short, long, conflicts_with = "id", requires = "create", requires = "remove", requires = "add_word_pairs", 
@@ -342,19 +305,27 @@ enum SubCommands {
         id: Option<dptran::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
-        #[arg(short, long, requires = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
+        #[arg(short, long, requires = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
+                conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
+                conflicts_with = "clear_default_glossary")]
         create: bool,
 
         /// Remove the targeted glossary.
-        #[arg(short, long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
+        #[arg(short, long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
+                conflicts_with = "create", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
+                conflicts_with = "clear_default_glossary")]
         remove: bool,
 
         /// Add word pairs to the targeted glossary.
-        #[arg(short, long, num_args = 1.., requires = "name", requires = "id", requires = "source_lang", requires = "target_lang")]
+        #[arg(short, long, num_args = 1.., requires = "name", requires = "id", requires = "source_lang", requires = "target_lang",
+                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "list", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
+                conflicts_with = "clear_default_glossary")]
         add_word_pairs: Vec<String>,
 
         /// Show all glossaries in the targeted glossary storage.
-        #[arg(short, long, conflicts_with = "name", conflicts_with = "id")]
+        #[arg(short, long, conflicts_with = "name", conflicts_with = "id",
+                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
+                conflicts_with = "clear_default_glossary")]
         list: bool,
 
         /// Show supported languages for glossaries.
@@ -362,11 +333,15 @@ enum SubCommands {
         supported_languages: bool,
 
         /// Set the default glossary.
-        #[arg(short='d', long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
+        #[arg(short='d', long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
+                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages",
+                conflicts_with = "clear_default_glossary")]
         set_default_glossary: bool,
 
         /// Clear the default glossary.
-        #[arg(short='e', long, conflicts_with = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang")]
+        #[arg(short='e', long, conflicts_with = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
+                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages", 
+                conflicts_with = "set_default_glossary")]
         clear_default_glossary: bool,
 
         /// Source language for the glossary.
