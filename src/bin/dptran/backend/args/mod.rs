@@ -477,11 +477,6 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
 
     // Usage
     if args.usage == true {
-        println!("----------------------------------------------------------
-Caution: This option will be deprecated in future versions. 
-Please use the subcommand `dptran usage` instead.
-----------------------------------------------------------");
-
         arg_struct.execution_mode = ExecutionMode::PrintUsage;
         return Ok(arg_struct);
     }
