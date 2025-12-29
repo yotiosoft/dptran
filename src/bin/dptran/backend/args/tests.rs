@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn parser_test() {
+fn arg_parser_test() {
     let args = vec![
         "dptran",
         "-f", "EN",
@@ -21,7 +21,181 @@ fn parser_test() {
 }
 
 #[test]
-fn illegal_args_of_glossary_test() {
+fn arg_illegal_args_of_main_struct_test() {
+    // --input-file and --editor
+    let args = vec![
+        "dptran",
+        "--input-file",
+        "input.txt",
+        "--editor"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+
+    // --output-file and --editor
+    let args = vec![
+        "dptran",
+        "--output-file",
+        "output.txt",
+        "--editor"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+
+    // --usage and other main options
+    let args = vec![
+        "dptran",
+        "--usage",
+        "--remove-line-breaks"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+}
+
+#[test]
+fn arg_legal_args_of_main_struct_test() {
+    // --input-file
+    let args = vec![
+        "dptran",
+        "--input-file",
+        "input.txt",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --output-file
+    let args = vec![
+        "dptran",
+        "--output-file",
+        "output.txt",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --editor
+    let args = vec![
+        "dptran",
+        "--editor",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --usage
+    let args = vec![
+        "dptran",
+        "--usage",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // ---from and --to
+    let args = vec![
+        "dptran",
+        "--from",
+        "EN",
+        "--to",
+        "FR"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --multilines
+    let args = vec![
+        "dptran",
+        "--multilines",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --remove-line-breaks
+    let args = vec![
+        "dptran",
+        "--remove-line-breaks",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // --no-cache
+    let args = vec![
+        "dptran",
+        "--no-cache",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+
+    // combination of main options except --usage
+    let args = vec![
+        "dptran",
+        "--from",
+        "EN",
+        "--to",
+        "FR",
+        "--multilines",
+        "--remove-line-breaks",
+        "--no-cache",
+        "--output-file",
+        "output.txt"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn arg_config_illegal_multi_options_test() {
+    // --set-api-key and --show-config
+    let args = vec![
+        "dptran",
+        "config",
+        "--set-api-key",
+        "test_api_key",
+        "--show-config"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+    
+    // --set-default-target-lang and --show-config
+    let args = vec![
+        "dptran",
+        "config",
+        "--set-default-target-lang",
+        "FR",
+        "--show-config"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+}
+
+#[test]
+fn arg_api_illegal_multi_options_test() {
+    // --usage and --list-translations
+    let args = vec![
+        "dptran",
+        "api",
+        "--api-key-free",
+        "ABCDEF",
+        "--api-key-pro",
+        "123456",
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+}
+
+#[test]
+fn arg_cache_illegal_multi_options_test() {
+    // --max-entries and --clear
+    let args = vec![
+        "dptran",
+        "cache",
+        "--max-entries",
+        "100",
+        "--clear"
+    ];
+    let result = Args::try_parse_from(args);
+    assert!(result.is_err());
+}
+
+#[test]
+fn arg_illegal_args_of_glossary_test() {
     // --name and --id
     let args = vec![
         "dptran",
@@ -219,7 +393,7 @@ fn illegal_args_of_glossary_test() {
 }
 
 #[test]
-fn legal_args_of_glossary_test() {
+fn arg_legal_args_of_glossary_test() {
     // --name with --source-lang, --target-lang and --add-word-pairs
     let args = vec![
         "dptran",

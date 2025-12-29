@@ -119,48 +119,53 @@ pub struct GlossarySettingsStruct {
 }
 
 #[derive(clap::Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None,
+    group(
+        ArgGroup::new("input_vers")
+            .args(["usage"])
+            .multiple(false)
+))] 
 struct Args {
     /// Source text.
     source_text: Option<Vec<String>>,
 
     /// Set source language.
     /// If not specified, the source language is automatically detected.
-    #[arg(short, long)]
+    #[arg(short, long, group = "main_opts")]
     from: Option<String>,
 
     /// Set target language.
     /// If not specified, the target language is set to the default target language.
-    #[arg(short, long)]
+    #[arg(short, long, group = "main_opts")]
     to: Option<String>,
 
     /// Input multiple lines.
-    #[arg(short, long)]
+    #[arg(short, long, group = "main_opts")]
     multilines: bool,
 
     /// Remove line breaks from the input text.
-    #[arg(short, long)]
+    #[arg(short, long, group = "main_opts")]
     remove_line_breaks: bool,
 
     /// Do not cache translations.
-    #[arg(long)]
+    #[arg(long, group = "main_opts")]
     no_cache: bool,
 
     /// Print usage of DeepL API. (This option will be deprecated in future versions. Please use `dptran usage` instead.)
-    #[arg(short, long)]
+    #[arg(short, long, conflicts_with = "main_opts")]
     usage: bool,
 
     /// Input file.
-    #[arg(short, long)]
+    #[arg(short, long, conflicts_with = "editor", group = "main_opts")]
     input_file: Option<String>,
 
     /// Output file.
-    #[arg(short, long)]
+    #[arg(short, long, group = "main_opts")]
     output_file: Option<String>,
 
     /// Editor mode.
     /// The editor can be configured by `dptran config -e <editor_command>`
-    #[arg(short, long)]
+    #[arg(short, long, conflicts_with = "input_file", group = "main_opts")]
     editor: bool,
 
     /// subcommands
@@ -174,7 +179,8 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("list_vers")
             .required(true)
-            .args(["source_langs", "target_langs"]),
+            .args(["source_langs", "target_langs"])
+            .multiple(false)
     ))]
     List {
         /// List source languages
@@ -191,6 +197,7 @@ enum SubCommands {
         ArgGroup::new("setting_vers")
             .required(true)
             .args(["target_lang", "editor_command", "show", "clear_all"])
+            .multiple(false)
     ))]
     Config {
         /// Set default target language.
@@ -217,6 +224,7 @@ enum SubCommands {
             .args(["api_key_free", "api_key_pro", "clear_free_api_key", "clear_pro_api_key",
                     "endpoint_of_translation", "endpoint_of_usage", "endpoint_of_langs",
                     "clear_endpoints", "show", "clear_all"])
+            .multiple(false)
     ))]
     Api {
         /// Set DeepL API key (free).
@@ -272,7 +280,8 @@ enum SubCommands {
     #[command(group(
         ArgGroup::new("cache_vers")
             .required(true)
-            .args(["max_entries", "clear"]),
+            .args(["max_entries", "clear"])
+            .multiple(false)
     ))]
     Cache {
         /// Enable cache.
