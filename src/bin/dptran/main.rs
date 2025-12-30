@@ -1732,7 +1732,7 @@ mod runtime_tests {
         // Remove glossary (if exists)
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
-        let text = cmd.arg("run")
+        let _ = cmd.arg("run")
             .arg("--release")
             .arg("--")
             .arg("glossary")
@@ -1740,11 +1740,6 @@ mod runtime_tests {
             .arg("--name")
             .arg("test_glossary_id")
             .output();
-        assert!(text.is_ok());
-        let text = text.unwrap();
-        if text.status.success() != true {
-            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
-        }
 
         // Create glossary
         let mut cmd = Command::new("cargo");
