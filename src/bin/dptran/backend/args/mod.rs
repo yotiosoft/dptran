@@ -57,8 +57,6 @@ pub enum GlossarySettingsTarget {
     AddWordPairs,
     ShowGlossaries,
     ShowSupportedLanguages,
-    SetDefaultGlossary,
-    ClearDefaultGlossary,
 }
 
 #[derive(Clone, Debug)]
@@ -114,7 +112,6 @@ pub struct GlossarySettingsStruct {
     pub add_word_pairs: Option<Vec<String>>,
     pub show_glossaries: bool,
     pub supported_languages: bool,
-    pub set_default_glossary: bool,
     pub source_lang: Option<String>,
     pub target_lang: Option<String>,
 }
@@ -308,54 +305,36 @@ enum SubCommands {
     /// Glossary settings such as creating/deleting glossaries, showing glossaries, and setting default glossary.
     Glossary {
         /// A glossary that is being targeted.
-        #[arg(short, long, conflicts_with = "id", requires = "create", requires = "remove", requires = "add_word_pairs", 
-                requires = "set_default_glossary")]
+        #[arg(short, long, conflicts_with = "id", requires = "create", requires = "remove", requires = "add_word_pairs")]
         name: Option<String>,
 
         /// The ID of the glossary that is being targeted.
-        #[arg(short, long, conflicts_with = "name", requires = "create", requires = "remove", requires = "add_word_pairs", 
-                requires = "set_default_glossary")]
+        #[arg(short, long, conflicts_with = "name", requires = "create", requires = "remove", requires = "add_word_pairs")]
         id: Option<dptran::GlossaryID>,
 
         /// Create a new glossary with the targeted glossary name.
         #[arg(short, long, requires = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
-                conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
-                conflicts_with = "clear_default_glossary")]
+                conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages")]
         create: bool,
 
         /// Remove the targeted glossary.
         #[arg(short, long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
-                conflicts_with = "create", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
-                conflicts_with = "clear_default_glossary")]
+                conflicts_with = "create", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages")]
         remove: bool,
 
         /// Add word pairs to the targeted glossary.
         #[arg(short, long, num_args = 1.., requires = "name", requires = "id", requires = "source_lang", requires = "target_lang",
-                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "list", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
-                conflicts_with = "clear_default_glossary")]
+                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "list", conflicts_with = "supported_languages")]
         add_word_pairs: Vec<String>,
 
         /// Show all glossaries in the targeted glossary storage.
         #[arg(short, long, conflicts_with = "name", conflicts_with = "id",
-                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "supported_languages", conflicts_with = "set_default_glossary", 
-                conflicts_with = "clear_default_glossary")]
+                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "supported_languages")]
         list: bool,
 
         /// Show supported languages for glossaries.
         #[arg(short='u', long, conflicts_with = "name", conflicts_with = "id")]
         supported_languages: bool,
-
-        /// Set the default glossary.
-        #[arg(short='d', long, requires = "name", requires = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
-                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages",
-                conflicts_with = "clear_default_glossary")]
-        set_default_glossary: bool,
-
-        /// Clear the default glossary.
-        #[arg(short='e', long, conflicts_with = "name", conflicts_with = "id", conflicts_with = "source_lang", conflicts_with = "target_lang",
-                conflicts_with = "create", conflicts_with = "remove", conflicts_with = "add_word_pairs", conflicts_with = "list", conflicts_with = "supported_languages", 
-                conflicts_with = "set_default_glossary")]
-        clear_default_glossary: bool,
 
         /// Source language for the glossary.
         #[arg(short, long, requires = "add_word_pairs", requires = "list")]
@@ -460,7 +439,6 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             add_word_pairs: None,
             show_glossaries: false,
             supported_languages: false,
-            set_default_glossary: false,
             source_lang: None,
             target_lang: None,
         }),
@@ -628,7 +606,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 return Ok(arg_struct);
             }
             SubCommands::Glossary { name, id, create, remove, add_word_pairs,
-                    list, supported_languages, set_default_glossary, clear_default_glossary,
+                    list, supported_languages,
                     source_lang, target_lang } => {
                 arg_struct.execution_mode = ExecutionMode::GlossarySettings;
                 if let Some(name) = name {
@@ -659,13 +637,6 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
                 if supported_languages == true {
                     arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ShowSupportedLanguages);
                     arg_struct.glossary_setting.as_mut().unwrap().supported_languages = true;
-                }
-                if set_default_glossary == true {
-                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::SetDefaultGlossary);
-                    arg_struct.glossary_setting.as_mut().unwrap().set_default_glossary = true;
-                }
-                if clear_default_glossary == true {
-                    arg_struct.glossary_setting.as_mut().unwrap().setting_target = Some(GlossarySettingsTarget::ClearDefaultGlossary);
                 }
                 if let Some(source_lang) = source_lang {
                     arg_struct.glossary_setting.as_mut().unwrap().source_lang = Some(source_lang);

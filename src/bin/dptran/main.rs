@@ -580,30 +580,6 @@ fn handle_glossary_settings(glossary_setting_struct: backend::args::GlossarySett
             };
             backend::add_word_pairs_to_glossary(&dptran, &mut glossary, &word_vec, &source_lang, &target_lang)?;
         },
-        backend::args::GlossarySettingsTarget::SetDefaultGlossary => {
-            // Is the glossary specified?
-            let glossary = backend::get_glossaries_data(&dptran, &glossary_setting_struct.target_name, &glossary_setting_struct.target_id)?;
-
-            // Is the glossary already set as default?
-            let mut config = backend::get_config()?;
-            if let Some(default_glossary_id) = config.get_default_glossary().map_err(|e| RuntimeError::ConfigError(e))? {
-                if let Some(glossary_id) = &glossary.id {
-                    if default_glossary_id == *glossary_id {
-                        println!("The glossary \"{}\" is already set as the default glossary.", glossary.name);
-                        return Ok(());
-                    }
-                }
-            }
-
-            // Set as default glossary
-            config.set_default_glossary(&glossary).map_err(|e| RuntimeError::ConfigError(e))?;
-            println!("The glossary \"{}\" has been set as the default glossary.", glossary.name);
-        },
-        backend::args::GlossarySettingsTarget::ClearDefaultGlossary => {
-            let mut config = backend::get_config()?;
-            config.reset_default_glossary().map_err(|e| RuntimeError::ConfigError(e))?;
-            println!("The default glossary has been cleared.");
-        },
     }
     
     Ok(())  /* Placeholder */
@@ -1795,23 +1771,6 @@ mod runtime_tests {
             panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
         }
 
-        // Set default glossary
-        let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let text = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("glossary")
-            .arg("--set-default-glossary")
-            .arg("--name")
-            .arg("test_glossary_id")
-            .output();
-        assert!(text.is_ok());
-        let text = text.unwrap();
-        if text.status.success() != true {
-            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
-        }
-
         // Use glossary in translation
         let mut cmd = Command::new("cargo");
         std::thread::sleep(std::time::Duration::from_secs(2));
@@ -1823,6 +1782,8 @@ mod runtime_tests {
             .arg("en")
             .arg("-f")
             .arg("fr")
+            .arg("-g")
+            .arg("test_glossary_id")
             .output();
         assert!(text.is_ok());
         let text = text.unwrap();
@@ -1839,27 +1800,14 @@ mod runtime_tests {
             .arg("Bonjour tout le monde!")
             .arg("-t")
             .arg("en")
+            .arg("-g")
+            .arg("test_glossary_id")
             .output();
         // must be error
         assert!(text.is_ok());
         let text = text.unwrap();
         if text.status.success() == true {
             panic!("Error: Expected failure when source language is not specified.");
-        }
-
-        // Clear default glossary
-        let mut cmd = Command::new("cargo");
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let text = cmd.arg("run")
-            .arg("--release")
-            .arg("--")
-            .arg("glossary")
-            .arg("--clear-default-glossary")
-            .output();
-        assert!(text.is_ok());
-        let text = text.unwrap();
-        if text.status.success() != true {
-            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
         }
 
         // Remove glossary

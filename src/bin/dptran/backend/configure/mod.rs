@@ -155,24 +155,9 @@ impl ConfigureWrapper {
         Ok(())
     }
 
-    /// Set default glossary
-    pub fn set_default_glossary(&mut self, glossary_data: &dptran::Glossary) -> Result<(), ConfigError> {
-        let glossary_id = glossary_data.id.clone().ok_or(ConfigError::FailToSetDefaultGlossary("Glossary ID is not set".to_string()))?;
-        self.configure.default_glossary = Some(glossary_id);
-        self.save().map_err(|e| ConfigError::FailToSetDefaultGlossary(e.to_string()))?;
-        Ok(())
-    }
-
     /// Get default glossary
     pub fn get_default_glossary(&self) -> Result<Option<String>, ConfigError> {
         Ok(self.configure.default_glossary.clone())
-    }
-
-    /// Reset default glossary
-    pub fn reset_default_glossary(&mut self) -> Result<(), ConfigError> {
-        self.configure.default_glossary = None;
-        self.save().map_err(|e| ConfigError::FailToSetDefaultGlossary(e.to_string()))?;
-        Ok(())
     }
 
     /// Set endpoint of translation API

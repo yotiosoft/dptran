@@ -284,15 +284,6 @@ fn arg_illegal_args_of_glossary_test() {
     let result = Args::try_parse_from(args);
     assert!(result.is_err());
 
-    // --set-default-glossary without "--name" or "--id"
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--set-default-glossary"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
     // --support-languages with --name
     let args = vec![
         "dptran",
@@ -311,72 +302,6 @@ fn arg_illegal_args_of_glossary_test() {
         "--support-languages",
         "--id",
         "test_id"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
-    // --clear-default-glossary with --name
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--clear-default-glossary",
-        "--name",
-        "test_name"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
-    // --clear-default-glossary with --id
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--clear-default-glossary",
-        "--id",
-        "test_id"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
-    // --set-default-glossary with --source-lang
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--set-default-glossary",
-        "--source-lang",
-        "EN"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
-    // --set-default-glossary with --target-lang
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--set-default-glossary",
-        "--target-lang",
-        "JA"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
-    // --clear-default-glossary with --source-lang
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--clear-default-glossary",
-        "--source-lang",
-        "EN"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_err());
-
-    // --clear-default-glossary with --target-lang
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--clear-default-glossary",
-        "--target-lang",
-        "JA"
     ];
     let result = Args::try_parse_from(args);
     assert!(result.is_err());
@@ -485,42 +410,11 @@ fn arg_legal_args_of_glossary_test() {
     let result = Args::try_parse_from(args);
     assert!(result.is_ok());
 
-    // --set-default-glossary with --name
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--set-default-glossary",
-        "--name",
-        "test_name"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_ok());
-
-    // --set-default-glossary with --id
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--set-default-glossary",
-        "--id",
-        "test_id"
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_ok());
-
     // --support-languages
     let args = vec![
         "dptran",
         "glossary",
         "--supported-languages",
-    ];
-    let result = Args::try_parse_from(args);
-    assert!(result.is_ok());
-
-    // --clear-default-glossary
-    let args = vec![
-        "dptran",
-        "glossary",
-        "--clear-default-glossary",
     ];
     let result = Args::try_parse_from(args);
     assert!(result.is_ok());
