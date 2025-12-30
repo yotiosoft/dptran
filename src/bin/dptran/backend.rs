@@ -297,17 +297,22 @@ pub fn delete_glossary(api: &dptran::DpTran, glossary: &dptran::glossaries::Glos
 /// Retrive glossaries data.
 pub fn get_glossaries_data(api: &dptran::DpTran, glossary_name: &Option<String>, glossary_id: &Option<dptran::glossaries::GlossaryID>) -> Result<dptran::glossaries::Glossary, RuntimeError> {
     let registered_glossaries = glossaries::GlossariesWrapper::get_glossaries(api).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
-    let glossary = if let Some(glossary_name) = glossary_name {
-        registered_glossaries.search_by_name(glossary_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
-    } else if let Some(glossary_id) = glossary_id {
-        registered_glossaries.search_by_id(glossary_id).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?
-    } else {
-        return Err(RuntimeError::TargetGlossaryNotSpecified);
-    };
-    match glossary {
-        Some(glossary) => Ok(glossary),
-        None => Err(RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryIsNotRegisteredError))),
+    if let Some(glossary_name) = glossary_name {
+        let glossary = registered_glossaries.search_by_name(glossary_name).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+        if let Some(g) = glossary {
+            return Ok(g);
+        }
     }
+    if let Some(glossary_id) = glossary_id {
+        let glossary = registered_glossaries.search_by_id(glossary_id).map_err(|e| RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryError(e.to_string()))))?;
+        if let Some(g) = glossary {
+            return Ok(g);
+        }
+    }
+    if glossary_name.is_none() && glossary_id.is_none() {
+        return Err(RuntimeError::TargetGlossaryNotSpecified);
+    }
+    Err(RuntimeError::DeeplApiError(DpTranError::DeeplApiError(dptran::DeeplAPIError::GlossaryIsNotRegisteredError)))
 }
 
 /// Get all registered glossaries.

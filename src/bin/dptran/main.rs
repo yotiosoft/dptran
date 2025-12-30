@@ -927,7 +927,7 @@ fn translation_loop(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: O
 
 /// Start translation process.
 fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, translate_to: Option<String>, 
-                            multilines: bool, remove_line_breaks: bool, no_cache: bool, 
+                            glossary: Option<String>, multilines: bool, remove_line_breaks: bool, no_cache: bool, 
                             source_text: Option<String>, ofile_path: Option<String>) -> Result<(), RuntimeError> {
     let mut source_lang = translate_from;
     let mut target_lang = translate_to;
@@ -969,8 +969,14 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
     };
 
     // Glossary
-    let glossary_id = if let Some(default_glossary) = backend::get_config()?.get_default_glossary().map_err(|e| RuntimeError::ConfigError(e))? {
-        Some(default_glossary)
+    let glossary_id = if let Some(glossary_name_or_id) = glossary {
+        let glossary = backend::get_glossaries_data(&dptran, &Some(glossary_name_or_id.clone()), &Some(glossary_name_or_id.clone()))?;
+        if let Some(id) = glossary.id {
+            Some(id)
+        } else {
+            println!("Caution: The specified glossary name or ID does not exist.");
+            None
+        }
     } else {
         None
     };
@@ -978,7 +984,6 @@ fn handle_translation(mode: ExecutionMode, translate_from: Option<String>, trans
     // (Dialogue &) Translation
     translation_loop(&dptran, mode, source_lang, target_lang.unwrap(), 
             multilines, remove_line_breaks, no_cache, source_text, &ofile, &glossary_id)?;
-
     Ok(())
 }
 
@@ -1020,6 +1025,7 @@ fn main() -> Result<(), RuntimeError> {
         ExecutionMode::TranslateNormal | ExecutionMode::TranslateInteractive => {
             handle_translation(mode, arg_struct.translate_from, 
                                 arg_struct.translate_to, 
+                                arg_struct.glossary,
                                 arg_struct.multilines, 
                                 arg_struct.remove_line_breaks, 
                                 arg_struct.no_cache,

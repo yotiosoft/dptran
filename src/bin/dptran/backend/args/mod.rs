@@ -65,6 +65,7 @@ pub enum GlossarySettingsTarget {
 pub struct ArgStruct {
     pub execution_mode: ExecutionMode,
     pub translate_from: Option<String>,
+    pub glossary: Option<String>,
     pub multilines: bool,
     pub remove_line_breaks: bool,
     pub no_cache: bool,
@@ -137,6 +138,10 @@ struct Args {
     /// If not specified, the target language is set to the default target language.
     #[arg(short, long, group = "main_opts")]
     to: Option<String>,
+
+    /// Translate with glossary. Set the glossary name or glossary ID.
+    #[arg(short, long, group = "main_opts")]
+    glossary: Option<String>,
 
     /// Input multiple lines.
     #[arg(short, long, group = "main_opts")]
@@ -420,6 +425,7 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
         execution_mode: ExecutionMode::TranslateInteractive,
         translate_from: None,
         translate_to: None,
+        glossary: None,
         multilines: false,
         remove_line_breaks: false,
         no_cache: false,
@@ -459,6 +465,11 @@ pub fn parser() -> Result<ArgStruct, RuntimeError> {
             target_lang: None,
         }),
     };
+
+    // Glossary
+    if let Some(glossary) = args.glossary {
+        arg_struct.glossary = Some(glossary);
+    }
 
     // Multilines
     if args.multilines == true {
