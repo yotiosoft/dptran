@@ -155,11 +155,6 @@ impl ConfigureWrapper {
         Ok(())
     }
 
-    /// Get default glossary
-    pub fn get_default_glossary(&self) -> Result<Option<String>, ConfigError> {
-        Ok(self.configure.default_glossary.clone())
-    }
-
     /// Set endpoint of translation API
     pub fn set_endpoint_of_translation(&mut self, endpoint: String) -> Result<(), ConfigError> {
         self.configure.endpoint_of_translation = Some(endpoint);
