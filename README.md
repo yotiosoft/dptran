@@ -17,12 +17,14 @@ English | [日本語版](README_JA.md)
 - Support for multi-line input, output to file, and removing line breaks
 - DeepL API Free / Pro support
 - Language code lookup and character usage tracking
+- Glossary utilization (v2.4.0 or later)
 - Result caching
 
 ### Library
 
 - API client for DeepL translation
 - Language code and usage queries
+- Glossary registration and management (v2.4.0 or later)
 
 ## Installation
 
@@ -99,7 +101,6 @@ dptran -e
 - -i [FILE] Input from file
 - -o [FILE] Output to file
 - -r Remove line breaks
-- -u Show character usage
 
 For more options and detailed usage, run:
 ```bash
@@ -108,11 +109,13 @@ dptran -h
 
 ### Subcommands
 
-- `list`   : Show list of supported languages (-s for source languages, -t for target languages)
-- `config` : General settings such as default target language and editor command
-- `api`    : API settings such as API keys and endpoint URLs
-- `cache`  : Cache settings such as enabling/disabling cache, setting max entries, and clearing cache
-- `help`   : Print this message or the help of the given subcommand(s)
+- `usage`    : Show character usage
+- `list`     : Show list of supported languages (-s for source languages, -t for target languages)
+- `glossary` : Manage glossaries (create, delete, list, add/remove word pairs)
+- `config`   : General settings such as default target language and editor command
+- `api`      : API settings such as API keys and endpoint URLs
+- `cache`    : Cache settings such as enabling/disabling cache, setting max entries, and clearing cache
+- `help`     : Print this message or the help of the given subcommand(s)
 
 ### Configuration
 Change default target language:
@@ -124,6 +127,43 @@ Reset all settings:
 
 ```bash
 dptran config --clear-all
+```
+
+### Glossary Settings (glossaries API)
+
+You can create and manage glossaries using the glossaries API to customize translations for specific words and phrases.
+
+1. Create a glossary:
+
+```bash
+dptran glossary --create --name my_glossary
+```
+
+2. Add word pairs to the glossary:
+
+```bash
+dptran glossary --add-word-pairs --name my_glossary --source-lang EN --target-lang JA --word-pairs "Hello=こんにちは,Goodbye=さようなら"
+```
+
+3. List glossaries:
+
+```bash
+dptran glossary --list
+```
+
+4. Set the glossary as default:
+
+```bash
+dptran glossary --set-default-glossary --name my_glossary
+```
+
+5. Remove the glossary:
+
+```bash
+# Clear default glossary
+dptran glossary --clear-default-glossary
+# Remove glossary
+dptran glossary --remove --name my_glossary
 ```
 
 ### Setting API Endpoint
@@ -168,6 +208,14 @@ Licensed under either of:
 - Apache License 2.0
 
 ## Release Notes
+
+- v2.4.0 (2025-12-30)
+  - Binary CLI: Add support for Glossaries API
+  - Binary CLI: Add validation to prevent incorrect option combinations
+  - Binary CLI: Improve error handling
+  - Binary CLI: Add `dptran usage` command
+  - Library: Add support for Glossaries API
+  - Library: Comply with DeepL API query structures. Support specifying all parameters for supported APIs.
 
 - v2.3.4 (2025-10-04)
   - Binary CLI: Support inputting commands in interactive mode (`/quit`, `/help`, `/from`, `/to`, etc.)

@@ -17,12 +17,14 @@
 - 複数行入力、ファイルへの出力、改行の削除をサポート
 - DeepL API Free / Pro をサポート
 - 言語コードの検索と文字使用状況の追跡
+- 用語集の利用
 - 結果のキャッシュ
 
 ### ライブラリ
 
 - DeepL 翻訳用の API クライアント
 - 言語コードと使用状況のクエリ
+- 用語集の登録・管理
 
 ## インストール
 
@@ -101,7 +103,6 @@ dptran -e
 - -i [FILE] ファイルから入力
 - -o [FILE] ファイルに出力
 - -r 改行を削除
-- -u 文字使用状況を表示
 
 その他のオプションと詳細な使用法については、以下を実行してください。
 ```bash
@@ -110,11 +111,13 @@ dptran -h
 
 ### サブコマンド
 
-- `list`   : サポートされている言語のリストを表示 (-s はソース言語、-t はターゲット言語)
-- `config` : デフォルトのターゲット言語やエディタコマンドなどの一般設定
-- `api`    : APIキーやエンドポイントURLなどのAPI設定
-- `cache`  : キャッシュの有効/無効、最大エントリ数の設定、キャッシュのクリアなどのキャッシュ設定
-- `help`   : このメッセージまたは指定されたサブコマンドのヘルプを表示
+- `usage`    : 文字使用状況を表示
+- `list`     : サポートされている言語のリストを表示 (-s はソース言語、-t はターゲット言語)
+- `glossary` : 用語集の管理（作成、削除、リスト表示、単語ペアの追加/削除）
+- `config`   : デフォルトのターゲット言語やエディタコマンドなどの一般設定
+- `api`      : APIキーやエンドポイントURLなどのAPI設定
+- `cache`    : キャッシュの有効/無効、最大エントリ数の設定、キャッシュのクリアなどのキャッシュ設定
+- `help`     : このメッセージまたは指定されたサブコマンドのヘルプを表示
 
 ### 設定
 デフォルトのターゲット言語を変更:
@@ -126,6 +129,43 @@ dptran config --target-lang JA
 
 ```bash
 dptran config --clear-all
+```
+
+### 用語集の設定 (glossaries API)
+
+glossaries API を使用して、特定の単語やフレーズの翻訳をカスタマイズするために、用語集を作成および管理できます。
+
+1. 用語集を作成:
+
+```bash
+dptran glossary --create --name my_glossary
+```
+
+2. 用語集に単語ペアを追加:
+
+```bash
+dptran glossary --add-word-pairs --name my_glossary --source-lang EN --target-lang JA --word-pairs "Hello=こんにちは,Goodbye=さようなら"
+```
+
+3. 用語集のリストを表示:
+
+```bash
+dptran glossary --list
+```
+
+4. 用語集をデフォルトに設定:
+
+```bash
+dptran glossary --set-default-glossary --name my_glossary
+```
+
+5. 用語集を削除:
+
+```bash
+# デフォルト用語集を削除
+dptran glossary --clear-default-glossary
+# 用語集を削除
+dptran glossary --remove --name my_glossary
 ```
 
 ### API エンドポイントの設定
@@ -170,6 +210,14 @@ crate page : https://crates.io/crates/dptran
 - Apache License 2.0
 
 ## リリースノート
+
+- v2.4.0 (2025-12-30)
+  - バイナリ CLI: Glossaries API のサポートを追加
+  - バイナリ CLI: 正しくないオプションの組み合わせを防止するためのバリデーションを追加
+  - バイナリ CLI: エラーハンドリングを改善
+  - バイナリ CLI: `dptran usage` コマンドを追加
+  - ライブラリ: Glossaries API のサポートを追加
+  - ライブラリ: DeepL API のクエリ構造体に準拠。対応している API のすべてのパラメータの指定に対応
 
 - v2.3.4 (2025-10-04)
   - バイナリ CLI: interactive モードでのコマンド入力をサポート（`/quit`, `/help`, `/from`, `/to`, etc.）
