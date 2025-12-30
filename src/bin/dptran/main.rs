@@ -820,6 +820,12 @@ fn do_translation(dptran: &dptran::DpTran, mode: ExecutionMode, source_lang: &Op
     } else {
         // translate
         let result = if let Some(glossary_id) = glossary_id {
+            // source_lang must be Some when using glossary
+            if let None = source_lang {
+                println!("Caution: Source language must be specified when using glossary.");
+                return Err(RuntimeError::SourceLanguageIsNotSet);
+            }
+            // do translation with glossary
             dptran.translate_with_glossary(&input, &target_lang, &source_lang, glossary_id)
                 .map_err(|e| RuntimeError::DeeplApiError(e))?
         } else {
@@ -1727,6 +1733,139 @@ mod runtime_tests {
             .arg("--")
             .arg("cache")
             .arg("--help")
+            .output();
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+    }
+
+    #[test]
+    fn runtime_glossary_tests() {
+        // Reset configuration.
+        reset_general_settings();
+        reset_api_settings();
+
+        // Create glossary
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("glossary")
+            .arg("--create")
+            .arg("--name")
+            .arg("test_glossary_id")
+            .output();
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+        
+        // Add word pairs
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("glossary")
+            .arg("--name")
+            .arg("test_glossary_id")
+            .arg("--source-lang")
+            .arg("FR")
+            .arg("--target-lang")
+            .arg("EN")
+            .arg("--add-word-pairs")
+            .arg("Bonjour")
+            .arg("Hello")
+            .arg("tout le monde")
+            .arg("everyone")
+            .output();
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Set default glossary
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("glossary")
+            .arg("--set-default-glossary")
+            .arg("--name")
+            .arg("test_glossary_id")
+            .output();
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Use glossary in translation
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Bonjour tout le monde!")
+            .arg("-t")
+            .arg("en")
+            .arg("-f")
+            .arg("fr")
+            .output();
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Use glossary in translation without source language (must work because glossary has source language)
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("Bonjour tout le monde!")
+            .arg("-t")
+            .arg("en")
+            .output();
+        // must be error
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() == true {
+            panic!("Error: Expected failure when source language is not specified.");
+        }
+
+        // Clear default glossary
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("glossary")
+            .arg("--clear-default-glossary")
+            .output();
+        assert!(text.is_ok());
+        let text = text.unwrap();
+        if text.status.success() != true {
+            panic!("Error: {}", String::from_utf8_lossy(&text.stderr));
+        }
+
+        // Remove glossary
+        let mut cmd = Command::new("cargo");
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let text = cmd.arg("run")
+            .arg("--release")
+            .arg("--")
+            .arg("glossary")
+            .arg("--remove")
+            .arg("--name")
+            .arg("test_glossary_id")
             .output();
         assert!(text.is_ok());
         let text = text.unwrap();

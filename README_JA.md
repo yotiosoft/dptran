@@ -144,7 +144,7 @@ dptran glossary --create --name my_glossary
 2. 用語集に単語ペアを追加:
 
 ```bash
-dptran glossary --add-word-pairs --name my_glossary --source-lang EN --target-lang JA --word-pairs "Hello=こんにちは,Goodbye=さようなら"
+dptran glossary --name my_glossary --source-lang EN --target-lang JA --add-word-pairs "Hello" "こんにちは" "Goodbye" "さようなら"
 ```
 
 3. 用語集のリストを表示:
