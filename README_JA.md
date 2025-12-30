@@ -17,14 +17,14 @@
 - 複数行入力、ファイルへの出力、改行の削除をサポート
 - DeepL API Free / Pro をサポート
 - 言語コードの検索と文字使用状況の追跡
-- 用語集の利用
+- 用語集の利用 (v2.4.0以降)
 - 結果のキャッシュ
 
 ### ライブラリ
 
 - DeepL 翻訳用の API クライアント
 - 言語コードと使用状況のクエリ
-- 用語集の登録・管理
+- 用語集の登録・管理 (v2.4.0以降)
 
 ## インストール
 
@@ -63,7 +63,7 @@ dptran Hello
 こんにちは
 
 # ターゲット言語を指定して翻訳
-dptran -t JA Hello
+dptran -t FR Hello
 Bonjour
 
 # ソース言語を指定して翻訳
@@ -84,7 +84,7 @@ dptran -i text.txt -o translated.txt
 # translated.txt ファイルに翻訳結果が保存される
 
 # パイプラインで翻訳
-echo "Hello" | dptran -t JA
+echo "Hello" | dptran -t ZH
 您好
 
 # 改行を削除して翻訳
@@ -103,6 +103,7 @@ dptran -e
 - -i [FILE] ファイルから入力
 - -o [FILE] ファイルに出力
 - -r 改行を削除
+- -g [GLOSSARY_NAME] 用語集を使用
 
 その他のオプションと詳細な使用法については、以下を実行してください。
 ```bash
@@ -144,7 +145,7 @@ dptran glossary --create --name my_glossary
 2. 用語集に単語ペアを追加:
 
 ```bash
-dptran glossary --name my_glossary --source-lang EN --target-lang JA --add-word-pairs "Hello" "こんにちは" "Goodbye" "さようなら"
+dptran glossary --name my_glossary --source-lang EN --target-lang FR --add-word-pairs "Hello" "Bonjour" "Goodbye" "Au revoir"
 ```
 
 3. 用語集のリストを表示:
@@ -153,18 +154,15 @@ dptran glossary --name my_glossary --source-lang EN --target-lang JA --add-word-
 dptran glossary --list
 ```
 
-4. 用語集をデフォルトに設定:
+4. 用語集を利用する (`-g` オプション)
 
 ```bash
-dptran glossary --set-default-glossary --name my_glossary
+dptran -f EN -t FR -g my_glossary Hello
 ```
 
 5. 用語集を削除:
 
 ```bash
-# デフォルト用語集を削除
-dptran glossary --clear-default-glossary
-# 用語集を削除
 dptran glossary --remove --name my_glossary
 ```
 

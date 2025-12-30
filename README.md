@@ -101,6 +101,7 @@ dptran -e
 - -i [FILE] Input from file
 - -o [FILE] Output to file
 - -r Remove line breaks
+- -g [GLOSSARY_NAME] Use glossary
 
 For more options and detailed usage, run:
 ```bash
@@ -142,7 +143,7 @@ dptran glossary --create --name my_glossary
 2. Add word pairs to the glossary:
 
 ```bash
-dptran glossary --add-word-pairs --name my_glossary --source-lang EN --target-lang JA --word-pairs "Hello=こんにちは,Goodbye=さようなら"
+dptran glossary --name my_glossary --source-lang EN --target-lang FR --add-word-pairs "Hello" "Bonjour" "Goodbye" "Au revoir"
 ```
 
 3. List glossaries:
@@ -151,18 +152,15 @@ dptran glossary --add-word-pairs --name my_glossary --source-lang EN --target-la
 dptran glossary --list
 ```
 
-4. Set the glossary as default:
+4. Use the glossary (`-g` option):
 
 ```bash
-dptran glossary --set-default-glossary --name my_glossary
+dptran -f EN -t FR -g my_glossary Hello
 ```
 
 5. Remove the glossary:
 
 ```bash
-# Clear default glossary
-dptran glossary --clear-default-glossary
-# Remove glossary
 dptran glossary --remove --name my_glossary
 ```
 
@@ -192,8 +190,8 @@ Some require dummy API server to be running.
 The dummey server will be run at `http://localhost:8000/` by default.
 
 ```bash
-$ pip3 install -r requirements.txt
-$ uvicorn dummy_api_server.main:app --reload
+pip3 install -r requirements.txt
+uvicorn dummy_api_server.main:app --reload
 ```
 
 ## Documentation
